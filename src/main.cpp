@@ -1,9 +1,20 @@
 #include <Arduino.h>
+#include <EmonLib.h>
 
-void setup() {
-  // put your setup code here, to run once:
+#define voltagePin 35
+#define currentPin 34
+
+EnergyMonitor powerMeter;
+
+void setup()
+{
+  Serial.begin(9600);
+  powerMeter.voltage(voltagePin, 234.26, 1.7);
+  powerMeter.current(currentPin, 111.1);
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
+void loop()
+{
+  powerMeter.calcVI(20, 2000);
+  powerMeter.serialprint();
 }
