@@ -16,6 +16,7 @@ Um das Projekt auf deinen Computer zu bekommen und es auf den ESP hochzuladen br
     - Board: DOIT ESP32 DEVKIT V1
     - Framework: Arduino
     - Haken bei "Use default Location" muss gesetzt sein
+    
     Klicke dann "Finish". Dadurch werden alle Dateien generiert um mit ESP32 Projekten zu arbeiten.
 
 
