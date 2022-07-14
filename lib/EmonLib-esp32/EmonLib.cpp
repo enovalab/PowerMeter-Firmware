@@ -223,7 +223,7 @@ void EnergyMonitor::serialprint()
   Serial.print("V(RMS);  ");
 
   Serial.print("I = ");
-  Serial.print(Irms);
+  Serial.print(Irms, 6);
   Serial.print("A(RMS);  ");
 
   Serial.print("Power Factor = ");

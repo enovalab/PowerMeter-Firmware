@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include <EmonLib.h>
 
-#define voltagePin 35
-#define currentPin 34
+#define voltagePin 32
+#define currentPin 33
 
 EnergyMonitor powerMeter;
 
