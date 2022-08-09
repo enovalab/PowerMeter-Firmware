@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2022-08-09T09:15:14.641Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.81 Safari/537.36 Edg/104.0.1293.47" etag="R_Ljng9MntsTZqf2nBFl" version="20.2.2" type="github" pages="2">
+<mxfile host="app.diagrams.net" modified="2022-08-09T09:53:10.584Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.81 Safari/537.36 Edg/104.0.1293.47" etag="IKWTozRFGwZes1_9ydVb" version="20.2.2" type="github" pages="2">
   <diagram id="NSisv_5Uf6d7Fq7L4mC0" name="Client Server Model">
     <mxGraphModel dx="2500" dy="896" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -49,11 +49,59 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="-0zzz36s3piKTGTGTvwB" name="Server Software">
-    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+  <diagram id="-0zzz36s3piKTGTGTvwB" name="Server Softwarekomponenten">
+    <mxGraphModel dx="1185" dy="635" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-3" value="Softwarekomponenten" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=15;glass=0;" vertex="1" parent="1">
+          <mxGeometry x="280" y="230" width="230" height="180" as="geometry">
+            <mxRectangle x="280" y="230" width="60" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-4" value="ESPAsyncWebServer" style="text;strokeColor=#d79b00;fillColor=#ffe6cc;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;fontSize=15;" vertex="1" parent="Q-mnV4RnBUGMcqwWspMl-3">
+          <mxGeometry y="30" width="230" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-5" value="EmonLib" style="text;strokeColor=#9673a6;fillColor=#e1d5e7;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;fontSize=15;" vertex="1" parent="Q-mnV4RnBUGMcqwWspMl-3">
+          <mxGeometry y="60" width="230" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-7" value="NTP Client" style="text;strokeColor=#6c8ebf;fillColor=#dae8fc;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;fontSize=15;" vertex="1" parent="Q-mnV4RnBUGMcqwWspMl-3">
+          <mxGeometry y="90" width="230" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-6" value="PowerData" style="text;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;fontSize=15;" vertex="1" parent="Q-mnV4RnBUGMcqwWspMl-3">
+          <mxGeometry y="120" width="230" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-8" value="DataManager" style="text;strokeColor=#d6b656;fillColor=#fff2cc;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;fontSize=15;" vertex="1" parent="Q-mnV4RnBUGMcqwWspMl-3">
+          <mxGeometry y="150" width="230" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-9" value="DataManager" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;glass=0;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="270" y="505" width="270" height="160" as="geometry">
+            <mxRectangle x="325" y="490" width="130" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-10" value="Der DataManager nimmt neue PowerData-Daten und wertet&#xa;sie anhand des Timestamps aus. Ist ein neuer Datenpunkt &#xa;mindestens 1h älter als der letzte, wird dieser dem LastDay-&#xa;Array hinzugefügt. Nach 24h wird der Mittelwert über LastDay &#xa;gebildet und LastWeek hinzugefügt." style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;glass=0;fontSize=9;" vertex="1" parent="Q-mnV4RnBUGMcqwWspMl-9">
+          <mxGeometry y="30" width="270" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-11" value="Item 2" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;glass=0;fontSize=15;" vertex="1" parent="Q-mnV4RnBUGMcqwWspMl-9">
+          <mxGeometry y="100" width="270" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-12" value="Item 3" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;glass=0;fontSize=15;" vertex="1" parent="Q-mnV4RnBUGMcqwWspMl-9">
+          <mxGeometry y="130" width="270" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-13" value="PowerData" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;glass=0;fontSize=15;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="620" y="270" width="270" height="160" as="geometry">
+            <mxRectangle x="325" y="490" width="130" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-14" value="Klasse die einen Datenpunkt repräsentiert, bestehend aus dem&#xa;Messwert (Wirkleistung) und einem Unix-Timestamp, der den&#xa;Zeitpunkt des Messwerts speichtert." style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;glass=0;fontSize=9;" vertex="1" parent="Q-mnV4RnBUGMcqwWspMl-13">
+          <mxGeometry y="30" width="270" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-15" value="Item 2" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;glass=0;fontSize=15;" vertex="1" parent="Q-mnV4RnBUGMcqwWspMl-13">
+          <mxGeometry y="100" width="270" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Q-mnV4RnBUGMcqwWspMl-16" value="Item 3" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;glass=0;fontSize=15;" vertex="1" parent="Q-mnV4RnBUGMcqwWspMl-13">
+          <mxGeometry y="130" width="270" height="30" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
