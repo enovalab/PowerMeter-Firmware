@@ -1,8 +1,10 @@
 function loadCards()
 {
+    // Wenn Power Meters im localStorage gespeichert sind
     if(localStorage.powerMeters != undefined) {
         const powerMeters = JSON.parse(localStorage.powerMeters);
         
+        // Power Meters anzeigen
         powerMeters.forEach(function(powerMeter){
             addCard(powerMeter.name, powerMeter.url);
         });

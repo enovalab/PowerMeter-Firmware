@@ -1,0 +1,104 @@
+{
+    "LastDay": 
+    [
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786}
+    ],
+
+    "LastWeek":
+    [
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786}
+    ],
+
+    "LastMonth":
+    [
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786}
+    ],
+
+    "LastYear":
+    [
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786}
+    ],
+
+    "LastDecade":
+    [
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786},
+        {"Value": 0.0, "Timestamp": 1659966786}
+    ]
+}
