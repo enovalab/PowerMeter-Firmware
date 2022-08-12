@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Meter App</title>
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="style.css">
+
+    <script src="index.js"></script>
+</head>
+
+<body onload="loadCards()">
+    <nav>
+        <div class="header-div">
+            <h2>Power Meter App</h2>
+            <i class="material-icons">more_vert</i>
+        </div>
+    </nav>
+
+    <div id="page">
+        <div class="card" id="card-total">
+            Total Overview
+        </div>
+
+        <div class="card" id="card-add" onclick="openPopup()">
+            <i class="material-icons">add</i>
+        </div>
+
+        <div id="popup">
+            <i class="material-icons" onclick="closePopup()">close</i>
+            <label for="name-input">Name</label>
+            <input type="text" name="name-input" id="name-input" placeholder="e.g. Electric Heater">
+            <br>
+            <label for="url-input">URL / IP</label>
+            <input type="text" name="url-input" id="url-input" placeholder="e.g. 192.168.1.16">
+            <br>
+            <button onclick="handleAdd()">Add</button>
+        </div>
+    </div>
+</body>
+
+</html>
