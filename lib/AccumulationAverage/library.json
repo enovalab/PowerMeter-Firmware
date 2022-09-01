@@ -1,0 +1,30 @@
+{
+    "name": "AccumulationAverage",
+    "version": "1.0.0",
+    "description": "Library for averaging without having huge data Buffers consuming all your memory.",
+    "keywords": "average, data, embedded",
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/username/hello-world.git"
+    },
+    "authors":
+    [
+      {
+        "name": "Samuel Lehnen",
+        "email": "04samu04@gmail.com",
+        "maintainer": true
+      }
+    ],
+    "license": "MIT",
+    "homepage": "https://www.helloworld.org/",
+    "frameworks": "*",
+    "platforms": "*",
+    "examples": [
+        {
+            "name": "Hello",
+            "base": "examples/AverageArray",
+            "files": ["AverageArray.ino"]
+        }
+    ]
+  }

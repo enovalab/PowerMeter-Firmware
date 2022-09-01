@@ -1,0 +1,4 @@
+AccumulationAverage	KEYWORD1
+add	KEYWORD2
+get	KEYWORD2
+reset	KEYWORD2
