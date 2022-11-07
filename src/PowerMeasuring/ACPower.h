@@ -4,6 +4,7 @@
 class ACPower
 {
 public:
+    ACPower(float voltageRms, float currentRms, float activePower);
     float getVoltageRms();
     float getCurrentRms();
     float getActivePower();
@@ -15,7 +16,6 @@ private:
     float m_voltageRms;
     float m_currentRms;
     float m_activePower;
-    friend class PowerMeter;
 };
 
 #endif

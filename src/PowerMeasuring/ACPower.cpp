@@ -1,5 +1,11 @@
-#include <ACPower.h>
-#include <cmath>
+#include "ACPower.h"
+#include <math.h>
+
+ACPower::ACPower(float voltageRms, float currentRms, float activePower) : 
+    m_voltageRms(voltageRms),
+    m_currentRms(currentRms),
+    m_activePower(activePower)
+{}
 
 float ACPower::getVoltageRms()
 {
