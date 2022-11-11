@@ -1,0 +1,25 @@
+{
+    "name": "Default Name",
+    "relay": true,
+    "calibration": {
+        "voltage": 0.4908,
+        "current": 0.01596,
+        "phase": 12
+    },
+    "wifi": {
+        "sta": {
+            "ssid": "YourWiFiNetwork",
+            "password": "SuperSecretStuff",
+            "staticip": "0.0.0.0",
+            "gateway": "0.0.0.0",
+            "subnet": "0.0.0.0",
+            "dns1": "0.0.0.0",
+            "dns2": "0.0.0.0"
+        },
+        "ap": {
+            "ssid": "Power Meter AP",
+            "password": "SuperSecretStuff"
+        },
+        "accespoint": true
+    }
+}

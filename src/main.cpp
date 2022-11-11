@@ -43,7 +43,6 @@ void setup()
 {
     Serial.begin(115200);
     SPIFFS.begin();
-
     pinMode(PIN_RELAY, OUTPUT);
     digitalWrite(PIN_RELAY, HIGH);
 

@@ -3,8 +3,8 @@
 ## Dokumentation
 ### Datenstrukturierung
 Die Datenstrukturierung legt fest, wie Daten kategorisiert werden.
-#### Flüchtige Daten
-    - Momentane Messwerte
+#### Flüchtige Daten (werden bei Anfrage erhoben)
+- Momentane Messwerte
 ```json
 {
     "voltage": 234.3,
@@ -16,49 +16,55 @@ Die Datenstrukturierung legt fest, wie Daten kategorisiert werden.
 }
 ```
 #### Nichtflüchtige Daten (gespeichert im SPIFFS)
-    - Metadaten
+- Konfiguration
 ```json
 {
     "name": "Default Name",
-    "relay": true
+    "relay": true,
+    "calibration": {
+        "voltage": 0.4908,
+        "current": 0.01596,
+        "phase": 12
+    },
+    "wifi": {
+        "sta": {
+            "ssid": "YourWiFiNetwork",
+            "password": "SuperSecretStuff",
+            "staticip": "0.0.0.0",
+            "gateway": "0.0.0.0",
+            "subnet": "0.0.0.0",
+            "dns1": "0.0.0.0",
+            "dns2": "0.0.0.0"
+        },
+        "ap": {
+            "ssid": "Power Meter AP",
+            "password": "Katek1976"
+        },
+        "accespoint": true
+    }
 }
 ```
-    - WiFi Konfiguration
-```json
-{
-    "sta": {
-        "ssid": "YourWiFiNetwork",
-        "password": "SuperSecretStuff",
-        "staticip": "0.0.0.0",
-        "gateway": "0.0.0.0",
-        "subnet": "0.0.0.0",
-        "dns1": "0.0.0.0",
-        "dns2": "0.0.0.0"
-    },
-    "ap": {
-        "ssid": "Power Meter AP",
-        "password": "SuperSecretStuff"
-    },
-    "accespoint": true
-}
-```
-    - Verlaufsdaten
+- Verlaufsdaten (neuster Messwert am Ende des Arrays)
 ```json
 [
-    0.0, // ältester Messwert
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0  // neuster Messwert
+    69.0,
+    420.0,
+    122.6,
+    84.5,
+    89.4,
+    543.3,
+    102.1,
+    455.5,
+    32.03,
+    10.0,
+    323.1,
+    122.4
 ]
 ```
+## Hardware
+Schaltung und Leiterplattenlayout findest du unter folgendem Link:
+[Power Meter - Easy EDA](https://u.easyeda.com/join?type=project&key=1f3c904dbd0d79bb1bfd9a29f802ef85&inviter=85809e691e9d409fb29755267ff12244)
+
 
 ## Anleitung zur Teilname
 
@@ -90,5 +96,11 @@ Jetzt kannst du das Repository klonen:
 
 _Fertig!_ Du hast erfolgreich das Repository geklont.
 
+## Entwicklung
+### Software
+- [ ] Log Makros für Serial und File
+- [ ] Strukturierung der Software
 
-
+### Hardware
+- [ ] Leiterplattenlayout
+- [ ] Upload ohne USB ermöglichen
