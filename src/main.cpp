@@ -1,6 +1,6 @@
 #ifndef PIO_UNIT_TESTING
 
-#include <Arduino.h>
+#include "Logger.h"
 #include "PowerMeasuring/PowerMeter.h"
 #include "defines.h"
 #include <AsyncWebSocket.h>
@@ -41,7 +41,6 @@ void makeSTA()
 
 void setup()
 {
-    Serial.begin(115200);
     SPIFFS.begin();
     pinMode(PIN_RELAY, OUTPUT);
     digitalWrite(PIN_RELAY, HIGH);
@@ -96,14 +95,25 @@ void setup()
         request->send(SPIFFS, "/data/history/decade.json", "application/json");
     });
 
+
+    server.on("/log", HTTP_GET, [](AsyncWebServerRequest* request){
+        request->send(SPIFFS, "/log/log.log", "text/plain");
+    });
+
     server.serveStatic("/", SPIFFS, "/device_app").setDefaultFile("index.html");
 
     server.begin();
+
+    FILE_LOG_ERROR("Hello World\n");
+    FILE_LOG_ERROR("Hello World\n");
+    FILE_LOG_ERROR("Hello World\n");
+    FILE_LOG_ERROR("Hello World\n");
 }
 
 void loop()
 {
-    
+    SERIAL_LOG_ERROR("Eroor\n");
+    SERIAL_LOG_ERROR("bla%fblub%i\n", 2.30, 39);
 }
 
 #endif
