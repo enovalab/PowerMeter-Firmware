@@ -3,6 +3,7 @@
 ## Dokumentation
 ### Datenstrukturierung
 Die Datenstrukturierung legt fest, wie Daten kategorisiert werden.
+
 #### Flüchtige Daten (werden bei Anfrage erhoben)
 - Momentane Messwerte
 ```json
