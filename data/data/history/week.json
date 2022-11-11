@@ -1,0 +1,9 @@
+[
+    {"time": "Mon", "power": 0.0},
+    {"time": "Tue", "power": 0.0},
+    {"time": "Wen", "power": 0.0},
+    {"time": "Thu", "power": 0.0},
+    {"time": "Fri", "power": 0.0},
+    {"time": "Sat", "power": 0.0},
+    {"time": "Sun", "power": 0.0}
+]

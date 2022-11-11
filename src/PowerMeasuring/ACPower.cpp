@@ -28,7 +28,11 @@ float ACPower::getActivePower()
 float ACPower::getReactivePower()
 {
     float apparentPower = getApparentPower();
-    return sqrt(apparentPower * apparentPower + m_activePower * m_activePower);
+    float activePower = getPowerFactor() * apparentPower;
+    float reactivePower = sqrt(apparentPower * apparentPower - activePower * activePower);
+    if(isnanf(reactivePower))
+        return 0.0f;
+    return reactivePower;
 }
 
 
@@ -39,7 +43,10 @@ float ACPower::getApparentPower()
 
 
 float ACPower::getPowerFactor()
-{
-    return m_activePower / getApparentPower();
+{   
+    float powerFactor = m_activePower / getApparentPower();
+    if(powerFactor > 0.99f)
+        powerFactor = 1.0f;
+    return powerFactor;
 }
 

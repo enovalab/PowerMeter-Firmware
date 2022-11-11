@@ -15,7 +15,7 @@ public:
     inline T add(T value)
     {
         sum += value * value;
-        return sum / ++numValues;
+        return sqrt(sum / ++numValues);
     }
 
 

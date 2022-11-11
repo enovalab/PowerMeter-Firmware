@@ -1,0 +1,8 @@
+{
+    "voltage": 234.3,
+    "current": 0.23,
+    "active": 1.1,
+    "apparent": 3.3,
+    "reactive": 0.1,
+    "factor": 1.0
+}

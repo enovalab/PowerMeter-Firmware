@@ -1,6 +1,66 @@
 # PowerMeter
 
-## Anleitung
+## Dokumentation
+### Datenstrukturierung
+Die Datenstrukturierung legt fest, wie Daten kategorisiert werden.
+#### Flüchtige Daten
+    - Momentane Messwerte
+```json
+{
+    "voltage": 234.3,
+    "current": 0.23,
+    "active": 67.32,
+    "apparent": 70.59,
+    "reactive": 21.18,
+    "factor": 0.88
+}
+```
+#### Nichtflüchtige Daten (gespeichert im SPIFFS)
+    - Metadaten
+```json
+{
+    "name": "Default Name",
+    "relay": true
+}
+```
+    - WiFi Konfiguration
+```json
+{
+    "sta": {
+        "ssid": "YourWiFiNetwork",
+        "password": "SuperSecretStuff",
+        "staticip": "0.0.0.0",
+        "gateway": "0.0.0.0",
+        "subnet": "0.0.0.0",
+        "dns1": "0.0.0.0",
+        "dns2": "0.0.0.0"
+    },
+    "ap": {
+        "ssid": "Power Meter AP",
+        "password": "SuperSecretStuff"
+    },
+    "accespoint": true
+}
+```
+    - Verlaufsdaten
+```json
+[
+    0.0, // ältester Messwert
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0  // neuster Messwert
+]
+```
+
+## Anleitung zur Teilname
 
 ### a) Repository klonen
 Um das Projekt auf deinen Computer zu bekommen und es auf den ESP hochzuladen brauchst du:

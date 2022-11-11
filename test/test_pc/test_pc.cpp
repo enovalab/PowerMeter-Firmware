@@ -1,7 +1,7 @@
-#include <gtest/gtest.h>
-
 #include "StreamActivePowerTest.hpp"
 #include "StreamRMSTest.hpp"
+#include <gtest/gtest.h>
+
 
 int main()
 {
