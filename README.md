@@ -4,7 +4,7 @@
 ### Datenstrukturierung
 Die Datenstrukturierung legt fest, wie Daten kategorisiert werden.
 #### Flüchtige Daten
-    - Momentane Messwerte
+- Momentane Messwerte
 ```json
 {
     "voltage": 234.3,
@@ -16,14 +16,14 @@ Die Datenstrukturierung legt fest, wie Daten kategorisiert werden.
 }
 ```
 #### Nichtflüchtige Daten (gespeichert im SPIFFS)
-    - Metadaten
+- Metadaten
 ```json
 {
     "name": "Default Name",
     "relay": true
 }
 ```
-    - WiFi Konfiguration
+- WiFi Konfiguration
 ```json
 {
     "sta": {
@@ -42,10 +42,9 @@ Die Datenstrukturierung legt fest, wie Daten kategorisiert werden.
     "accespoint": true
 }
 ```
-    - Verlaufsdaten
+- Verlaufsdaten (neuster Wert am Ende des Arrays)
 ```json
 [
-    0.0, // ältester Messwert
     0.0,
     0.0,
     0.0,
@@ -56,7 +55,8 @@ Die Datenstrukturierung legt fest, wie Daten kategorisiert werden.
     0.0,
     0.0,
     0.0,
-    0.0  // neuster Messwert
+    0.0,
+    0.0
 ]
 ```
 
