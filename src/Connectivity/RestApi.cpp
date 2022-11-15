@@ -8,8 +8,6 @@ namespace Connectivity
     {
         namespace
         {
-            AsyncWebServer Server(80);
-
             void addCorsHeaders(AsyncWebServerResponse* response)
             {
                 response->addHeader("Access-Control-Request-Method", "*");
@@ -20,7 +18,13 @@ namespace Connectivity
             }
         }
 
-        void attachEndpoint(std::string uri, std::initializer_list<WebRequestMethod> methods, std::string dataFilePath, bool allowCors = true)
+        void createEndpoint(
+            std::string uri,
+            std::initializer_list<WebRequestMethod> methods, 
+            std::string dataFilePath,
+            JsonCallback_t callback = [](json data){},
+            bool allowCors = true
+        )
         {
             std::fstream dataFile("/spiffs" + dataFilePath, std::ios_base::out);
             json data = json::parse(dataFile);
@@ -35,7 +39,8 @@ namespace Connectivity
                 {
                 case HTTP_GET:
                     requestHandler = [=](AsyncWebServerRequest* request){
-                        std::string subUri = std::string(request->url().c_str()).erase(0, uri.length());
+                        std::string subUri = std::string(request->url().c_str());
+                        subUri.erase(0, uri.length());
                         AsyncWebServerResponse* response;
                         try
                         {
@@ -58,9 +63,15 @@ namespace Connectivity
             }
         }
 
-        void attachEndpoint(std::string uri, std::initializer_list<WebRequestMethod> methods, json data)
+        void createEndpoint(
+            std::string uri, 
+            std::initializer_list<WebRequestMethod> methods, 
+            json data,
+            JsonCallback_t callback = [](json data){},
+            bool allowCors = true
+        )
         {
-
+            
         }
 
     }

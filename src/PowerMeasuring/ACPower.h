@@ -1,18 +1,21 @@
 #ifndef ACPOWER_H
 #define ACPOWER_H
 
+#include <json.hpp>
+
 namespace PowerMeasuring
 {
     class ACPower
     {
     public:
         ACPower(float voltageRms, float currentRms, float activePower);
-        float getVoltageRms();
-        float getCurrentRms();
-        float getActivePower();
-        float getReactivePower();
-        float getApparentPower();
-        float getPowerFactor();
+        float getVoltageRms() const;
+        float getCurrentRms() const;
+        float getActivePower() const;
+        float getReactivePower() const;
+        float getApparentPower() const;
+        float getPowerFactor() const;
+        operator json() const;
 
     private:
         float m_voltageRms;

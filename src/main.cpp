@@ -1,6 +1,7 @@
 #ifndef PIO_UNIT_TESTING
 
 #include "PowerMeasuring/PowerMeter.h"
+#include "Connectivity/RestApi.h"
 #include "defines.h"
 #include <AsyncWebSocket.h>
 #include <ArduinoJson.h>

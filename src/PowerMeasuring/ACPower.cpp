@@ -9,25 +9,25 @@ ACPower::ACPower(float voltageRms, float currentRms, float activePower) :
     m_activePower(activePower)
 {}
 
-float ACPower::getVoltageRms()
+float ACPower::getVoltageRms() const
 {
     return m_voltageRms;
 }
 
 
-float ACPower::getCurrentRms()
+float ACPower::getCurrentRms() const
 {
     return m_currentRms;
 }
 
 
-float ACPower::getActivePower()
+float ACPower::getActivePower() const
 {
     return m_activePower;
 }
 
 
-float ACPower::getReactivePower()
+float ACPower::getReactivePower() const
 {
     float apparentPower = getApparentPower();
     float activePower = getPowerFactor() * apparentPower;
@@ -38,13 +38,13 @@ float ACPower::getReactivePower()
 }
 
 
-float ACPower::getApparentPower()
+float ACPower::getApparentPower() const
 {
     return m_voltageRms * m_currentRms;
 }
 
 
-float ACPower::getPowerFactor()
+float ACPower::getPowerFactor() const
 {   
     float powerFactor = m_activePower / getApparentPower();
     if(powerFactor > 0.99f)
@@ -52,3 +52,15 @@ float ACPower::getPowerFactor()
     return powerFactor;
 }
 
+
+ACPower::operator json() const
+{
+    json powerJson;
+    powerJson["voltage"] = getVoltageRms();
+    powerJson["current"] = getCurrentRms();
+    powerJson["active"] = getActivePower();
+    powerJson["apparent"] = getApparentPower();
+    powerJson["reactive"] = getReactivePower();
+    powerJson["factor"] = getPowerFactor();
+    return powerJson;
+}

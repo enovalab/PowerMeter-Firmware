@@ -9,12 +9,27 @@
 
 namespace Connectivity
 {   
-    using json = nlohmann::json;
+    AsyncWebServer Server(80);
 
     namespace RestApi
     {
-        void attachEndpoint(std::string uri, std::initializer_list<WebRequestMethod> methods, std::string dataFilePath);
-        void attachEndpoint(std::string uri, std::initializer_list<WebRequestMethod> methods, json data);
+        using JsonCallback_t = std::function<void(json)>;
+
+        void createEndpoint(
+            std::string uri,
+            std::initializer_list<WebRequestMethod> methods, 
+            std::string dataFilePath,
+            JsonCallback_t callback = [](json data){},
+            bool allowCors = true
+        );
+
+        void createEndpoint(
+            std::string uri, 
+            std::initializer_list<WebRequestMethod> methods, 
+            json data,
+            JsonCallback_t callback = [](json data){},
+            bool allowCors = true
+        );
     }
 }
 
