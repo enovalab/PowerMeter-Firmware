@@ -66,14 +66,13 @@ Die Datenstrukturierung legt fest, wie Daten kategorisiert werden.
     122.4
 ]
 ```
-## Hardware
-Schaltung und Leiterplattenlayout findest du unter folgendem Link:
-[Power Meter - Easy EDA](https://u.easyeda.com/join?type=project&key=1f3c904dbd0d79bb1bfd9a29f802ef85&inviter=85809e691e9d409fb29755267ff12244)
 
 
-## Anleitung zur Teilname
-
-### a) Repository klonen
+## Entwicklung
+### Software
+- [ ] Log Makros für Serial und File
+- [ ] Strukturierung der Software
+### Repository klonen
 Um das Projekt auf deinen Computer zu bekommen und es auf den ESP hochzuladen brauchst du:
 1. VS Code installiert https://code.visualstudio.com/download
 2. In VS Code die Extension PlatformIO
@@ -101,11 +100,10 @@ Jetzt kannst du das Repository klonen:
 
 _Fertig!_ Du hast erfolgreich das Repository geklont.
 
-## Entwicklung
-### Software
-- [ ] Log Makros für Serial und File
-- [ ] Strukturierung der Software
 
 ### Hardware
+- [Power Meter - Easy EDA Einladung](https://u.easyeda.com/join?type=project&key=1f3c904dbd0d79bb1bfd9a29f802ef85&inviter=85809e691e9d409fb29755267ff12244)
+- [Power Meter - Easy EDA Projekt](https://easyeda.com/editor#id=7532a796a71a494cbf34313451149065)
+
 - [ ] Leiterplattenlayout
 - [x] Upload ohne USB ermöglichen
