@@ -1,15 +1,14 @@
 #ifndef PIO_UNIT_TESTING
 
-#include "Logger.h"
 #include "PowerMeasuring/PowerMeter.h"
 #include "defines.h"
 #include <AsyncWebSocket.h>
 #include <ArduinoJson.h>
 #include <SPIFFS.h>
-#include <OneButton.h>
 #include <StreamAverage.h>
+#include <ArduinoLog.h>
 
-PowerMeter powerMeter(PIN_U, PIN_I);
+PowerMeasuring::PowerMeter powerMeter(PIN_U, PIN_I);
 AsyncWebServer server(80);
 
 void makeAP()
@@ -41,7 +40,11 @@ void makeSTA()
 
 void setup()
 {
+    Serial.begin(115200);
     SPIFFS.begin();
+    
+    
+    
     pinMode(PIN_RELAY, OUTPUT);
     digitalWrite(PIN_RELAY, HIGH);
 
@@ -61,7 +64,7 @@ void setup()
 
     server.on("/momentary", HTTP_GET, [](AsyncWebServerRequest* request){
         StaticJsonDocument<200> momentaryJson;
-        ACPower power = powerMeter.measure();
+        PowerMeasuring::ACPower power = powerMeter.measure();
         momentaryJson["voltage"] = power.getVoltageRms();
         momentaryJson["current"] = power.getCurrentRms();
         momentaryJson["active"] = power.getActivePower();
@@ -100,20 +103,22 @@ void setup()
         request->send(SPIFFS, "/log/log.log", "text/plain");
     });
 
+    server.on("/log", HTTP_DELETE, [](AsyncWebServerRequest* request){
+        StaticJsonDocument<100> responseJson;
+        responseJson["success"] = SPIFFS.remove("/log/log.log");
+        AsyncResponseStream* response = request->beginResponseStream("application/json");
+        serializeJson(responseJson, *response);
+        request->send(response);
+    });
+
     server.serveStatic("/", SPIFFS, "/device_app").setDefaultFile("index.html");
 
     server.begin();
-
-    FILE_LOG_ERROR("Hello World\n");
-    FILE_LOG_ERROR("Hello World\n");
-    FILE_LOG_ERROR("Hello World\n");
-    FILE_LOG_ERROR("Hello World\n");
 }
 
 void loop()
 {
-    SERIAL_LOG_ERROR("Eroor\n");
-    SERIAL_LOG_ERROR("bla%fblub%i\n", 2.30, 39);
+    
 }
 
 #endif

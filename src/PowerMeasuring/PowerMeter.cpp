@@ -4,7 +4,7 @@
 #include "StreamActivePower.h"
 #include <Ewma.h>
 
-
+using namespace PowerMeasuring;
 
 PowerMeter::PowerMeter(uint8_t pinU, uint8_t pinI) : 
     m_pinU(pinU),

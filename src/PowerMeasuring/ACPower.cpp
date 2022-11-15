@@ -1,6 +1,8 @@
 #include "ACPower.h"
 #include <math.h>
 
+using namespace PowerMeasuring;
+
 ACPower::ACPower(float voltageRms, float currentRms, float activePower) : 
     m_voltageRms(voltageRms),
     m_currentRms(currentRms),

@@ -7,6 +7,7 @@
         "phase": 12
     },
     "wifi": {
+        "accespoint": true,
         "sta": {
             "ssid": "YourWiFiNetwork",
             "password": "SuperSecretStuff",
@@ -19,7 +20,10 @@
         "ap": {
             "ssid": "Power Meter AP",
             "password": "SuperSecretStuff"
-        },
-        "accespoint": true
+        }
+    },
+    "logging": {
+        "level": 6,
+        "file": false
     }
 }
