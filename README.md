@@ -28,6 +28,7 @@ Die Datenstrukturierung legt fest, wie Daten kategorisiert werden.
         "phase": 12
     },
     "wifi": {
+        "accespoint": true,
         "sta": {
             "ssid": "YourWiFiNetwork",
             "password": "SuperSecretStuff",
@@ -39,9 +40,12 @@ Die Datenstrukturierung legt fest, wie Daten kategorisiert werden.
         },
         "ap": {
             "ssid": "Power Meter AP",
-            "password": "Katek1976"
-        },
-        "accespoint": true
+            "password": "SuperSecretStuff"
+        }
+    },
+    "logging": {
+        "level": 6,
+        "file": false
     }
 }
 ```
@@ -104,4 +108,4 @@ _Fertig!_ Du hast erfolgreich das Repository geklont.
 
 ### Hardware
 - [ ] Leiterplattenlayout
-- [ ] Upload ohne USB ermöglichen
+- [x] Upload ohne USB ermöglichen
