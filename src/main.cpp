@@ -1,7 +1,7 @@
 #ifndef PIO_UNIT_TESTING
 
 #include "PowerMeasuring/PowerMeter.h"
-#include "Connectivity/RestApi.h"
+#include "Connectivity/RestAPI.h"
 #include "defines.h"
 #include <AsyncWebSocket.h>
 #include <ArduinoJson.h>
@@ -11,6 +11,7 @@
 
 PowerMeasuring::PowerMeter powerMeter(PIN_U, PIN_I);
 AsyncWebServer server(80);
+Connectivity::RestAPI api(80, "/api");
 
 void makeAP()
 {
@@ -43,7 +44,6 @@ void setup()
 {
     Serial.begin(115200);
     SPIFFS.begin();
-    
     
     
     pinMode(PIN_RELAY, OUTPUT);

@@ -1,36 +1,28 @@
-#ifndef JSONAPI_H
-#define JSONAPI_H
+#ifndef RESTAPI_H
+#define RESTAPI_H
 
 #include <ESPAsyncWebServer.h>
 #include <json.hpp>
 #include <functional>
 #include <string>
-#include <initializer_list>
 
 namespace Connectivity
-{   
-    AsyncWebServer Server(80);
+{
+    using JsonCallback = std::function<void(json)>;
 
-    namespace RestApi
+    class RestAPI
     {
-        using JsonCallback_t = std::function<void(json)>;
+    public:
+        RestAPI(AsyncWebServer server, std::string baseUri = "/", bool allowCors = true);
+        createEndpointRead(std::string endpointUri, std::string filePath, JsonCallback callback = [](json){});
+        createEndpointWrite(std::string endpointUri, std::string filePath);
+        
 
-        void createEndpoint(
-            std::string uri,
-            std::initializer_list<WebRequestMethod> methods, 
-            std::string dataFilePath,
-            JsonCallback_t callback = [](json data){},
-            bool allowCors = true
-        );
-
-        void createEndpoint(
-            std::string uri, 
-            std::initializer_list<WebRequestMethod> methods, 
-            json data,
-            JsonCallback_t callback = [](json data){},
-            bool allowCors = true
-        );
-    }
+    private:
+        AsyncWebServer m_server;
+        std::string m_baseUri;
+        bool m_allowCors;
+    };
 }
 
 #endif
