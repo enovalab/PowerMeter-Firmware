@@ -1,4 +1,4 @@
-#include "PowerMeasuring/StreamRMS.h"
+#include "Measuring/StreamRMS.h"
 
 #include <gtest/gtest.h>
 #include <cmath>

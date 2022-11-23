@@ -3,7 +3,7 @@
 
 #include <json.hpp>
 
-namespace PowerMeasuring
+namespace Measuring
 {
     class ACPower
     {

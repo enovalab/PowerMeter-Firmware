@@ -1,4 +1,4 @@
-#include "PowerMeasuring/StreamActivePower.h"
+#include "Measuring/StreamActivePower.h"
 
 #include <gtest/gtest.h>
 #include <cmath>

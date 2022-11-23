@@ -1,4 +1,4 @@
-#include "PowerMeasuring/PowerMeter.h"
+#include "Measuring/PowerMeter.h"
 #include "defines.h"
 
 #define PIN_U 33

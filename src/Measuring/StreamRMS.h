@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <math.h>
 
-namespace PowerMeasuring
+namespace Measuring
 {
     template<typename T>
     class StreamRMS

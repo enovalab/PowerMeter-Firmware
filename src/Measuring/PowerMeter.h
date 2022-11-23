@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include <vector>
 
-namespace PowerMeasuring
+namespace Measuring
 {
     class PowerMeter
     {

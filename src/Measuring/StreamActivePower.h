@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-namespace PowerMeasuring
+namespace Measuring
 {
     template<typename T>
     class StreamActivePower

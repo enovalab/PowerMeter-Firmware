@@ -1,6 +1,6 @@
 #ifndef PIO_UNIT_TESTING
 
-#include "PowerMeasuring/PowerMeter.h"
+#include "Measuring/PowerMeter.h"
 #include "Connectivity/RestAPI.h"
 #include "defines.h"
 #include <AsyncWebSocket.h>
@@ -9,7 +9,7 @@
 #include <StreamAverage.h>
 #include <ArduinoLog.h>
 
-PowerMeasuring::PowerMeter powerMeter(PIN_U, PIN_I);
+Measuring::PowerMeter powerMeter(PIN_U, PIN_I);
 AsyncWebServer server(80);
 Connectivity::RestAPI api(80, "/api");
 
@@ -65,7 +65,7 @@ void setup()
 
     server.on("/momentary", HTTP_GET, [](AsyncWebServerRequest* request){
         StaticJsonDocument<200> momentaryJson;
-        PowerMeasuring::ACPower power = powerMeter.measure();
+        Measuring::ACPower power = powerMeter.measure();
         momentaryJson["voltage"] = power.getVoltageRms();
         momentaryJson["current"] = power.getCurrentRms();
         momentaryJson["active"] = power.getActivePower();
