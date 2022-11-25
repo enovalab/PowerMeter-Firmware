@@ -15,10 +15,10 @@ namespace Connectivity
     {
     public:
         RestAPI(AsyncWebServer server, std::string baseUri = "/", bool allowCors = true);
-        createEndpointRead(std::string endpointUri, std::string filePath);
-        createEndpointRead(std::string endpointUri, JsonGenerator generator);
-        createEndpointWrite(std::string endpointUri, std::string filePath, JsonCallback callback = [](json){});
-        createEndpointWrite(std::string endpointUri, JsonCallback callback = [](json){});
+        // createEndpointRead(std::string endpointUri, std::string filePath);
+        // createEndpointRead(std::string endpointUri, JsonGenerator generator);
+        // createEndpointWrite(std::string endpointUri, std::string filePath, JsonCallback callback = [](json){});
+        // createEndpointWrite(std::string endpointUri, JsonCallback callback = [](json){});
 
         
 

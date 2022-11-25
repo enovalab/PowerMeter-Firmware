@@ -27,6 +27,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+
 #ifndef INCLUDE_NLOHMANN_JSON_HPP_
 #define INCLUDE_NLOHMANN_JSON_HPP_
 
@@ -66,8 +67,8 @@ SOFTWARE.
 #include <tuple> // tuple, make_tuple
 #include <type_traits> // is_arithmetic, is_same, is_enum, underlying_type, is_convertible
 #include <unordered_map> // unordered_map
-#include <utility> // pair, declval
 #include <valarray> // valarray
+#include <utility> // pair, declval
 
 // #include <nlohmann/detail/exceptions.hpp>
 
@@ -80,7 +81,6 @@ SOFTWARE.
 
 
 #include <cstddef> // size_t
-
 
 #ifdef B1
 #undef B1
@@ -22879,5 +22879,4 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 
 #endif  // INCLUDE_NLOHMANN_JSON_HPP_
 
-
-using json = nlohmann::json;
+using namespace nlohmann;

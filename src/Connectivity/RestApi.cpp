@@ -1,5 +1,4 @@
 #include "RestAPI.h"
-#include "Logging/Logger.h"
 #include <fstream>
 
 using namespace Connectivity;
@@ -11,8 +10,8 @@ RestAPI::RestAPI(AsyncWebServer server, std::string baseUri, bool allowCors) :
 {}
 
 
-RestAPI::createEndpointRead(std::string endpointUri, std::string filePath, JsonCallback callback)
-{
-    std::string uri = m_baseUri + endpointUri;
+// RestAPI::createEndpointRead(std::string endpointUri, std::string filePath, JsonCallback callback)
+// {
+//     std::string uri = m_baseUri + endpointUri;
     
-}
+// }

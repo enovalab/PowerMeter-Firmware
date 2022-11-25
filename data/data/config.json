@@ -24,6 +24,8 @@
     },
     "logging": {
         "level": 6,
-        "file": false
+        "filemode": true,
+        "baud": 115200,
+        "logfile": "/log/log.log"
     }
 }
