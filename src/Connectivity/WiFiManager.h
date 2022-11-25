@@ -9,7 +9,7 @@ namespace Connectivity
 {
     namespace WiFiManager
     {
-        void setupWiFi(const char* configFilePath)
+        void setupWiFi(const char* configFilePath);
         void createAP(const json& config);
         void connectSTA(const json& config);
     }

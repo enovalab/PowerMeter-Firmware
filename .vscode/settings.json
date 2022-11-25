@@ -53,6 +53,8 @@
         "forward_list": "cpp",
         "valarray": "cpp",
         "set": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "chrono": "cpp",
+        "ratio": "cpp"
     }
 }

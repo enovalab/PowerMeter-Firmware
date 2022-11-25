@@ -34,3 +34,9 @@ TEST(StreamRMSTest, shouldResetToZero)
     EXPECT_FLOAT_EQ(0, uut.getNumValues());
     EXPECT_FLOAT_EQ(0, uut.getNumValues());
 }
+
+int main()
+{
+    testing::InitGoogleTest();
+	return RUN_ALL_TESTS();
+}
