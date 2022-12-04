@@ -3,9 +3,11 @@
 #include <gtest/gtest.h>
 #include <cmath>
 
-#ifndef PI
-#define PI 3.14159265358979323846
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
 #endif
+
+ using Measuring::StreamRMS;
 
 TEST(StreamRMSTest, shoulInitializeToZero)
 {
@@ -17,7 +19,7 @@ TEST(StreamRMSTest, shoulInitializeToZero)
 TEST(StreamRMSTest, addValues)
 {
     StreamRMS<float> uut;
-    for(float rad = 0.0f; rad < 2 * PI; rad += 0.01)
+    for(float rad = 0.0f; rad < 2 * M_PI; rad += 0.01)
     {
         uut << sinf(rad);
     }

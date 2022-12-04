@@ -1,6 +1,9 @@
 #include "Measuring/PowerMeter.h"
-#include "defines.h"
+#include "Measuring/PowerMeter.cpp"
 
+#define CAL_U 0.4908f
+#define CAL_I 0.01596f
+#define CAL_PHASE 12
 #define PIN_U 33
 #define PIN_I 32
 #define PIN_RELAY 2

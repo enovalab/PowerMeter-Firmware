@@ -1,30 +1,53 @@
-#ifndef TRACKER_H
-#define TRACKER_H
+#ifndef MEASURING_TRACKER_H
+#define MEASURING_TRACKER_H
 
-#include "Time/Clock.h"
-#include "Logging/Logger.h"
+#include "Time/IClock.h"
+#include "System/JsonResource.h"
 
 #include <StreamAverage.h>
+#include <json.hpp>
 #include <string>
-#include <chrono>
+#include <vector>
+#include <fstream>
 
 namespace Measuring
 {
+    class TrackingSpan
+    {
+    public:
+        TrackingSpan(
+            const System::JsonResource& jsonResource, 
+            time_t timeSpanSeconds, 
+            size_t numSamplesPerSpan, 
+            time_t lastSampleTimestamp
+        );
+
+        System::JsonResource getTargetResource() const;
+        time_t getTimeSpanSeconds() const;
+        size_t getNumSamplesPerSpan() const;
+        time_t getLastSampleTimestamp() const;
+        void pushBackPopFront(float newValue) const;
+
+    private:
+        System::JsonResource m_targetResource;
+        time_t m_timeSpanSeconds;
+        size_t m_numSamplesPerSpan;
+        time_t m_lastSampleTimestamp;
+    };
+
+
     class Tracker
     {
     public:
-        Tracker(const Time::Clock& clock, std::string filePath, time_t interval, size_t samplesPerInterval);
+        Tracker(const Time::IClock& clock, const std::vector<TrackingSpan>& configs);
         Tracker& operator<<(float newValue);
     
     private:
-        void pushBack(float newValue);
+        static float getJsonArrayAverage(const System::JsonResource& jsonResource);
 
-        const Time::Clock& m_clock;
-        std::string m_filePath;
-        time_t m_interval;
-        size_t m_samplesPerInterval;
-        time_t m_lastSample = 0;
-        StreamAverage<float> average;
+        const Time::IClock& m_clock;
+        std::vector<TrackingSpan> m_configs;
+        StreamAverage<float> m_average;
     };
 }
 

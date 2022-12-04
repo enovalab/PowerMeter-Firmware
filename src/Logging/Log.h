@@ -1,0 +1,45 @@
+#ifndef LOGGING_LOG_H
+#define LOGGING_LOG_H
+
+#include <iostream>
+#include <sstream>
+
+#define SOURCE_LOCATION                                     \
+static_cast<std::ostringstream&&>(                          \
+    std::ostringstream()                                    \
+        << __FILE__                                         \
+        << ":" << __LINE__                                  \
+        << " in '" << __PRETTY_FUNCTION__ << "': "          \
+).str().c_str()                                             \
+
+
+namespace Logging
+{
+    enum class Level
+    {
+        Silent,
+        Error,
+        Warning,
+        Info,
+        Verbose
+    };
+
+    class Log
+    {
+    public:
+        Log(Level level, std::ostream* stream, bool showLevel = false);
+        std::ostream& operator[](Level level);
+
+    private:
+        Level m_level;
+        bool m_showLevel;
+        std::ostream* m_stream;
+    };
+
+    Level getLevelByName(std::string name);
+    std::string getNameByLevel(Level level);
+
+    Log Logger(Level::Verbose, &std::cout, true);
+}
+
+#endif

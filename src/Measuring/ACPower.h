@@ -1,7 +1,5 @@
-#ifndef ACPOWER_H
-#define ACPOWER_H
-
-#include <json.hpp>
+#ifndef MEASURING_ACPOWER_H
+#define MEASURING_ACPOWER_H
 
 namespace Measuring
 {
@@ -15,7 +13,6 @@ namespace Measuring
         float getReactivePower() const;
         float getApparentPower() const;
         float getPowerFactor() const;
-        operator json() const;
 
     private:
         float m_voltageRms;

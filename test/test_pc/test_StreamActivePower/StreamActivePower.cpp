@@ -1,12 +1,13 @@
 #include "Measuring/StreamActivePower.h"
 
 #include <gtest/gtest.h>
-#include <cmath>
+#include <math.h>
 
-#ifndef PI
-#define PI 3.14159265358979323846
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
 #endif
-
+ 
+ using Measuring::StreamActivePower;
 
 TEST(StreamActivePowerTest, shoulInitializeToZero)
 {
@@ -18,10 +19,10 @@ TEST(StreamActivePowerTest, shoulInitializeToZero)
 TEST(StreamActivePowerTest, addSineWithPhaseShift)
 {
     const float apparentPower = 0.5;
-    for(float radShift = -PI / 2; radShift < PI / 2; radShift += 0.01)
+    for(float radShift = -M_PI / 2; radShift < M_PI / 2; radShift += 0.01)
     {
         StreamActivePower<float> uut;
-        for(float rad = 0.0f; rad < 2 * PI; rad += 0.01)
+        for(float rad = 0.0f; rad < 2 * M_PI; rad += 0.01)
         {
             uut << sinf(rad) * sinf(rad + radShift);
         }

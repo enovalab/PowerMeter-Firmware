@@ -51,16 +51,3 @@ float ACPower::getPowerFactor() const
         powerFactor = 1.0f;
     return powerFactor;
 }
-
-
-ACPower::operator json() const
-{
-    json powerJson;
-    powerJson["voltage"] = getVoltageRms();
-    powerJson["current"] = getCurrentRms();
-    powerJson["active"] = getActivePower();
-    powerJson["apparent"] = getApparentPower();
-    powerJson["reactive"] = getReactivePower();
-    powerJson["factor"] = getPowerFactor();
-    return powerJson;
-}

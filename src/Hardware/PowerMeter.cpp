@@ -1,10 +1,9 @@
-#include "defines.h"
 #include "PowerMeter.h"
-#include "StreamRMS.h"
-#include "StreamActivePower.h"
+#include "Measuring/StreamRMS.h"
+#include "Measuring/StreamActivePower.h"
 #include <Ewma.h>
 
-using namespace Measuring;
+using namespace Hardware;
 
 PowerMeter::PowerMeter(uint8_t pinU, uint8_t pinI) : 
     m_pinU(pinU),
@@ -19,7 +18,7 @@ void PowerMeter::calibrate(float calU, float calI, int32_t calPhase)
 }
 
 
-ACPower PowerMeter::measure(size_t numPeriods)
+Measuring::ACPower PowerMeter::measure(size_t numPeriods)
 {
     // Puffer deklarieren
     std::vector<float> samplesU;
@@ -39,24 +38,19 @@ ACPower PowerMeter::measure(size_t numPeriods)
 
     // Messwerte filtern, kalibrieren und in Stream schieben
     Ewma ewmaI(0.12, 0);
-    StreamRMS<float> streamU;
-    StreamRMS<float> streamI;
-    StreamActivePower<float> streamP;
+    Measuring::StreamRMS<float> streamU;
+    Measuring::StreamRMS<float> streamI;
+    Measuring::StreamActivePower<float> streamP;
     
     for(size_t i = 0; i < samplesU.size(); i++)
     {
         float instantU = (samplesU[i] - zeroU) * m_calU;
-        float instantI = ewmaI.filter((samplesI[makeIndexCircular(i + m_calPhase, samplesI.size())] - zeroI) * m_calI * CURRENT_FACTOR);
+        float instantI = ewmaI.filter((samplesI[makeIndexCircular(i + m_calPhase, samplesI.size())] - zeroI) * m_calI);
         streamU << instantU;
         streamI << instantI;
         streamP << instantU * instantI;
-
-        #if LOG_VALUES
-        Serial.printf("%f,%f\n", instantU, instantI, instantU * instantI);
-        Serial.printf("%f,%f\n", instantU, instantI, instantU * instantI);
-        #endif
     }
-    return ACPower(streamU, streamI, streamP);
+    return Measuring::ACPower(streamU, streamI, streamP);
 }
 
 

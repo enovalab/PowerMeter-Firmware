@@ -1,5 +1,5 @@
-#ifndef STREAMRMS_H
-#define STREAMRMS_H
+#ifndef MEASURING_STREAMRMS_H
+#define MEASURING_STREAMRMS_H
 
 #include <stddef.h>
 #include <math.h>

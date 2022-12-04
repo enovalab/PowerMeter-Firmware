@@ -1,18 +1,18 @@
-#ifndef POWERMETER_H
-#define POWERMETER_H
+#ifndef HARDWARE_POWERMETER_H
+#define HARDWARE_POWERMETER_H
 
-#include "ACPower.h"
+#include "Measuring/ACPower.h"
 #include <Arduino.h>
 #include <vector>
 
-namespace Measuring
+namespace Hardware
 {
     class PowerMeter
     {
     public:
         PowerMeter(uint8_t pinU, uint8_t pinI);
         void calibrate(float calU, float calI, int32_t calPhase);
-        ACPower measure(size_t numPeriods = 20);
+        Measuring::ACPower measure(size_t numPeriods = 20);
 
     private:
         uint8_t m_pinU;

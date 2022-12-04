@@ -1,5 +1,5 @@
-#ifndef RESTAPI_H
-#define RESTAPI_H
+#ifndef CONNECTIVITY_RESTAPI_H
+#define CONNECTIVITY_RESTAPI_H
 
 #include <ESPAsyncWebServer.h>
 #include <json.hpp>
