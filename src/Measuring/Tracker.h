@@ -11,22 +11,27 @@
 
 namespace Measuring
 {
-    struct TrackingSpan
+    class TrackingSpan
     {
+    public:
         TrackingSpan(
             const System::JsonResource& targetResource,
             const System::JsonResource& lastSampleResource, 
+            const System::JsonResource& averageResource,
             time_t timeSpanSeconds, 
             size_t numSamplesPerSpan
-        ) :
-            m_targetResource(targetResource),
-            m_lastSampleResource(lastSampleResource),
-            m_timeSpanSeconds(timeSpanSeconds),
-            m_numSamplesPerSpan(numSamplesPerSpan)
-        {}
+        );
 
+        float average() const;
+        void track(float newValue) const;
+        time_t getTimeSpanSeconsds() const;
+        time_t getLastSampleTimestamp() const;
+        size_t getNumSamplesPerSpan() const;
+
+    private:
         System::JsonResource m_targetResource;
         System::JsonResource m_lastSampleResource;
+        System::JsonResource m_averageResource;
         time_t m_timeSpanSeconds;
         size_t m_numSamplesPerSpan;
     };

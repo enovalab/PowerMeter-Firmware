@@ -6,53 +6,32 @@
 using namespace Measuring;
 
 
-Tracker::Tracker(const Time::IClock& clock, const std::vector<TrackingSpan>& configs) : 
-    m_clock(clock),
-    m_configs(configs)
+TrackingSpan::TrackingSpan(
+    const System::JsonResource& targetResource,
+    const System::JsonResource& lastSampleResource, 
+    const System::JsonResource& averageResource,
+    time_t timeSpanSeconds, 
+    size_t numSamplesPerSpan
+) :
+    m_targetResource(targetResource),
+    m_lastSampleResource(lastSampleResource),
+    m_averageResource(averageResource),
+    m_timeSpanSeconds(timeSpanSeconds),
+    m_numSamplesPerSpan(numSamplesPerSpan)
 {}
 
 
-Tracker& Tracker::operator<<(float newValue)
-{
-    m_average << newValue;
-    time_t now = m_clock.now();
-    for(size_t i = 0; i < m_configs.size(); i++)
-    {
-        const TrackingSpan& config = m_configs[i];
-        time_t secondsPassed = now - config.m_lastSampleResource.deserialize();
-        time_t secondsBetweenSamples = config.m_timeSpanSeconds / config.m_numSamplesPerSpan;
-        if(secondsPassed > secondsBetweenSamples)
-        {
-            float newValue;
-            if(i > 0)
-            {
-                newValue = averageJsonArray(m_configs[i - 1].m_targetResource);
-            }
-            else
-            {
-                newValue = m_average;
-                m_average.reset();
-            }
-
-            track(config.m_targetResource, config.m_numSamplesPerSpan, newValue);
-            config.m_lastSampleResource.serialize(now);
-        }
-    }
-    return *this;
-}
-
-
-void track(const System::JsonResource& targetResource, size_t maxArraySize, float newValue)
+void TrackingSpan::track(float newValue) const
 {
     try
     {
-        json trackerArray = targetResource.deserialize();
+        json trackerArray = m_targetResource.deserialize();
         trackerArray.push_back(newValue);
 
-        if(trackerArray.size() > maxArraySize)
+        if(trackerArray.size() > m_numSamplesPerSpan)
             trackerArray.erase(trackerArray.begin());
 
-        targetResource.serialize(trackerArray);
+        m_targetResource.serialize(trackerArray);
     }
     catch(const std::exception& e)
     {
@@ -65,11 +44,11 @@ void track(const System::JsonResource& targetResource, size_t maxArraySize, floa
 }
 
 
-float averageJsonArray(const System::JsonResource& targetResource)
+float TrackingSpan::average() const
 {
     try
     {
-        json values = targetResource.deserialize();
+        json values = m_averageResource.deserialize();
         float sum = 0;
         for(const json& value : values)
             sum += value;
@@ -86,3 +65,58 @@ float averageJsonArray(const System::JsonResource& targetResource)
     }
     return NAN;
 }
+
+
+time_t TrackingSpan::getTimeSpanSeconsds() const
+{
+    return m_timeSpanSeconds;
+}
+
+
+time_t TrackingSpan::getLastSampleTimestamp() const
+{
+    return m_lastSampleResource.deserialize();
+}
+
+
+size_t TrackingSpan::getNumSamplesPerSpan() const
+{
+    return m_numSamplesPerSpan;
+}
+
+
+Tracker::Tracker(const Time::IClock& clock, const std::vector<TrackingSpan>& configs) : 
+    m_clock(clock),
+    m_configs(configs)
+{}
+
+
+Tracker& Tracker::operator<<(float newValue)
+{
+    m_average << newValue;
+    time_t now = m_clock.now();
+    for(size_t i = 0; i < m_configs.size(); i++)
+    {
+        const TrackingSpan& config = m_configs[i];
+        time_t secondsPassed = now - config.getLastSampleTimestamp();
+        time_t secondsBetweenSamples = config.getTimeSpanSeconsds() / config.getNumSamplesPerSpan();
+        if(secondsPassed > secondsBetweenSamples)
+        {
+            float newValue;
+            if(i > 0)
+            {
+                newValue = config.average();
+            }
+            else
+            {
+                newValue = m_average;
+                m_average.reset();
+            }
+
+            track(config.m_targetResource, config.m_numSamplesPerSpan, newValue);
+            config.m_lastSampleResource.serialize(now);
+        }
+    }
+    return *this;
+}
+
