@@ -6,54 +6,53 @@
 using namespace Measuring;
 
 
-TrackingSpan::TrackingSpan(
-    const System::JsonResource& jsonResource, 
-    time_t timeSpanSeconds, 
-    size_t numSamplesPerSpan, 
-    time_t lastSampleTimestamp
-) : 
-    m_targetResource(jsonResource),
-    m_timeSpanSeconds(timeSpanSeconds),
-    m_numSamplesPerSpan(numSamplesPerSpan),
-    m_lastSampleTimestamp(lastSampleTimestamp)
+Tracker::Tracker(const Time::IClock& clock, const std::vector<TrackingSpan>& configs) : 
+    m_clock(clock),
+    m_configs(configs)
 {}
 
 
-System::JsonResource TrackingSpan::getTargetResource() const
+Tracker& Tracker::operator<<(float newValue)
 {
-    return m_targetResource;
+    m_average << newValue;
+    time_t now = m_clock.now();
+    for(size_t i = 0; i < m_configs.size(); i++)
+    {
+        const TrackingSpan& config = m_configs[i];
+        time_t secondsPassed = now - config.m_lastSampleResource.deserialize();
+        time_t secondsBetweenSamples = config.m_timeSpanSeconds / config.m_numSamplesPerSpan;
+        if(secondsPassed > secondsBetweenSamples)
+        {
+            float newValue;
+            if(i > 0)
+            {
+                newValue = averageJsonArray(m_configs[i - 1].m_targetResource);
+            }
+            else
+            {
+                newValue = m_average;
+                m_average.reset();
+            }
+
+            track(config.m_targetResource, config.m_numSamplesPerSpan, newValue);
+            config.m_lastSampleResource.serialize(now);
+        }
+    }
+    return *this;
 }
 
 
-time_t TrackingSpan::getTimeSpanSeconds() const
-{
-    return m_timeSpanSeconds;
-}
-
-
-size_t TrackingSpan::getNumSamplesPerSpan() const
-{
-    return m_numSamplesPerSpan;
-}
-
-
-time_t TrackingSpan::getLastSampleTimestamp() const
-{
-    return m_lastSampleTimestamp;
-}
-
-
-void TrackingSpan::pushBackPopFront(float newValue) const
+void track(const System::JsonResource& targetResource, size_t maxArraySize, float newValue)
 {
     try
     {
-        json trackerArray = m_targetResource.deserialize();
+        json trackerArray = targetResource.deserialize();
         trackerArray.push_back(newValue);
 
-        if(trackerArray.size() > m_numSamplesPerSpan)
+        if(trackerArray.size() > maxArraySize)
             trackerArray.erase(trackerArray.begin());
 
-        m_targetResource.serialize(trackerArray);
+        targetResource.serialize(trackerArray);
     }
     catch(const std::exception& e)
     {
@@ -66,41 +65,24 @@ void TrackingSpan::pushBackPopFront(float newValue) const
 }
 
 
-Tracker::Tracker(const Time::IClock& clock, const std::vector<TrackingSpan>& configs) : 
-    m_clock(clock),
-    m_configs(configs)
-{}
-
-Tracker& Tracker::operator<<(float newValue)
+float averageJsonArray(const System::JsonResource& targetResource)
 {
-    m_average << newValue;
-    for(size_t i = 0; i < m_configs.size(); i++)
+    try
     {
-        time_t timePassed = m_clock.now() - m_configs[i].getLastSampleTimestamp();
-        time_t timeBetweenSamples = m_configs[i].getTimeSpanSeconds() / m_configs[i].getNumSamplesPerSpan();
-        if(timePassed > timeBetweenSamples)
-        {
-            if(i == 0)
-            {
-                m_configs[i].pushBackPopFront(m_average);
-                m_average.reset();
-            }
-            else
-            {
-                m_configs[i].pushBackPopFront(getJsonArrayAverage(m_configs[i - 1].getTargetResource()));
-            }
-        }
+        json values = targetResource.deserialize();
+        float sum = 0;
+        for(const json& value : values)
+            sum += value;
+
+        return sum / values.size();
     }
-    return *this;
-}
-
-
-float Tracker::getJsonArrayAverage(const System::JsonResource& jsonResource)
-{
-    json items = jsonResource.deserialize();
-    float sum = 0;
-    for(const json& item : items)
-        sum += item;
-
-    return sum / items.size();
+    catch(const std::exception& e)
+    {
+        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
+    }
+    catch(...)
+    {
+        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+    }
+    return NAN;
 }

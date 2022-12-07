@@ -6,33 +6,29 @@
 
 #include <StreamAverage.h>
 #include <json.hpp>
-#include <string>
 #include <vector>
-#include <fstream>
+
 
 namespace Measuring
 {
-    class TrackingSpan
+    struct TrackingSpan
     {
-    public:
         TrackingSpan(
-            const System::JsonResource& jsonResource, 
+            const System::JsonResource& targetResource,
+            const System::JsonResource& lastSampleResource, 
             time_t timeSpanSeconds, 
-            size_t numSamplesPerSpan, 
-            time_t lastSampleTimestamp
-        );
+            size_t numSamplesPerSpan
+        ) :
+            m_targetResource(targetResource),
+            m_lastSampleResource(lastSampleResource),
+            m_timeSpanSeconds(timeSpanSeconds),
+            m_numSamplesPerSpan(numSamplesPerSpan)
+        {}
 
-        System::JsonResource getTargetResource() const;
-        time_t getTimeSpanSeconds() const;
-        size_t getNumSamplesPerSpan() const;
-        time_t getLastSampleTimestamp() const;
-        void pushBackPopFront(float newValue) const;
-
-    private:
         System::JsonResource m_targetResource;
+        System::JsonResource m_lastSampleResource;
         time_t m_timeSpanSeconds;
         size_t m_numSamplesPerSpan;
-        time_t m_lastSampleTimestamp;
     };
 
 
@@ -43,12 +39,13 @@ namespace Measuring
         Tracker& operator<<(float newValue);
     
     private:
-        static float getJsonArrayAverage(const System::JsonResource& jsonResource);
-
         const Time::IClock& m_clock;
         std::vector<TrackingSpan> m_configs;
         StreamAverage<float> m_average;
     };
+
+    void track(const System::JsonResource& targetResource, size_t maxArraySize, float newValue);
+    float averageJsonArray(const System::JsonResource&);
 }
 
 #endif

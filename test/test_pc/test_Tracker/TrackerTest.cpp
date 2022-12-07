@@ -7,10 +7,18 @@
 #include <filesystem>
 
 using Measuring::Tracker;
+using Measuring::TrackingSpan;
+using System::JsonResource;
 
 constexpr const char* testFilePath = "TrackerTest.json";
 MockClock mockClock;
-Tracker uut(mockClock, testFilePath, 500, 5);
+
+Tracker uut(mockClock, {
+    TrackingSpan(JsonResource("TrackerTest.json#/last60min"), JsonResource("TrackerTest.json#/lastSamples/last60min"), 3600, 60),
+    TrackingSpan(JsonResource("TrackerTest.json#/last24h"), JsonResource("TrackerTest.json#/lastSamples/last24h"), 3600 * 24, 24),
+    TrackingSpan(JsonResource("TrackerTest.json#/last7d"), JsonResource("TrackerTest.json#/lastSamples/last7d"), 3600 * 24 * 7, 7),
+    TrackingSpan(JsonResource("TrackerTest.json#/last30d"), JsonResource("TrackerTest.json#/lastSamples/last30d"), 3600 * 24 * 30, 30),
+});
 
 
 std::string getFileContent(std::ifstream& file)

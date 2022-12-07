@@ -5,7 +5,7 @@
 #include "Hardware/PowerMeter.h"
 #include "Measuring/Tracker.h"
 #include "Time/DS3231.h"
-#
+#include "System/JsonResource.h"
 
 namespace System
 {
@@ -18,12 +18,11 @@ namespace System
     private:
         Hardware::PowerMeter m_powerMeter;
         Time::DS3231 m_clock;
-        Measuring::Tracker m_dayTracker;
-        Measuring::Tracker m_weekTracker;
-        Measuring::Tracker m_monthTracker;
-        Measuring::Tracker m_yearTracker;
-        Measuring::Tracker m_decadeTracker;
+        Measuring::Tracker m_tracker;
     };
+
+    Logging::Log configureLogger(const JsonResource& configResource);
+
 }
 
 #endif

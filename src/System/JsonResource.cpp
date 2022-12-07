@@ -37,6 +37,17 @@ JsonResource::JsonResource(const std::string& uri)
 }
 
 
+std::string JsonResource::getFilePath() const
+{
+    return m_path;
+}
+
+
+json::json_pointer JsonResource::getJsonPointer() const
+{
+    return m_jsonPointer;
+}
+
 
 json JsonResource::deserialize() const
 {

@@ -11,6 +11,9 @@ namespace System
         JsonResource(const std::string& path, const json::json_pointer& jsonPointer);
         JsonResource(const std::string& uri);
 
+        json::json_pointer getJsonPointer() const;
+        std::string getFilePath() const;
+        
         json deserialize() const;
         void serialize(const json& data) const;
     
@@ -18,7 +21,6 @@ namespace System
         std::string m_path;
         json::json_pointer m_jsonPointer;
     };
-
 }
 
 #endif
