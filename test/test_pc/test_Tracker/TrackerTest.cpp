@@ -14,26 +14,54 @@ constexpr const char* testFilePath = "TrackerTest.json";
 MockClock mockClock;
 
 Tracker uut(mockClock, {
-    TrackingSpan(JsonResource("TrackerTest.json#/last60min"), JsonResource("TrackerTest.json#/lastSamples/last60min"), 3600, 60),
-    TrackingSpan(JsonResource("TrackerTest.json#/last24h"), JsonResource("TrackerTest.json#/lastSamples/last24h"), 3600 * 24, 24),
-    TrackingSpan(JsonResource("TrackerTest.json#/last7d"), JsonResource("TrackerTest.json#/lastSamples/last7d"), 3600 * 24 * 7, 7),
-    TrackingSpan(JsonResource("TrackerTest.json#/last30d"), JsonResource("TrackerTest.json#/lastSamples/last30d"), 3600 * 24 * 30, 30),
+    TrackingSpan(
+        JsonResource("TrackerTest.json#/last60min"),
+        JsonResource("TrackerTest.json#/lastSamples/last60min"), 
+        3600, 
+        60
+    ),
+    TrackingSpan(
+        JsonResource("TrackerTest.json#/last24h"), 
+        JsonResource("TrackerTest.json#/lastSamples/last24h"), 
+        3600 * 24, 
+        24,
+        JsonResource("TrackerTest.json#/last60min")
+    ),
+    TrackingSpan(
+        JsonResource("TrackerTest.json#/last7d"), 
+        JsonResource("TrackerTest.json#/lastSamples/last7d"), 
+        3600 * 24 * 7, 
+        7,
+        JsonResource("TrackerTest.json#/last24h")
+    ),
+    TrackingSpan(
+        JsonResource("TrackerTest.json#/last30d"), 
+        JsonResource("TrackerTest.json#/lastSamples/last30d"), 
+        3600 * 24 * 30, 
+        30,
+        JsonResource("TrackerTest.json#/last24h")
+    ),
+    TrackingSpan(
+        JsonResource("TrackerTest.json#/last12m"), 
+        JsonResource("TrackerTest.json#/lastSamples/last12m"), 
+        3600 * 24 * 30 * 12, 
+        12,
+        JsonResource("TrackerTest.json#/last24h")
+    ),
+    TrackingSpan(
+        JsonResource("TrackerTest.json#/last10a"), 
+        JsonResource("TrackerTest.json#/lastSamples/las10a"), 
+        3600 * 24 * 30 * 12 * 10, 
+        10,
+        JsonResource("TrackerTest.json#/last12m")
+    ),
 });
-
-
-std::string getFileContent(std::ifstream& file)
-{
-    std::string content;
-    content.assign(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
-    return content;
-}
 
 
 TEST(TrackerTest, noTimeElapsed)
 {
-    uut << 1.0f;
-    std::ifstream testFile(testFilePath);
-    EXPECT_STREQ("", getFileContent(testFile).c_str());
+    uut.track(1.0f);
+    EXPECT_TRUE(std::ifstream("TrackerTest.json").peek() < 0);
 }
 
 TEST(TrackerTest, oneTimeElapsed)

@@ -36,6 +36,18 @@ JsonResource::JsonResource(const std::string& uri)
     }
 }
 
+void JsonResource::setJsonPointer(const json::json_pointer& jsonPointer)
+{
+    m_jsonPointer = jsonPointer;
+}
+
+
+void JsonResource::setFilePath(const std::string& path)
+{
+    m_path = path;
+}
+
+
 
 std::string JsonResource::getFilePath() const
 {

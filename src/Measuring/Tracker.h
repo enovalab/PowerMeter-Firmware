@@ -17,23 +17,24 @@ namespace Measuring
         TrackingSpan(
             const System::JsonResource& targetResource,
             const System::JsonResource& lastSampleResource, 
-            const System::JsonResource& averageResource,
             time_t timeSpanSeconds, 
-            size_t numSamplesPerSpan
+            size_t numSamplesPerSpan,
+            const System::JsonResource& averageResource = System::JsonResource()
         );
 
         float average() const;
         void track(float newValue) const;
         time_t getTimeSpanSeconsds() const;
-        time_t getLastSampleTimestamp() const;
         size_t getNumSamplesPerSpan() const;
+        time_t getLastSampleTimestamp() const;
+        void setLastSampleTimestamp(time_t timestamp) const;
 
     private:
         System::JsonResource m_targetResource;
         System::JsonResource m_lastSampleResource;
-        System::JsonResource m_averageResource;
         time_t m_timeSpanSeconds;
         size_t m_numSamplesPerSpan;
+        System::JsonResource m_averageResource;
     };
 
 
@@ -41,7 +42,7 @@ namespace Measuring
     {
     public:
         Tracker(const Time::IClock& clock, const std::vector<TrackingSpan>& configs);
-        Tracker& operator<<(float newValue);
+        void track(float newValue);
     
     private:
         const Time::IClock& m_clock;

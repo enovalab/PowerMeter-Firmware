@@ -8,16 +8,16 @@ using namespace Measuring;
 
 TrackingSpan::TrackingSpan(
     const System::JsonResource& targetResource,
-    const System::JsonResource& lastSampleResource, 
     const System::JsonResource& averageResource,
     time_t timeSpanSeconds, 
-    size_t numSamplesPerSpan
+    size_t numSamplesPerSpan,
+    const System::JsonResource& lastSampleResource 
 ) :
     m_targetResource(targetResource),
-    m_lastSampleResource(lastSampleResource),
     m_averageResource(averageResource),
     m_timeSpanSeconds(timeSpanSeconds),
-    m_numSamplesPerSpan(numSamplesPerSpan)
+    m_numSamplesPerSpan(numSamplesPerSpan),
+    m_lastSampleResource(lastSampleResource)
 {}
 
 
@@ -73,15 +73,21 @@ time_t TrackingSpan::getTimeSpanSeconsds() const
 }
 
 
+size_t TrackingSpan::getNumSamplesPerSpan() const
+{
+    return m_numSamplesPerSpan;
+}
+
+
 time_t TrackingSpan::getLastSampleTimestamp() const
 {
     return m_lastSampleResource.deserialize();
 }
 
 
-size_t TrackingSpan::getNumSamplesPerSpan() const
+void TrackingSpan::setLastSampleTimestamp(time_t timestamp) const
 {
-    return m_numSamplesPerSpan;
+    m_lastSampleResource.serialize(timestamp);
 }
 
 
@@ -91,7 +97,7 @@ Tracker::Tracker(const Time::IClock& clock, const std::vector<TrackingSpan>& con
 {}
 
 
-Tracker& Tracker::operator<<(float newValue)
+void Tracker::track(float newValue)
 {
     m_average << newValue;
     time_t now = m_clock.now();
@@ -100,23 +106,30 @@ Tracker& Tracker::operator<<(float newValue)
         const TrackingSpan& config = m_configs[i];
         time_t secondsPassed = now - config.getLastSampleTimestamp();
         time_t secondsBetweenSamples = config.getTimeSpanSeconsds() / config.getNumSamplesPerSpan();
-        if(secondsPassed > secondsBetweenSamples)
+        size_t timesElapsed = secondsPassed / secondsBetweenSamples;
+        for(size_t j = timesElapsed; j > 0; j--)
         {
             float newValue;
-            if(i > 0)
+            if(j == 1)
             {
-                newValue = config.average();
+                if(i > 0)
+                {
+                    newValue = config.average();
+                }
+                else
+                {
+                    newValue = m_average;
+                    m_average.reset();
+                }
+                config.setLastSampleTimestamp(now);
             }
             else
             {
-                newValue = m_average;
-                m_average.reset();
+                newValue = 0.0f;
             }
 
-            track(config.m_targetResource, config.m_numSamplesPerSpan, newValue);
-            config.m_lastSampleResource.serialize(now);
+            config.track(newValue);
         }
     }
-    return *this;
 }
 
