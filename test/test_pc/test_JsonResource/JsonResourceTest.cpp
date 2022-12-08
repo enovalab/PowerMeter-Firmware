@@ -12,12 +12,18 @@ System::JsonResource uut("JsonResourceTest.json#/test");
 TEST(JsonResourceTest, filePath)
 {
     EXPECT_STREQ("JsonResourceTest.json", uut.getFilePath().c_str());
+    std::string newPath = "JsonResourceTest1.json";
+    uut.setFilePath(newPath);
+    EXPECT_EQ(newPath, uut.getFilePath());
 }
 
 
 TEST(JsonResourceTest, jsonPointer)
 {
     EXPECT_STREQ("/test", uut.getJsonPointer().to_string().c_str());
+    json::json_pointer newJsonPtr = "/test1/1";
+    uut.setJsonPointer(newJsonPtr);
+    EXPECT_EQ(newJsonPtr, uut.getJsonPointer());
 }
 
 
@@ -47,7 +53,7 @@ TEST(JsonResourceTest, deserialize)
 
 TEST(JsonResourceTest, deleteTestFile)
 {
-    std::filesystem::remove("JsonResourceTest.json");
+    std::filesystem::remove("JsonResourceTest1.json");
 }
 
 int main()

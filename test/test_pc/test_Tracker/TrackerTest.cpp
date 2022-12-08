@@ -10,10 +10,7 @@ using Measuring::Tracker;
 using Measuring::TrackingSpan;
 using System::JsonResource;
 
-constexpr const char* testFilePath = "TrackerTest.json";
-MockClock mockClock;
-
-Tracker uut(mockClock, {
+const std::vector<TrackingSpan> config = {
     TrackingSpan(
         JsonResource("TrackerTest.json#/last60min"),
         JsonResource("TrackerTest.json#/lastSamples/last60min"), 
@@ -54,44 +51,46 @@ Tracker uut(mockClock, {
         3600 * 24 * 30 * 12 * 10, 
         10,
         JsonResource("TrackerTest.json#/last12m")
-    ),
-});
+    )
+};
 
-
-TEST(TrackerTest, noTimeElapsed)
+TEST(TrackerTest, arraySizeNotGreaterThanSpecified)
 {
-    uut.track(1.0f);
-    EXPECT_TRUE(std::ifstream("TrackerTest.json").peek() < 0);
-}
+    MockClock clock;
+    Tracker uut(clock, config);
 
-TEST(TrackerTest, oneTimeElapsed)
-{
-    mockClock.setTime(101);
-    uut << 3.0f;
-    std::ifstream testFile(testFilePath);
-    json actual = json::parse(testFile);
-
-    EXPECT_TRUE(actual.is_array());
-    EXPECT_EQ(1, actual.size());
-    EXPECT_EQ(2.0f, actual.at(0));
-}
-
-TEST(TrackerTest, multipleTimesElapsed)
-{
-    mockClock.setTime(1000);
-    uut << 2.0f;
-    std::ifstream testFile(testFilePath);
-    json actual = json::parse(testFile);  
-    EXPECT_EQ(5, actual.size());
-    for(size_t i = 0; i < actual.size() - 1; i++)
+    // "Zehn Jahre" tracken
+    while(clock.now < 3600 * 24 * 30 * 12 * 10)
     {
-        EXPECT_EQ(0, actual.at(i));
+        uut.track(1.0f);
+        clock.setTimestamp(clock.now() + 1);
     }
-}
 
-TEST(TrackerTest, deleteTestFile)
-{
-    std::filesystem::remove(testFilePath);
+    json last60min = JsonResource("TrackerTest.json#/last60min").deserialize();
+    EXPECT_TRUE(last60min.is_array());
+    EXPECT_EQ(60, last60min.size());
+
+    json last24h = JsonResource("TrackerTest.json#/last24h").deserialize();
+    EXPECT_TRUE(last24h.is_array());
+    EXPECT_EQ(24, last24h.size());
+
+    json last7d = JsonResource("TrackerTest.json#/last7d").deserialize();
+    EXPECT_TRUE(last7d.is_array());
+    EXPECT_EQ(7, last7d.size());
+
+    json last30d = JsonResource("TrackerTest.json#/last30d").deserialize();
+    EXPECT_TRUE(last30d.is_array());
+    EXPECT_EQ(30, last30d.size());
+
+    json last12m = JsonResource("TrackerTest.json#/last12m").deserialize();
+    EXPECT_TRUE(last12m.is_array());
+    EXPECT_EQ(12, last12m.size());
+
+    json last10a = JsonResource("TrackerTest.json#/last10a").deserialize();
+    EXPECT_TRUE(last10a.is_array());
+    EXPECT_EQ(10, last10a.size());
+
+    std::filesystem::remove("TrackerTest.json");   
 }
 
 int main()

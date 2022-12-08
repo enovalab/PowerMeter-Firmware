@@ -6,7 +6,7 @@
 class MockClock : public Time::IClock
 {
 public:    
-    void setTime(time_t now)
+    void setTimestamp(time_t now)
     {
         m_now = now;
     }
