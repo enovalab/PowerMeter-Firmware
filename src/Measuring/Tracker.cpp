@@ -8,16 +8,16 @@ using namespace Measuring;
 
 TrackingSpan::TrackingSpan(
     const System::JsonResource& targetResource,
-    const System::JsonResource& averageResource,
+    const System::JsonResource& lastSampleResource,
     time_t timeSpanSeconds, 
     size_t numSamplesPerSpan,
-    const System::JsonResource& lastSampleResource 
+    const System::JsonResource& averageResource
 ) :
     m_targetResource(targetResource),
-    m_averageResource(averageResource),
     m_timeSpanSeconds(timeSpanSeconds),
     m_numSamplesPerSpan(numSamplesPerSpan),
-    m_lastSampleResource(lastSampleResource)
+    m_lastSampleResource(lastSampleResource),
+    m_averageResource(averageResource)
 {}
 
 
@@ -51,7 +51,7 @@ float TrackingSpan::average() const
         json values = m_averageResource.deserialize();
         float sum = 0;
         for(const json& value : values)
-            sum += value;
+            sum += value.get<float>();
 
         return sum / values.size();
     }
@@ -81,7 +81,21 @@ size_t TrackingSpan::getNumSamplesPerSpan() const
 
 time_t TrackingSpan::getLastSampleTimestamp() const
 {
-    return m_lastSampleResource.deserialize();
+    json lastSampleJson = m_lastSampleResource.deserialize();
+    try
+    {
+        if(!lastSampleJson.is_null())
+            return lastSampleJson.get<time_t>();
+    }
+    catch(const std::exception& e)
+    {
+        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
+    }
+    catch(...)
+    {
+        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+    }
+    return 0;
 }
 
 
@@ -129,6 +143,7 @@ void Tracker::track(float newValue)
             }
 
             config.track(newValue);
+            std::cout << "x" << std::endl;
         }
     }
 }

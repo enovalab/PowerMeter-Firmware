@@ -1,5 +1,9 @@
 #include "Measuring/Tracker.h"
 #include "Measuring/Tracker.cpp"
+#include "System/JsonResource.h"
+#include "System/JsonResource.cpp"
+#include "Logging/Log.h"
+#include "Logging/Log.cpp"
 
 #include "MockClock.h"
 #include <gtest/gtest.h>
@@ -60,7 +64,7 @@ TEST(TrackerTest, arraySizeNotGreaterThanSpecified)
     Tracker uut(clock, config);
 
     // "Zehn Jahre" tracken
-    while(clock.now < 3600 * 24 * 30 * 12 * 10)
+    while(clock.now() < 3600 * 24 * 30 * 12 * 10)
     {
         uut.track(1.0f);
         clock.setTimestamp(clock.now() + 1);
@@ -90,7 +94,7 @@ TEST(TrackerTest, arraySizeNotGreaterThanSpecified)
     EXPECT_TRUE(last10a.is_array());
     EXPECT_EQ(10, last10a.size());
 
-    std::filesystem::remove("TrackerTest.json");   
+    // std::filesystem::remove("TrackerTest.json");
 }
 
 int main()

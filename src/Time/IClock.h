@@ -9,7 +9,7 @@ namespace Time
     {
     public:
         virtual time_t now() const = 0;
-        virtual ~IClock();
+        virtual ~IClock() {};
     };
 }
 

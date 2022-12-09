@@ -21,7 +21,7 @@ TEST(JsonResourceTest, filePath)
 TEST(JsonResourceTest, jsonPointer)
 {
     EXPECT_STREQ("/test", uut.getJsonPointer().to_string().c_str());
-    json::json_pointer newJsonPtr = "/test1/1";
+    json::json_pointer newJsonPtr = "/test1/1"_json_pointer;
     uut.setJsonPointer(newJsonPtr);
     EXPECT_EQ(newJsonPtr, uut.getJsonPointer());
 }
