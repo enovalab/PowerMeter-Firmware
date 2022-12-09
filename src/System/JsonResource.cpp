@@ -64,13 +64,12 @@ json::json_pointer JsonResource::getJsonPointer() const
 json JsonResource::deserialize() const
 {
     std::ifstream file(m_path);
-    if(file.peek() < 0)
-        return json();
-
     try
     {
         return json::parse(file).at(m_jsonPointer);
     }
+    catch(const json::parse_error& e)
+    {}
     catch(const std::exception& e)
     {
         Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;

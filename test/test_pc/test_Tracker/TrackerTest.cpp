@@ -97,6 +97,13 @@ TEST(TrackerTest, arraySizeNotGreaterThanSpecified)
     // std::filesystem::remove("TrackerTest.json");
 }
 
+
+TEST(TrackerTest, shouldFillWithZero)
+{
+    
+}
+
+
 int main()
 {
     testing::InitGoogleTest();

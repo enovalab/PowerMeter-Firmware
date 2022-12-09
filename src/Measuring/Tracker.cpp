@@ -121,6 +121,10 @@ void Tracker::track(float newValue)
         time_t secondsPassed = now - config.getLastSampleTimestamp();
         time_t secondsBetweenSamples = config.getTimeSpanSeconsds() / config.getNumSamplesPerSpan();
         size_t timesElapsed = secondsPassed / secondsBetweenSamples;
+
+        Logging::Logger[Logging::Level::Debug] << secondsPassed << " s passed since last sample" << std::endl;
+        Logging::Logger[Logging::Level::Debug] << timesElapsed << " times elapsed" << std::endl;
+
         for(size_t j = timesElapsed; j > 0; j--)
         {
             float newValue;
@@ -129,21 +133,25 @@ void Tracker::track(float newValue)
                 if(i > 0)
                 {
                     newValue = config.average();
+                    Logging::Logger[Logging::Level::Debug] << "Got average from file" << std::endl;
                 }
                 else
                 {
                     newValue = m_average;
                     m_average.reset();
+                    Logging::Logger[Logging::Level::Debug] << "Got average from StreamAverage" << std::endl;
                 }
                 config.setLastSampleTimestamp(now);
+                Logging::Logger[Logging::Level::Debug] << "Last sample Timestamp set to " << now << std::endl;
             }
             else
             {
                 newValue = 0.0f;
+                Logging::Logger[Logging::Level::Debug] << "New value set to 0" << std::endl;
             }
 
             config.track(newValue);
-            std::cout << "x" << std::endl;
+            Logging::Logger[Logging::Level::Debug] << "New value" << newValue << " has been tracked" << std::endl;
         }
     }
 }
