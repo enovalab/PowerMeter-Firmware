@@ -9,10 +9,13 @@
 #include <gtest/gtest.h>
 #include <fstream>
 #include <filesystem>
+#include <thread>
+#include <chrono>
 
 using Measuring::Tracker;
 using Measuring::TrackingSpan;
 using System::JsonResource;
+using namespace std::chrono_literals;
 
 const std::vector<TrackingSpan> config = {
     TrackingSpan(

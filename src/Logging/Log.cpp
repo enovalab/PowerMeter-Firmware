@@ -13,6 +13,8 @@ Level Logging::getLevelByName(std::string name)
         return Level::Error;
     if(name == "WARNING")
         return Level::Warning;
+    if(name == "DEBUG")
+        return Level::Debug;
     if(name == "INFO")
         return Level::Info;
 
@@ -29,6 +31,9 @@ std::string Logging::getNameByLevel(Level level)
         break;
     case Level::Warning:
         return "Warning";
+        break;
+    case Level::Debug:
+        return "Debug";
         break;
     case Level::Info:
         return "Info";

@@ -20,6 +20,7 @@ namespace Logging
         Silent,
         Error,
         Warning,
+        Debug,
         Info,
         Verbose
     };
