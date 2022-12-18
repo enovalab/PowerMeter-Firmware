@@ -1,9 +1,9 @@
 #ifndef MOCKCLOCK_H
 #define MOCKCLOCK_H
 
-#include "Time/IClock.h"
+#include "Time/Clock.h"
 
-class MockClock : public Time::IClock
+class MockClock : public Time::Clock
 {
 public:    
     void setTimestamp(time_t now)

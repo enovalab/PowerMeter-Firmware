@@ -1,0 +1,7 @@
+{
+    "level": "Verbose",
+    "showLevel": true,
+    "fileMode": true,
+    "baud": 115200,
+    "logFile": "/log/log.log"
+}

@@ -8,24 +8,25 @@
 
 namespace Connectivity
 {
-    using JsonCallback = std::function<void(json)>;
-    using JsonGenerator = std::function<json()>;
+    using JsonSetter = std::function<void(json)>;
+    using JsonGetter = std::function<json()>;
 
     class RestAPI
     {
     public:
-        RestAPI(AsyncWebServer server, std::string baseUri = "/", bool allowCors = true);
-        // createEndpointRead(std::string endpointUri, std::string filePath);
-        // createEndpointRead(std::string endpointUri, JsonGenerator generator);
-        // createEndpointWrite(std::string endpointUri, std::string filePath, JsonCallback callback = [](json){});
-        // createEndpointWrite(std::string endpointUri, JsonCallback callback = [](json){});
-
-        
+        RestAPI(AsyncWebServer& server, const std::string& baseURI = "/", bool allowCORS = true);
+        void handleGet(const std::string& endpointURI, const JsonGetter& getData);
+        void handlePut(const std::string& endpointURI, const JsonSetter& setData);
+        void handlePatch(const std::string& endpointURI, const JsonSetter& setData);
+        void handlePost(const std::string& endpointURI, const JsonSetter& setData);
+        void handleDelete(const std::string& endpointURI, const std::function<void()>& deleteData);
 
     private:
+        void addCORSHeaders(AsyncWebServerResponse* response);
+
         AsyncWebServer m_server;
-        std::string m_baseUri;
-        bool m_allowCors;
+        std::string m_baseURI;
+        bool m_allowCORS;
     };
 }
 

@@ -1,17 +1,17 @@
-#include "Measuring/Tracker.h"
+#include "Data/Tracker.h"
 #include "Logging/Log.h"
 #include <fstream>
 #include <algorithm>
 
-using namespace Measuring;
+using namespace Data;
 
 
 TrackingSpan::TrackingSpan(
-    const System::JsonResource& targetResource,
-    const System::JsonResource& lastSampleResource,
+    const Data::JsonURI& targetResource,
+    const Data::JsonURI& lastSampleResource,
     time_t timeSpanSeconds, 
     size_t numSamplesPerSpan,
-    const System::JsonResource& averageResource
+    const Data::JsonURI& averageResource
 ) :
     m_targetResource(targetResource),
     m_timeSpanSeconds(timeSpanSeconds),
@@ -31,6 +31,12 @@ void TrackingSpan::track(float newValue) const
         if(trackerArray.size() > m_numSamplesPerSpan)
             trackerArray.erase(trackerArray.begin());
 
+        m_targetResource.serialize(trackerArray);
+    }
+    catch(const json::out_of_range& e)
+    {
+        json trackerArray;
+        trackerArray.push_back(newValue);
         m_targetResource.serialize(trackerArray);
     }
     catch(const std::exception& e)
@@ -54,6 +60,10 @@ float TrackingSpan::average() const
             sum += value.get<float>();
 
         return sum / values.size();
+    }
+    catch(const json::out_of_range& e)
+    {
+        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
     }
     catch(const std::exception& e)
     {
@@ -81,12 +91,15 @@ size_t TrackingSpan::getNumSamplesPerSpan() const
 
 time_t TrackingSpan::getLastSampleTimestamp() const
 {
-    json lastSampleJson = m_lastSampleResource.deserialize();
     try
     {
+        json lastSampleJson = m_lastSampleResource.deserialize();
+
         if(!lastSampleJson.is_null())
             return lastSampleJson.get<time_t>();
     }
+    catch(const json::out_of_range& e)
+    {}
     catch(const std::exception& e)
     {
         Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
@@ -105,9 +118,9 @@ void TrackingSpan::setLastSampleTimestamp(time_t timestamp) const
 }
 
 
-Tracker::Tracker(const Time::IClock& clock, const std::vector<TrackingSpan>& configs) : 
+Tracker::Tracker(const Time::Clock& clock, const std::vector<TrackingSpan>& trackingSpans) : 
     m_clock(clock),
-    m_configs(configs)
+    m_trackingSpans(trackingSpans)
 {}
 
 
@@ -115,15 +128,13 @@ void Tracker::track(float newValue)
 {
     m_average << newValue;
     time_t now = m_clock.now();
-    for(size_t i = 0; i < m_configs.size(); i++)
-    {
-        const TrackingSpan& config = m_configs[i];
-        time_t secondsPassed = now - config.getLastSampleTimestamp();
-        time_t secondsBetweenSamples = config.getTimeSpanSeconsds() / config.getNumSamplesPerSpan();
-        size_t timesElapsed = secondsPassed / secondsBetweenSamples;
 
-        Logging::Logger[Logging::Level::Debug] << secondsPassed << " s passed since last sample" << std::endl;
-        Logging::Logger[Logging::Level::Debug] << timesElapsed << " times elapsed" << std::endl;
+    for(size_t i = 0; i < m_trackingSpans.size(); i++)
+    {
+        const TrackingSpan& trackingSpan = m_trackingSpans[i];
+        time_t secondsPassed = now - trackingSpan.getLastSampleTimestamp();
+        time_t secondsBetweenSamples = trackingSpan.getTimeSpanSeconsds() / trackingSpan.getNumSamplesPerSpan();
+        size_t timesElapsed = secondsPassed / secondsBetweenSamples;
 
         for(size_t j = timesElapsed; j > 0; j--)
         {
@@ -132,26 +143,21 @@ void Tracker::track(float newValue)
             {
                 if(i > 0)
                 {
-                    newValue = config.average();
-                    Logging::Logger[Logging::Level::Debug] << "Got average from file" << std::endl;
+                    newValue = trackingSpan.average();
                 }
                 else
                 {
                     newValue = m_average;
                     m_average.reset();
-                    Logging::Logger[Logging::Level::Debug] << "Got average from StreamAverage" << std::endl;
                 }
-                config.setLastSampleTimestamp(now);
-                Logging::Logger[Logging::Level::Debug] << "Last sample Timestamp set to " << now << std::endl;
+                trackingSpan.setLastSampleTimestamp(now);
             }
             else
             {
                 newValue = 0.0f;
-                Logging::Logger[Logging::Level::Debug] << "New value set to 0" << std::endl;
             }
 
-            config.track(newValue);
-            Logging::Logger[Logging::Level::Debug] << "New value" << newValue << " has been tracked" << std::endl;
+            trackingSpan.track(newValue);
         }
     }
 }

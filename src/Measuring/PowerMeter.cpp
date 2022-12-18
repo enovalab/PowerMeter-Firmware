@@ -1,9 +1,9 @@
-#include "PowerMeter.h"
+#include "Measuring/PowerMeter.h"
 #include "Measuring/StreamRMS.h"
 #include "Measuring/StreamActivePower.h"
 #include <Ewma.h>
 
-using namespace Hardware;
+using namespace Measuring;
 
 PowerMeter::PowerMeter(uint8_t pinU, uint8_t pinI) : 
     m_pinU(pinU),

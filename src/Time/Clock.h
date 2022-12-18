@@ -1,15 +1,15 @@
-#ifndef TIME_ICLOCK_H
-#define TIME_ICLOCK_H
+#ifndef TIME_CLOCK_H
+#define TIME_CLOCK_H
 
 #include <time.h>
 
 namespace Time
 {
-    class IClock
+    class Clock
     {
     public:
         virtual time_t now() const = 0;
-        virtual ~IClock() {};
+        virtual ~Clock() {};
     };
 }
 

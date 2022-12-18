@@ -3,6 +3,62 @@
 
 using namespace Logging;
 
+namespace Logging
+{
+    Log Logger = Log(Level::Verbose, &std::cout, true);
+}
+
+
+Log::Log(Level level, std::ostream* stream, bool showLevel) :
+    m_level(level),
+    m_stream(stream),
+    m_showLevel(showLevel)
+{}
+
+
+void Log::setLevel(Level level)
+{
+    m_level = level;
+}
+
+
+void Log::setOutputStream(std::ostream* stream)
+{
+    m_stream = stream;
+}
+
+
+void Log::setShowLevel(bool showLevel)
+{
+    m_showLevel = showLevel;
+}
+
+
+std::ostream& Log::operator[](Level level)
+{
+    if(level <= m_level && level > Level::Silent)
+    {
+        if(m_showLevel)
+        {
+            std::string levelName = getNameByLevel(level);
+            std::transform(levelName.begin(), levelName.end(), levelName.begin(), ::toupper);
+            *m_stream << "[" << levelName << "] ";
+        }
+        return *m_stream;
+    }
+
+    class NullStreamBuffer : public std::streambuf
+    {
+    public:
+        int overflow(int c) override { return c; }
+    };
+
+    static NullStreamBuffer nullBuffer;
+    static std::ostream nullStream(&nullBuffer);
+    return nullStream;
+}
+
+
 
 Level Logging::getLevelByName(std::string name)
 {
@@ -44,36 +100,4 @@ std::string Logging::getNameByLevel(Level level)
     default:
         return "";
     }
-}
-
-
-Log::Log(Level level, std::ostream* stream, bool showLevel) :
-    m_level(level),
-    m_stream(stream),
-    m_showLevel(showLevel)
-{}
-
-
-std::ostream& Log::operator[](Level level)
-{
-    if(level <= m_level && level > Level::Silent)
-    {
-        if(m_showLevel)
-        {
-            std::string levelName = getNameByLevel(level);
-            std::transform(levelName.begin(), levelName.end(), levelName.begin(), ::toupper);
-            *m_stream << "[" << levelName << "] ";
-        }
-        return *m_stream;
-    }
-
-    class NullStreamBuffer : public std::streambuf
-    {
-    public:
-        int overflow(int c) override { return c; }
-    };
-
-    static NullStreamBuffer nullBuffer;
-    static std::ostream nullStream(&nullBuffer);
-    return nullStream;
 }

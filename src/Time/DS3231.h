@@ -1,12 +1,12 @@
 #ifndef TIME_DS3231_H
 #define TIME_DS3231_H
 
-#include "IClock.h"
+#include "Time/Clock.h"
 #include <RTClib.h>
 
 namespace Time
 {
-    class DS3231 : public IClock
+    class DS3231 : public Clock
     {
     public:
         DS3231();

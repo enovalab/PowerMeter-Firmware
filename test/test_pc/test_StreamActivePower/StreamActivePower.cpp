@@ -7,16 +7,20 @@
 #define M_PI 3.14159265358979323846
 #endif
  
- using Measuring::StreamActivePower;
+using Measuring::StreamActivePower;
 
-TEST(StreamActivePowerTest, shoulInitializeToZero)
+struct StreamActivePowerTest : public testing::Test
 {
     StreamActivePower<float> uut;
+};
+
+TEST_F(StreamActivePowerTest, shoulInitializeToZero)
+{
     EXPECT_FLOAT_EQ(0, uut.get());
     EXPECT_FLOAT_EQ(0, uut.getNumValues());
 }
 
-TEST(StreamActivePowerTest, addSineWithPhaseShift)
+TEST_F(StreamActivePowerTest, addSineWithPhaseShift)
 {
     const float apparentPower = 0.5;
     for(float radShift = -M_PI / 2; radShift < M_PI / 2; radShift += 0.01)
@@ -29,12 +33,10 @@ TEST(StreamActivePowerTest, addSineWithPhaseShift)
         float expectedActivePower = cosf(radShift) * apparentPower;
         EXPECT_NEAR(expectedActivePower, uut.get(), 0.01);
     }
-    
 }
 
-TEST(StreamActivePowerTest, shouldResetToZero)
+TEST_F(StreamActivePowerTest, shouldResetToZero)
 {
-    StreamActivePower<float> uut;
     uut << 12.3;
     uut << 12.5;
     uut.reset();

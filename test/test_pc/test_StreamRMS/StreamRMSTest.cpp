@@ -7,18 +7,21 @@
 #define M_PI 3.14159265358979323846
 #endif
 
- using Measuring::StreamRMS;
+using Measuring::StreamRMS;
 
-TEST(StreamRMSTest, shoulInitializeToZero)
+struct StreamRMSTest : public testing::Test
 {
     StreamRMS<float> uut;
+};
+
+TEST_F(StreamRMSTest, shoulInitializeToZero)
+{
     EXPECT_FLOAT_EQ(0, uut.get());
     EXPECT_FLOAT_EQ(0, uut.getNumValues());
 }
 
-TEST(StreamRMSTest, addValues)
+TEST_F(StreamRMSTest, addValues)
 {
-    StreamRMS<float> uut;
     for(float rad = 0.0f; rad < 2 * M_PI; rad += 0.01)
     {
         uut << sinf(rad);
@@ -26,9 +29,8 @@ TEST(StreamRMSTest, addValues)
     EXPECT_NEAR(0.7071, uut.get(), 0.01);
 }
 
-TEST(StreamRMSTest, shouldResetToZero)
+TEST_F(StreamRMSTest, shouldResetToZero)
 {
-    StreamRMS<float> uut;
     uut << 12.3;
     uut << 12.5;
     uut.reset();

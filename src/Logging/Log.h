@@ -29,6 +29,9 @@ namespace Logging
     {
     public:
         Log(Level level, std::ostream* stream, bool showLevel = false);
+        void setLevel(Level level);
+        void setOutputStream(std::ostream* stream);
+        void setShowLevel(bool showLevel);
         std::ostream& operator[](Level level);
 
     private:
@@ -40,7 +43,7 @@ namespace Logging
     Level getLevelByName(std::string name);
     std::string getNameByLevel(Level level);
 
-    Log Logger(Level::Verbose, &std::cout, true);
+    extern Log Logger;
 }
 
 #endif

@@ -1,11 +1,11 @@
-#ifndef HARDWARE_POWERMETER_H
-#define HARDWARE_POWERMETER_H
+#ifndef MEASURING_POWERMETER_H
+#define MEASURING_POWERMETER_H
 
 #include "Measuring/ACPower.h"
 #include <Arduino.h>
 #include <vector>
 
-namespace Hardware
+namespace Measuring
 {
     class PowerMeter
     {
