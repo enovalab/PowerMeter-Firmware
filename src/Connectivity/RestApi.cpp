@@ -1,4 +1,4 @@
-#include "Connectivity/RestApi.h"
+#include "Connectivity/RestAPI.h"
 
 using namespace Connectivity;
 
@@ -17,37 +17,59 @@ RestAPI::RestAPI(AsyncWebServer& server, const std::string& baseURI, bool allowC
     m_server.begin();
 }
 
-void RestAPI::handleGet(const std::string& endpointURI, const JsonGetter& getData)
+
+void RestAPI::handle(const std::string& endpointURI, WebRequestMethod method, const JsonHandler& handler)
 {
-    m_server.on((m_baseURI + endpointURI).c_str(), HTTP_GET, [getData, this](AsyncWebServerRequest* request){
-        AsyncWebServerResponse* response = request->beginResponse(200, "application/json", getData().dump().c_str());
+
+}
+
+
+void RestAPI::handleGet(const std::string& endpointURI, const JsonHandler& handler)
+{
+    m_server.on((m_baseURI + endpointURI).c_str(), HTTP_GET, [handler, this](AsyncWebServerRequest* request){
+        JsonResponse jsonResponse = handler(json());
+        AsyncWebServerResponse* response;
+
+        if(jsonResponse.statusCode >= 200 && jsonResponse.statusCode < 300)
+            response = request->beginResponse(jsonResponse.statusCode, "application/json", jsonResponse.data.dump().c_str());
+        else
+            response = request->beginResponse(jsonResponse.statusCode, "text/plain", jsonResponse.errorMessage.c_str());
+
         addCORSHeaders(response);
         request->send(response);
-        delete response;
     });
 
-    m_server.on((m_baseURI + endpointURI).c_str(), HTTP_HEAD, [this](AsyncWebServerRequest* request){
-        AsyncWebServerResponse* response = request->beginResponse(200, "application/json");
+    m_server.on((m_baseURI + endpointURI).c_str(), HTTP_HEAD, [handler, this](AsyncWebServerRequest* request){
+        JsonResponse jsonResponse = handler(json());
+        AsyncWebServerResponse* response;
+
+        if(jsonResponse.statusCode >= 200 && jsonResponse.statusCode < 300)
+            response = request->beginResponse(jsonResponse.statusCode, "application/json");
+        else
+            response = request->beginResponse(jsonResponse.statusCode, "text/plain");
+
         addCORSHeaders(response);
         request->send(response);
-        delete response;
     });
 }
 
 
-void RestAPI::handlePut(const std::string& endpointURI, const JsonSetter& setData)
+void RestAPI::handlePut(const std::string& endpointURI, const JsonHandler& handler)
 {
     m_server.on((m_baseURI + endpointURI).c_str(), HTTP_PUT, 
-        [](AsyncWebServerRequest*){
-            
-        },
+        [](AsyncWebServerRequest*){},
         [](AsyncWebServerRequest*, const String&, size_t, uint8_t*, size_t, bool){},
-        [setData, this](AsyncWebServerRequest* request, uint8_t* rawData, size_t length, size_t index, size_t total) {
-            setData(json::parse(reinterpret_cast<char*>(rawData)));
-            AsyncWebServerResponse* response = request->beginResponse(200, "application/json");
+        [handler, this](AsyncWebServerRequest* request, uint8_t* rawData, size_t length, size_t index, size_t total) {
+            JsonResponse jsonResponse = handler(json::parse(reinterpret_cast<char*>(rawData)));
+            AsyncWebServerResponse* response;
+
+            if(jsonResponse.statusCode >= 200 && jsonResponse.statusCode < 300)
+                response = request->beginResponse(jsonResponse.statusCode, "application/json", jsonResponse.data.dump().c_str());
+            else
+                response = request->beginResponse(jsonResponse.statusCode, "text/plain", jsonResponse.errorMessage.c_str());
+
             addCORSHeaders(response);
             request->send(response);
-            delete response;
         }
     );
 }

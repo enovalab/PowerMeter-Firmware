@@ -8,18 +8,25 @@
 
 namespace Connectivity
 {
-    using JsonGetter = std::function<json()>;
-    using JsonSetter = std::function<void(json)>;
-
     class RestAPI
     {
     public:
+        struct JsonResponse
+        {
+            json data;
+            uint16_t statusCode = 200;
+            std::string errorMessage = "";
+        };
+
+        using JsonHandler = std::function<JsonResponse(const json&)>;
+
         RestAPI(AsyncWebServer& server, const std::string& baseURI = "/", bool allowCORS = true);
-        void handleGet(const std::string& endpointURI, const JsonGetter& getData);
-        void handlePut(const std::string& endpointURI, const JsonSetter& setData);
-        void handlePatch(const std::string& endpointURI, const JsonSetter& setData);
-        void handlePost(const std::string& endpointURI, const JsonSetter& setData);
-        void handleDelete(const std::string& endpointURI, const std::function<void()>& deleteData);
+        void handle(const std::string& endpointURI, WebRequestMethod method,  const JsonHandler& handler);
+        void handleGet(const std::string& endpointURI, const JsonHandler& handler);
+        void handlePut(const std::string& endpointURI, const JsonHandler& handler);
+        void handlePatch(const std::string& endpointURI, const JsonHandler& handler);
+        void handlePost(const std::string& endpointURI, const JsonHandler& handler);
+        void handleDelete(const std::string& endpointURI, const JsonHandler& handler);
 
     private:
         void addCORSHeaders(AsyncWebServerResponse* response);
