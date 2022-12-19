@@ -3,10 +3,24 @@
 #include <ESPAsyncWebServer.h>
 #include <fstream>
 #include <json.hpp>
-#include "Logging/Log.h"
 #include "Data/JsonURI.h"
+#include <iostream>
+
 
 AsyncWebServer server(80);
+
+void* operator new(size_t size)
+{
+    std::cout << "Allocating " << size << " bytes" << std::endl;
+    return malloc(size);
+}
+
+
+void operator delete(void* memory, size_t size)
+{
+    std::cout << "Deallocating " << size << " bytes" << std::endl;
+    free(memory);
+}
 
 void setup()
 {
@@ -16,14 +30,14 @@ void setup()
         Serial.println("spiffs failed");
     }
     
-    WiFi.mode(WIFI_STA);
-    WiFi.begin("WLAN-T-Com", "GxvuzR8znV");
-    while(WiFi.status() != WL_CONNECTED)
-    {
-        delay(500);
-        Serial.print(".");
-    }
-    Serial.println(WiFi.localIP());
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP("Power Meter", "Katek1976");
+    // while(WiFi.status() != WL_CONNECTED)
+    // {
+    //     delay(500);
+    //     Serial.print(".");
+    // }
+    // Serial.println(WiFi.localIP());
 
     DefaultHeaders::Instance().addHeader("Access-Control-Request-Method", "*");
     DefaultHeaders::Instance().addHeader("Access-Control-Expose-Headers", "*");  

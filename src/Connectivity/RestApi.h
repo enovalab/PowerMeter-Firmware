@@ -8,8 +8,8 @@
 
 namespace Connectivity
 {
-    using JsonSetter = std::function<void(json)>;
     using JsonGetter = std::function<json()>;
+    using JsonSetter = std::function<void(json)>;
 
     class RestAPI
     {

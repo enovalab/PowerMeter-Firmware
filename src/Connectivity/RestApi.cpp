@@ -1,4 +1,4 @@
-#include "RestAPI.h"
+#include "Connectivity/RestApi.h"
 
 using namespace Connectivity;
 
@@ -23,13 +23,33 @@ void RestAPI::handleGet(const std::string& endpointURI, const JsonGetter& getDat
         AsyncWebServerResponse* response = request->beginResponse(200, "application/json", getData().dump().c_str());
         addCORSHeaders(response);
         request->send(response);
+        delete response;
     });
 
     m_server.on((m_baseURI + endpointURI).c_str(), HTTP_HEAD, [this](AsyncWebServerRequest* request){
         AsyncWebServerResponse* response = request->beginResponse(200, "application/json");
         addCORSHeaders(response);
         request->send(response);
+        delete response;
     });
+}
+
+
+void RestAPI::handlePut(const std::string& endpointURI, const JsonSetter& setData)
+{
+    m_server.on((m_baseURI + endpointURI).c_str(), HTTP_PUT, 
+        [](AsyncWebServerRequest*){
+            
+        },
+        [](AsyncWebServerRequest*, const String&, size_t, uint8_t*, size_t, bool){},
+        [setData, this](AsyncWebServerRequest* request, uint8_t* rawData, size_t length, size_t index, size_t total) {
+            setData(json::parse(reinterpret_cast<char*>(rawData)));
+            AsyncWebServerResponse* response = request->beginResponse(200, "application/json");
+            addCORSHeaders(response);
+            request->send(response);
+            delete response;
+        }
+    );
 }
 
 
