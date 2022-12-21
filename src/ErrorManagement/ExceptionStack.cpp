@@ -10,7 +10,7 @@ ExceptionStack::ExceptionStack_t ExceptionStack::get(const std::exception& excep
 {
     ExceptionStack_t exceptionStack;
     std::function<void(const std::exception&)> storeException = [&](const std::exception& exception) {
-        exceptionStack.push_back(std::make_exception_ptr(exception));
+        exceptionStack.push_back(std::current_exception());
         try
         {
             std::rethrow_if_nested(exception);
