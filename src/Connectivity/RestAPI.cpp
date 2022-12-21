@@ -52,12 +52,14 @@ void RestAPI::handleGet(const std::string& endpointURI, const JsonHandler& handl
         catch(const std::exception& e)
         {
             jsonResponse.statusCode = 500;
+            jsonResponse.errorMessage = Error::ExceptionStack::what(e);
+            Logging::Logger[Level::Error] << SOURCE_LOCATION << jsonResponse.errorMessage << std::endl;
         }
         catch(...)
         {
             jsonResponse.statusCode = 500;
             jsonResponse.errorMessage = "Unexpected Exception";
-            Logging::Logger[Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+            Logging::Logger[Level::Error] << SOURCE_LOCATION <<jsonResponse.errorMessage << std::endl;
         }
 
         AsyncWebServerResponse* response;
@@ -86,14 +88,14 @@ void RestAPI::handleHead(const std::string& endpointURI, const JsonHandler& hand
         catch(const std::exception& e)
         {
             jsonResponse.statusCode = 500;
-            jsonResponse.errorMessage = e.what();
-            Logging::Logger[Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
+            jsonResponse.errorMessage = Error::ExceptionStack::what(e);
+            Logging::Logger[Level::Error] << SOURCE_LOCATION << jsonResponse.errorMessage << std::endl;
         }
         catch(...)
         {
             jsonResponse.statusCode = 500;
             jsonResponse.errorMessage = "Unexpected Exception";
-            Logging::Logger[Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+            Logging::Logger[Level::Error] << SOURCE_LOCATION << jsonResponse.errorMessage << std::endl;
         }
 
         AsyncWebServerResponse* response;
@@ -120,14 +122,14 @@ void RestAPI::handleDelete(const std::string& endpointURI, const JsonHandler& ha
         catch(const std::exception& e)
         {
             jsonResponse.statusCode = 500;
-            jsonResponse.errorMessage = e.what();
-            Logging::Logger[Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
+            jsonResponse.errorMessage = Error::ExceptionStack::what(e);
+            Logging::Logger[Level::Error] << SOURCE_LOCATION << jsonResponse.errorMessage << std::endl;
         }
         catch(...)
         {
             jsonResponse.statusCode = 500;
             jsonResponse.errorMessage = "Unexpected Exception";
-            Logging::Logger[Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+            Logging::Logger[Level::Error] << SOURCE_LOCATION << jsonResponse.errorMessage << std::endl;
         }
 
         AsyncWebServerResponse* response;
@@ -148,7 +150,8 @@ void RestAPI::handleDefault(WebRequestMethod method, const std::string& endpoint
     m_server->on((m_baseURI + endpointURI).c_str(), method, 
         [](AsyncWebServerRequest*){},
         [](AsyncWebServerRequest*, const String&, size_t, uint8_t*, size_t, bool){},
-        [handler, this](AsyncWebServerRequest* request, uint8_t* rawData, size_t length, size_t index, size_t total) {
+        [handler, this](AsyncWebServerRequest* request, uint8_t* rawData, size_t, size_t, size_t) {
+            Logging::Logger[Level::Debug] << reinterpret_cast<char*>(rawData) << std::endl;
             JsonResponse jsonResponse;
             try
             {
@@ -157,14 +160,14 @@ void RestAPI::handleDefault(WebRequestMethod method, const std::string& endpoint
             catch(const std::exception& e)
             {
                 jsonResponse.statusCode = 500;
-                jsonResponse.errorMessage = e.what();
-                Logging::Logger[Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
+                jsonResponse.errorMessage = Error::ExceptionStack::what(e);
+                Logging::Logger[Level::Error] << SOURCE_LOCATION << jsonResponse.errorMessage << std::endl;
             }
             catch(...)
             {
                 jsonResponse.statusCode = 500;
                 jsonResponse.errorMessage = "Unexpected Exception";
-                Logging::Logger[Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+                Logging::Logger[Level::Error] << SOURCE_LOCATION << jsonResponse.errorMessage << std::endl;
             }
             AsyncWebServerResponse* response;
 

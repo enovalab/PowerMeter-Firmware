@@ -1,4 +1,4 @@
-#ifdef ESP32
+#if defined(ESP32) && !defined(PIO_UNIT_TESTING)
 
 #include <Arduino.h>
 #include "Logging/Log.h"
