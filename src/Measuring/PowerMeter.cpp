@@ -1,3 +1,5 @@
+#ifdef ESP32
+
 #include "Measuring/PowerMeter.h"
 #include "Measuring/StreamRMS.h"
 #include "Measuring/StreamActivePower.h"
@@ -71,3 +73,5 @@ size_t PowerMeter::makeIndexCircular(int32_t index, size_t size)
 	
 	return index;
 }
+
+#endif

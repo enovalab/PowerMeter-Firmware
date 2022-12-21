@@ -1,6 +1,8 @@
+#ifdef ESP32
+
 #include "Connectivity/RestAPI.h"
 #include "Logging/Log.h"
-#include "ErrorManagement/ExceptionStack.h"
+#include "Error/ExceptionStack.h"
 
 using namespace Connectivity;
 
@@ -55,7 +57,7 @@ void RestAPI::handleGet(const std::string& endpointURI, const JsonHandler& handl
         {
             jsonResponse.statusCode = 500;
             jsonResponse.errorMessage = "Unexpected Exception";
-            Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+            Logging::Logger[Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
         }
 
         AsyncWebServerResponse* response;
@@ -85,13 +87,13 @@ void RestAPI::handleHead(const std::string& endpointURI, const JsonHandler& hand
         {
             jsonResponse.statusCode = 500;
             jsonResponse.errorMessage = e.what();
-            Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
+            Logging::Logger[Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
         }
         catch(...)
         {
             jsonResponse.statusCode = 500;
             jsonResponse.errorMessage = "Unexpected Exception";
-            Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+            Logging::Logger[Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
         }
 
         AsyncWebServerResponse* response;
@@ -119,13 +121,13 @@ void RestAPI::handleDelete(const std::string& endpointURI, const JsonHandler& ha
         {
             jsonResponse.statusCode = 500;
             jsonResponse.errorMessage = e.what();
-            Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
+            Logging::Logger[Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
         }
         catch(...)
         {
             jsonResponse.statusCode = 500;
             jsonResponse.errorMessage = "Unexpected Exception";
-            Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+            Logging::Logger[Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
         }
 
         AsyncWebServerResponse* response;
@@ -156,13 +158,13 @@ void RestAPI::handleDefault(WebRequestMethod method, const std::string& endpoint
             {
                 jsonResponse.statusCode = 500;
                 jsonResponse.errorMessage = e.what();
-                Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
+                Logging::Logger[Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
             }
             catch(...)
             {
                 jsonResponse.statusCode = 500;
                 jsonResponse.errorMessage = "Unexpected Exception";
-                Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+                Logging::Logger[Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
             }
             AsyncWebServerResponse* response;
 
@@ -189,3 +191,5 @@ void RestAPI::addCORSHeaders(AsyncWebServerResponse* response)
         response->addHeader("Access-Control-Allow-Headers", "*");
     }
 }
+
+#endif

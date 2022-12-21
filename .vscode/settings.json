@@ -68,6 +68,8 @@
         "stop_token": "cpp",
         "thread": "cpp",
         "variant": "cpp",
-        "codecvt": "cpp"
-    }
+        "codecvt": "cpp",
+        "filesystem": "cpp"
+    },
+    "cmake.sourceDirectory": "${workspaceFolder}/.pio/libdeps/esp32/AsyncTCP"
 }

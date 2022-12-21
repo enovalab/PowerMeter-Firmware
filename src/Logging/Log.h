@@ -15,19 +15,22 @@ static_cast<std::ostringstream&&>(                          \
 
 namespace Logging
 {
-    enum class Level
-    {
-        Silent,
-        Error,
-        Warning,
-        Debug,
-        Info,
-        Verbose
-    };
-
     class Log
     {
     public:
+        enum class Level
+        {
+            Silent,
+            Error,
+            Warning,
+            Debug,
+            Info,
+            Verbose
+        };
+
+        static Level getLevelByName(std::string name);
+        static std::string getNameByLevel(Level level);
+
         Log(Level level, std::ostream* stream, bool showLevel = false);
         void setLevel(Level level);
         void setOutputStream(std::ostream* stream);
@@ -40,10 +43,9 @@ namespace Logging
         std::ostream* m_stream;
     };
 
-    Level getLevelByName(std::string name);
-    std::string getNameByLevel(Level level);
-
     extern Log Logger;
 }
+
+using Level = Logging::Log::Level;
 
 #endif

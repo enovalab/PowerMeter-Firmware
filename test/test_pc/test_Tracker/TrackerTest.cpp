@@ -1,10 +1,4 @@
 #include "Data/Tracker.h"
-#include "Data/Tracker.cpp"
-#include "Data/JsonURI.h"
-#include "Data/JsonURI.cpp"
-#include "Logging/Log.h"
-#include "Logging/Log.cpp"
-
 #include "MockClock.h"
 #include <gtest/gtest.h>
 #include <fstream>

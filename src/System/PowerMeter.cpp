@@ -1,3 +1,5 @@
+#ifdef ESP32
+
 #include "System/PowerMeter.h"
 #include <SPIFFS.h>
 #include <fstream>
@@ -8,7 +10,7 @@ void PowerMeter::init()
 {
     Serial.begin(115200);
     if(SPIFFS.begin(true))
-        Logging::Logger[Logging::Level::Warning] << SOURCE_LOCATION << "Formatted SPIFFS, after failed to mount" << std::endl;
+        Logging::Logger[Level::Warning] << SOURCE_LOCATION << "Formatted SPIFFS, after failed to mount" << std::endl;
 
     configureLogger(Data::JsonURI(""));
     configureWifi(Data::JsonURI(""));
@@ -29,7 +31,7 @@ void PowerMeter::configureLogger(const Data::JsonURI& configResource)
         json configJson = configResource.deserialize();
 
         Serial.begin(configJson.at("baud"));
-        Logging::Logger.setLevel(Logging::getLevelByName(configJson.at("level")));
+        Logging::Logger.setLevel(Logging::Log::getLevelByName(configJson.at("level")));
         Logging::Logger.setShowLevel(configJson.at("showLevel"));
 
         if(configJson.at("fileMode"))
@@ -40,11 +42,11 @@ void PowerMeter::configureLogger(const Data::JsonURI& configResource)
     }
     catch(const std::exception& e)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
+        Logging::Logger[Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
     }
     catch(...)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+        Logging::Logger[Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
     }
 }
 
@@ -67,11 +69,11 @@ void PowerMeter::configurePowerMeter(const Data::JsonURI& configResource)
     }
     catch(const std::exception& e)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
+        Logging::Logger[Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
     }
     catch(...)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+        Logging::Logger[Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
     }
 }
 
@@ -85,11 +87,11 @@ void PowerMeter::configureRelay(const Data::JsonURI& configResource)
     }
     catch(const std::exception& e)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
+        Logging::Logger[Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
     }
     catch(...)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+        Logging::Logger[Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
     }
 }
 
@@ -113,11 +115,11 @@ void PowerMeter::configureWifiAccesspoint(const Data::JsonURI& configResource)
     }
     catch(const std::exception& e)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
+        Logging::Logger[Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
     }
     catch(...)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+        Logging::Logger[Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
     }
 }
 
@@ -140,7 +142,7 @@ void PowerMeter::configureWifiStationary(const Data::JsonURI& configResource)
         {
             IPAddress ip;
             if(!ip.fromString(address.c_str()))
-                Logging::Logger[Logging::Level::Warning] << SOURCE_LOCATION << "Could not convert \"" << address << "\" to 'IPAdress'" << std::endl;
+                Logging::Logger[Level::Warning] << SOURCE_LOCATION << "Could not convert \"" << address << "\" to 'IPAdress'" << std::endl;
             return ip;
         };
         
@@ -149,10 +151,12 @@ void PowerMeter::configureWifiStationary(const Data::JsonURI& configResource)
     }
     catch(const std::exception& e)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
+        Logging::Logger[Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
     }
     catch(...)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+        Logging::Logger[Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
     }
 }
+
+#endif

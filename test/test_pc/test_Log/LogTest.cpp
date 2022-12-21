@@ -1,12 +1,10 @@
 #include "Logging/Log.h"
-#include "Logging/Log.cpp"
 
 #include <gtest/gtest.h>
 #include <sstream>
 #include <fstream>
 
 using Logging::Log;
-using Logging::Level;
 
 TEST(LogTest, level)
 {

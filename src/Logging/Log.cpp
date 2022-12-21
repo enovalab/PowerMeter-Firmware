@@ -60,7 +60,7 @@ std::ostream& Log::operator[](Level level)
 
 
 
-Level Logging::getLevelByName(std::string name)
+Level Log::getLevelByName(std::string name)
 {
     std::transform(name.begin(), name.end(), name.begin(), ::toupper);
     if(name == "SILENT")
@@ -78,7 +78,7 @@ Level Logging::getLevelByName(std::string name)
 }
 
 
-std::string Logging::getNameByLevel(Level level)
+std::string Log::getNameByLevel(Level level)
 {
     switch(level)
     {

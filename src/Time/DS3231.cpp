@@ -1,3 +1,5 @@
+#ifdef ESP32
+
 #include "DS3231.h"
 
 using namespace Time;
@@ -12,3 +14,5 @@ time_t DS3231::now() const
     RTC_DS3231 rtc = m_rtc;
     return rtc.now().unixtime();
 }
+
+#endif

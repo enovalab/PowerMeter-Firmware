@@ -1,8 +1,4 @@
 #include "Data/JsonURI.h"
-#include "Data/JsonURI.cpp"
-
-#include "Logging/Log.h"
-#include "Logging/Log.cpp"
 
 #include <gtest/gtest.h>
 #include <filesystem>

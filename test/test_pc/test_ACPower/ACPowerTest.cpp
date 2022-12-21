@@ -1,8 +1,6 @@
 #include "Measuring/ACPower.h"
-#include "Measuring/ACPower.cpp"
 
 #include <gtest/gtest.h>
-
 
 constexpr float voltage = 230.0f;
 constexpr float current = 1.0f;
