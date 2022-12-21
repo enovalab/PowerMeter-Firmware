@@ -13,6 +13,13 @@ namespace Connectivity
     public:
         struct JsonResponse
         {
+            JsonResponse() = default;
+            JsonResponse(json data, uint16_t statusCode = 200) : 
+                data(data), 
+                statusCode(statusCode)
+            {}
+
+
             json data;
             uint16_t statusCode = 200;
             std::string errorMessage = "";

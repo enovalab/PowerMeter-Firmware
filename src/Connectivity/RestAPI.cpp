@@ -150,12 +150,15 @@ void RestAPI::handleDefault(WebRequestMethod method, const std::string& endpoint
     m_server->on((m_baseURI + endpointURI).c_str(), method, 
         [](AsyncWebServerRequest*){},
         [](AsyncWebServerRequest*, const String&, size_t, uint8_t*, size_t, bool){},
-        [handler, this](AsyncWebServerRequest* request, uint8_t* rawData, size_t, size_t, size_t) {
-            Logging::Logger[Level::Debug] << reinterpret_cast<char*>(rawData) << std::endl;
+        [handler, this](AsyncWebServerRequest* request, uint8_t* rawData, size_t length, size_t, size_t) {
+            std::string data = reinterpret_cast<char*>(rawData);
+            data.resize(length);
+            Logging::Logger[Level::Debug] << "Body of " << length << " bytes:\n" << data << std::endl;
+            Logging::Logger[Level::Debug] << "Actual size is " << data.size() << " bytes" << std::endl;
             JsonResponse jsonResponse;
             try
             {
-                jsonResponse = handler(json::parse(reinterpret_cast<char*>(rawData)));;
+                jsonResponse = handler(json::parse(data));;
             }
             catch(const std::exception& e)
             {
