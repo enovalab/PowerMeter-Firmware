@@ -1,6 +1,7 @@
 #include "Data/JsonURI.h"
 #include "Logging/Log.h"
 #include <fstream>
+#include <exception>
 
 using namespace Data;
 
@@ -23,11 +24,7 @@ JsonURI::JsonURI(const std::string& uri)
         }
         catch(const std::exception& e)
         {
-            Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
-        }
-        catch(...)
-        {
-            Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+            std::throw_with_nested(std::runtime_error(SOURCE_LOCATION));
         }
     }
     else
@@ -56,11 +53,7 @@ void JsonURI::serialize(const json& data) const
     }
     catch(const std::exception& e)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
-    }
-    catch(...)
-    {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+        std::throw_with_nested(std::runtime_error(SOURCE_LOCATION));
     }
 }
 

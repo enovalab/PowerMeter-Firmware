@@ -1,6 +1,8 @@
 #include "Data/Tracker.h"
 #include "Logging/Log.h"
+
 #include <fstream>
+#include <exception>
 #include <algorithm>
 
 using namespace Data;
@@ -41,11 +43,7 @@ void TrackingSpan::track(float newValue) const
     }
     catch(const std::exception& e)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
-    }
-    catch(...)
-    {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+        std::throw_with_nested(std::runtime_error(SOURCE_LOCATION));
     }
 }
 
@@ -61,17 +59,9 @@ float TrackingSpan::average() const
 
         return sum / values.size();
     }
-    catch(const json::out_of_range& e)
-    {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
-    }
     catch(const std::exception& e)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
-    }
-    catch(...)
-    {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+        std::throw_with_nested(std::runtime_error(SOURCE_LOCATION));
     }
     return NAN;
 }
@@ -102,11 +92,7 @@ time_t TrackingSpan::getLastSampleTimestamp() const
     {}
     catch(const std::exception& e)
     {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << e.what() << std::endl;
-    }
-    catch(...)
-    {
-        Logging::Logger[Logging::Level::Error] << SOURCE_LOCATION << "Unexpected Exception" << std::endl;
+        std::throw_with_nested(std::runtime_error(SOURCE_LOCATION));
     }
     return 0;
 }

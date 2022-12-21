@@ -24,6 +24,10 @@ namespace Connectivity
         void handle(WebRequestMethod method, const std::string& endpointURI, const JsonHandler& handler);
 
     private:
+        void handleGet(const std::string& endpointURI, const JsonHandler& handler);
+        void handleHead(const std::string& endpointURI, const JsonHandler& handler);
+        void handleDelete(const std::string& endpointURI, const JsonHandler& handler);
+        void handleDefault(WebRequestMethod method, const std::string& endpointURI, const JsonHandler& handler);
         void addCORSHeaders(AsyncWebServerResponse* response);
 
         AsyncWebServer* m_server;
