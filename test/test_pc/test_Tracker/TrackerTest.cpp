@@ -6,6 +6,8 @@
 #include <thread>
 #include <chrono>
 
+#include "Error/ExceptionStack.h"
+
 using namespace Data;
 using namespace std::chrono_literals;
 
@@ -53,7 +55,14 @@ TEST_F(TrackerTest, lastSampleShouldInitializeToZero)
 TEST_F(TrackerTest, shouldFillWithZero)
 {
     clock.setTimestamp(3601);
-    uut.track(1.0f);
+    try
+    {
+        uut.track(1.0f);
+    }
+    catch(const std::exception& e)
+    {
+        std::cout << Error::ExceptionStack::what(e, 2) << std::endl;
+    }
     json last60min = JsonURI("TrackerTest.json#/last60min").deserialize();
     for(size_t i = 0; i < last60min.size() - 1; i++)
     {

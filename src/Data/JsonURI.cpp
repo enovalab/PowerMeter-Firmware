@@ -22,9 +22,11 @@ JsonURI::JsonURI(const std::string& uri)
         {
             m_jsonPointer = json::json_pointer(uri.substr(seperatorIndex + 1, uri.size()));
         }
-        catch(const std::exception& e)
+        catch(...)
         {
-            std::throw_with_nested(std::runtime_error(SOURCE_LOCATION));
+            std::stringstream errorMessage;
+            errorMessage << SOURCE_LOCATION << "Failed to construct from \"" << uri << "\"";
+            std::throw_with_nested(std::runtime_error(errorMessage.str()));
         }
     }
     else
@@ -51,10 +53,42 @@ void JsonURI::serialize(const json& data) const
             file << parentData.dump(1, '\t') << std::flush;
         }
     }
-    catch(const std::exception& e)
+    catch(...)
     {
-        std::throw_with_nested(std::runtime_error(SOURCE_LOCATION));
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to serialize \"" << data.dump() << "\" to \"" << getString() << "\"";
+        std::throw_with_nested(std::runtime_error(errorMessage.str()));
     }
+}
+
+
+json JsonURI::deserialize() const
+{
+    try
+    {
+        std::ifstream file(m_path);
+        if(file.fail())
+            return json();
+        if(file.peek() < 0)
+            return json();
+        
+        try
+        {
+            return json::parse(file).at(m_jsonPointer);
+        }
+        catch(json::out_of_range)
+        {
+            return json();
+        }
+
+    }
+    catch(...)
+    {
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to deserialize\"" << getString() << "\"";
+        std::throw_with_nested(std::runtime_error(errorMessage.str()));
+    }
+    return json();
 }
 
 
@@ -83,12 +117,9 @@ json::json_pointer JsonURI::getJsonPointer() const
 }
 
 
-json JsonURI::deserialize() const
+std::string JsonURI::getString() const
 {
-    std::ifstream file(m_path);
-    if(file.peek() < 0)
-        return json();
-    return json::parse(file).at(m_jsonPointer);
+    return m_path + "#" + m_jsonPointer.to_string();
 }
 
 

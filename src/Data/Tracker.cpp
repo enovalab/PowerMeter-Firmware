@@ -41,9 +41,11 @@ void TrackingSpan::track(float newValue) const
         trackerArray.push_back(newValue);
         m_targetResource.serialize(trackerArray);
     }
-    catch(const std::exception& e)
+    catch(...)
     {
-        std::throw_with_nested(std::runtime_error(SOURCE_LOCATION));
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to track \"" << newValue << "\"";
+        std::throw_with_nested(std::runtime_error(errorMessage.str()));
     }
 }
 
@@ -59,9 +61,11 @@ float TrackingSpan::average() const
 
         return sum / values.size();
     }
-    catch(const std::exception& e)
+    catch(...)
     {
-        std::throw_with_nested(std::runtime_error(SOURCE_LOCATION));
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to average data at \"" << m_averageResource.getString() << "\""; 
+        std::throw_with_nested(std::runtime_error(errorMessage.str()));
     }
     return NAN;
 }
@@ -88,11 +92,11 @@ time_t TrackingSpan::getLastSampleTimestamp() const
         if(!lastSampleJson.is_null())
             return lastSampleJson.get<time_t>();
     }
-    catch(const json::out_of_range& e)
-    {}
-    catch(const std::exception& e)
+    catch(...)
     {
-        std::throw_with_nested(std::runtime_error(SOURCE_LOCATION));
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to get timestamp from \"" << m_lastSampleResource.getString() << "\"";
+        std::throw_with_nested(std::runtime_error(errorMessage.str()));
     }
     return 0;
 }
@@ -147,4 +151,3 @@ void Tracker::track(float newValue)
         }
     }
 }
-

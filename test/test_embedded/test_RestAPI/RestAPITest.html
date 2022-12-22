@@ -7,75 +7,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RestAPI Test</title>
     <script>
-        function runTest() {
-            const output = document.getElementById("output");
-            output.innerText = "Testing...";
-            output.style.color = "#000000";
-            const url = document.getElementById("url").value;
-            let testResult = false;
-            try {
-                testResult = testRestAPI(url);
-            }
-            catch(error) {
-                console.error(error);
-            }
-
-            if(testResult) {
-                output.style.color = "#009e13";
-                output.innerText = "Test passed";
-            }
-            else {
-                output.style.color = "#ff0000";
-                output.innerText = "Test failed";
-            }
-        }
-
-        async function testRestAPI(url) {
-            const requests = [
-                {method: "GET", hasBody: false},
-                {method: "HEAD", hasBody: false},
-                {method: "DELETE", hasBody: false},
-                {method: "PUT", hasBody: true},
-                {method: "PATCH", hasBody: true},
-                {method: "POST", hasBody: true}
-            ];
+        function testRestAPI() {
+            const url = "http://192.168.4.1/";
+            const methods = ["GET", "HEAD", "DELETE", "PUT", "PATCH", "POST"];
+            const testData = JSON.stringify({
+                foo: {
+                    bar: 42,
+                    baz: [1.2, 3.14, 17.8]
+                }
+            });
             
-            const testData = JSON.stringify({foo: {bar: 1.02, baz: true}});            
-
-            for(let request of requests) {
-                let body;
-                if(request.hasBody)
-                    body = testData;
-                
-                const response = await fetch(url, {
-                    method: request.method,
-                    body: body
+            for(let method of methods) {
+                makeRequest(url, {method: method, body: testData})
+                .then((response) => {
+                    console.assert(response.status >= 200 && response.status <300, `Response Code not 2xx, but ${response.status}`);
                 });
-
-                if(response.status != 200) {
-                    return false;
-                }
-
-                if(response.json() !== testData) {
-                    document.getElementById("message").innerText = `Failed at requesting ${request.method}`;
-                    return false;
-                }
             }
-            return true;
         }
 
-
+        async function makeRequest(url, request) {
+            const methodsWithBody = ["PUT", "POST", "PATCH"];
+            const response = await fetch(url, {
+                method: request.method,
+                body: methodsWithBody.includes(request.method) ? request.body : undefined
+            });
+            return {
+                status: response.status,
+                body: await response.text()
+            }
+        }
     </script>
 </head>
 
 <body>
-    <form id="form">
-        <label for="url">URL:</label><br>
-        <input type="text" id="url" name="url"><br>
-        <button type="button" onclick="runTest()">Make Request</button>
-    </form>
-    <h3 id="output"></h3>
-    <h3 id="message"></h3>
+    <button type="button" onclick="testRestAPI()">Test</button>
 </body>
 
 </html>

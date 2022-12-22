@@ -19,6 +19,7 @@ namespace Data
         void setFilePath(const std::string& path);
         json::json_pointer getJsonPointer() const;
         std::string getFilePath() const;
+        std::string getString() const;
         
         JsonURI& operator/=(const json::json_pointer& jsonPointer);
         

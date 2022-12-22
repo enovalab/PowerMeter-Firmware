@@ -52,6 +52,15 @@ TEST_F(JsonURITest, checkSerializeDeserialize)
 }
 
 
+TEST_F(JsonURITest, checkDeserializeNonexisting)
+{
+    uut = JsonURI("Nonexisting.json");
+    EXPECT_TRUE(uut.deserialize().is_null());
+    uut = JsonURI("Nonexisting.json#/does/not/exist");
+    EXPECT_TRUE(uut.deserialize().is_null());
+}
+
+
 TEST_F(JsonURITest, checkAppendAndAssign)
 {
     uut.setJsonPointer(testJsonPointer);

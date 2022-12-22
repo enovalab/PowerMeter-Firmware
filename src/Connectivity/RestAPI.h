@@ -5,36 +5,22 @@
 #include <json.hpp>
 #include <functional>
 #include <string>
+#include <utility>
 
 namespace Connectivity
 {
     class RestAPI
     {
     public:
-        struct JsonResponse
-        {
-            JsonResponse() = default;
-            JsonResponse(json data, uint16_t statusCode = 200) : 
-                data(data), 
-                statusCode(statusCode)
-            {}
-
-
-            json data;
-            uint16_t statusCode = 200;
-            std::string errorMessage = "";
-        };
-
-        using JsonHandler = std::function<JsonResponse(const json&)>;
+        using JsonHandler = std::function<std::pair<json, uint16_t>(const json&)>;
 
         RestAPI(AsyncWebServer* server, const std::string& baseURI = "/", bool allowCORS = true);
         void handle(WebRequestMethod method, const std::string& endpointURI, const JsonHandler& handler);
 
     private:
-        void handleGet(const std::string& endpointURI, const JsonHandler& handler);
-        void handleHead(const std::string& endpointURI, const JsonHandler& handler);
-        void handleDelete(const std::string& endpointURI, const JsonHandler& handler);
-        void handleDefault(WebRequestMethod method, const std::string& endpointURI, const JsonHandler& handler);
+        void handleWithoutBody(WebRequestMethod method, const std::string& endpointURI, const JsonHandler& handler);
+        void handleWithBody(WebRequestMethod method, const std::string& endpointURI, const JsonHandler& handler);
+        void handleHead(const std::string& endpointURI);
         void addCORSHeaders(AsyncWebServerResponse* response);
 
         AsyncWebServer* m_server;
