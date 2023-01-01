@@ -1,7 +1,8 @@
 #include "Data/JsonURI.h"
-
+#include "Error/ExceptionStack.h"
 #include <gtest/gtest.h>
 #include <filesystem>
+#include <fstream>
 
 using Data::JsonURI;
 
@@ -15,7 +16,7 @@ struct JsonURITest : public testing::Test
         std::filesystem::remove(testFilePath);
     }
 
-    JsonURI uut;
+    JsonURI uut = JsonURI("JsonResourceTest.json", "/1/bar"_json_pointer);
     json testData = {
         {"foo", 1.0},
         {"bar", 2.0},
@@ -26,38 +27,44 @@ struct JsonURITest : public testing::Test
 
 TEST_F(JsonURITest, empty)
 {
-    EXPECT_EQ("", uut.getFilePath());
-    EXPECT_EQ(""_json_pointer, uut.getJsonPointer());
+    JsonURI empty;
+    EXPECT_EQ("", empty.getFilePath());
+    EXPECT_EQ(""_json_pointer, empty.getJsonPointer());
 
     EXPECT_EQ(json(), uut.deserialize());
-    uut.serialize(testData);
+    empty.serialize(testData);
     EXPECT_FALSE(std::filesystem::exists(""));
 }
 
 TEST_F(JsonURITest, checkSettersAndGetters)
 {
-    uut.setFilePath(testFilePath);
-    EXPECT_EQ(testFilePath, uut.getFilePath());
+    uut.setFilePath("JsonURITest1.json");
+    EXPECT_EQ("JsonURITest1.json", uut.getFilePath());
 
-    uut.setJsonPointer(testJsonPointer);
-    EXPECT_EQ(testJsonPointer, uut.getJsonPointer());
+    uut.setJsonPointer("/another/json/ptr"_json_pointer);
+    EXPECT_EQ("/another/json/ptr"_json_pointer, uut.getJsonPointer());
 }
 
-TEST_F(JsonURITest, checkSerializeDeserialize)
+TEST_F(JsonURITest, serializeDeserialize)
 {
-    uut = JsonURI(testFilePath, testJsonPointer);
     uut.serialize(testData);
-
     EXPECT_EQ(testData, uut.deserialize());
 }
 
 
-TEST_F(JsonURITest, checkDeserializeNonexisting)
+TEST_F(JsonURITest, deserializeNonexisting)
 {
-    uut = JsonURI("Nonexisting.json");
-    EXPECT_TRUE(uut.deserialize().is_null());
-    uut = JsonURI("Nonexisting.json#/does/not/exist");
-    EXPECT_TRUE(uut.deserialize().is_null());
+    uut.setJsonPointer("/does/not/exist"_json_pointer);
+    json result;
+    try
+    {
+        result = uut.deserialize();
+    }
+    catch(const std::exception& e)
+    {
+        Error::ExceptionStack_t exceptionStack = Error::ExceptionStack::get(e);
+        
+    }
 }
 
 

@@ -1,20 +1,33 @@
-#ifndef ERRORMANAGEMENT_EXCEPTIONSTACK_H
-#define ERRORMANAGEMENT_EXCEPTIONSTACK_H
+#ifndef ERROR_EXCEPTIONSTACK_H
+#define ERROR_EXCEPTIONSTACK_H
 
 #include <exception>
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <functional>
 
 namespace Error
 {
     using ExceptionStack_t = std::vector<std::exception_ptr>;
     
-    namespace ExceptionStack
+    class ExceptionStack
     {
-        std::vector<std::exception_ptr> get(const std::exception& exception);
-        std::string what(const std::exception& exception, uint8_t indent = 0, char indentChar = ' ');
-        std::string what(const std::vector<std::exception_ptr>& exceptionStack, uint8_t indent = 0, char indentChar = ' ');
+    public:
+        static ExceptionStack capture();
+
+        template<typename E>
+        static void catchDeepest(const std::function<void(const E&)>& exceptionHandler);
+
+        template<typename E>
+        static void catchShallowest(const std::function)
+
+        std::string what(uint8_t indent = 0, char indentChar = ' ');
+
+        Iterator begin()
+
+    private:
+        ExceptionStack_t m_exceptionStack;
     }
 }
 

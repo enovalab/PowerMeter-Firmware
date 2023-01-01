@@ -1,10 +1,37 @@
 #include "Error/ExceptionStack.h"
 
-
 #include <sstream>
-#include <functional>
 
 using namespace Error;
+
+
+ExceptionStack_t ExceptionStack::get()
+{
+    ExceptionStack_t exceptionStack;
+    try
+    {
+        throw;
+    }
+    catch(const std::exception& exception)
+    {
+        std::function<void(const std::exception&)> storeException = [&](const std::exception& exception) {
+            exceptionStack.push_back(std::current_exception());
+            try
+            {
+                std::rethrow_if_nested(exception);
+            }
+            catch (const std::exception& nestedError)
+            {
+                storeException(nestedError);
+            }
+            catch(...)
+            {}
+        };
+        storeException(exception);
+    }   
+    return exceptionStack;
+}
+
 
 ExceptionStack_t ExceptionStack::get(const std::exception& exception)
 {
@@ -56,3 +83,4 @@ std::string ExceptionStack::what(const ExceptionStack_t& exceptionStack, uint8_t
     }
     return errorMessage.str();
 }
+

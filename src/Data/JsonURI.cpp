@@ -71,15 +71,15 @@ json JsonURI::deserialize() const
             return json();
         if(file.peek() < 0)
             return json();
-        
-        try
-        {
-            return json::parse(file).at(m_jsonPointer);
-        }
-        catch(json::out_of_range)
-        {
-            return json();
-        }
+        return json::parse(file).at(m_jsonPointer);
+        // try
+        // {
+        //     return json::parse(file).at(m_jsonPointer);
+        // }
+        // catch(json::out_of_range)
+        // {
+        //     return json();
+        // }
 
     }
     catch(...)
@@ -119,7 +119,13 @@ json::json_pointer JsonURI::getJsonPointer() const
 
 std::string JsonURI::getString() const
 {
-    return m_path + "#" + m_jsonPointer.to_string();
+    std::string uri = m_path;
+    if(!m_jsonPointer.empty())
+    {
+        uri += '#';
+        uri += m_jsonPointer.to_string();
+    }
+    return uri;
 }
 
 
