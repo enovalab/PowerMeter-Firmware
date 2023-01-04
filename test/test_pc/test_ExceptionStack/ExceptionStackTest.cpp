@@ -1,18 +1,29 @@
-#include "Error/ExceptionStack.h"
+#include <iostream>
+#include <exception>
+#include <json.hpp>
 
-#include <gtest/gtest.h>
-
-using namespace Error;
-
-void c()
+template<typename E>
+void rethrowIfNestedRecursive(const E& e)
 {
     try
     {
-        throw std::runtime_error("d");
+        std::rethrow_if_nested(e);
     }
-    catch(...)
+    catch(const std::exception& ex)
     {
-        std::throw_with_nested(std::runtime_error("c"));
+        rethrowIfNestedRecursive(ex);
+    }
+}
+
+void rethrowMostNested()
+{
+    try
+    {
+        throw;
+    }
+    catch(const std::exception& e)
+    {
+        rethrowIfNestedRecursive(e);
     }
 }
 
@@ -20,11 +31,12 @@ void b()
 {
     try
     {
-        c();
+        json data;
+        data.at("does not exist");
     }
     catch(...)
     {
-        std::throw_with_nested(std::runtime_error("b"));
+        std::throw_with_nested(std::runtime_error("a() failed"));
     }
 }
 
@@ -36,54 +48,33 @@ void a()
     }
     catch(...)
     {
-        std::throw_with_nested(std::runtime_error("a"));
+        std::throw_with_nested(std::runtime_error("b() failed"));
     }
+    
 }
-
-// TEST(ExceptionStackTest, getExceptionStack)
-// {
-//     try
-//     {
-//         a();
-//     }
-//     catch(...)
-//     {
-//         ExceptionStack_t exceptionStack = ExceptionStack::get();
-//         EXPECT_EQ(4, exceptionStack.size());
-//         EXPECT_EQ("a\n b\n  c\n   d\n", ExceptionStack::what(exceptionStack, 1, ' '));
-//     }
-// }
-
-// TEST(ExceptionStackTest, getWhat)
-// {
-//     try
-//     {
-//         a();
-//     }
-//     catch(const std::exception& e)
-//     {
-//         EXPECT_EQ("a\n b\n  c\n   d\n", ExceptionStack::what(e, 1, ' '));
-//     }
-// }
-
-
-// TEST(ExceptionStackTest, catchDeepest)
-// {
-//     try
-//     {
-//         a();
-//     }
-//     catch(const std::exception& e)
-//     {
-//         ExceptionStack::catchDeepest<std::runtime_error>(e, [](const std::runtime_error& ex){
-//             EXPECT_EQ("d", ex.what());
-//         });
-//     }
-// }
-
 
 int main()
 {
-    testing::InitGoogleTest();
-    return RUN_ALL_TESTS();
+    try
+    {
+        a();
+    }
+    catch(const std::exception& nestedException)
+    {
+        std::cout << nestedException.what() << std::endl;
+        try
+        {
+            rethrowIfNestedRecursive(nestedException);
+        }
+        catch(const json::out_of_range& e)
+        {
+            std::cout << "Caught json exception" << std::endl;
+            std::cout << e.what() << std::endl;
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << "Caught any" << std::endl;
+            std::cout << e.what() << std::endl;
+        }
+    }
 }
