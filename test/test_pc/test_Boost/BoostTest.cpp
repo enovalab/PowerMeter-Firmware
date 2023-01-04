@@ -1,9 +1,16 @@
-#include <boost/static_string/static_string.hpp>
 #include <iostream>
+#include <boost/units/systems/si.hpp>
+#include <boost/units/io.hpp>
 
-int main() {
-  boost::static_string<128> str = "Hello, world!";
-  std::cout << "str = " << str << std::endl;
-  std::cout << "str.size() = " << str.size() << std::endl;
-  return 0;
+using namespace boost::units::si;
+using namespace boost::units;
+
+int main()
+{
+    quantity<electric_potential> voltageRMS = 230.0 * volt; 
+    quantity<current> currentRMS = 16 * milliampere;
+
+    std::cout << voltageRMS << std::endl;
+    std::cout << voltageRMS << std::endl;
+    std::cout << voltageRMS * currentRMS << std::endl;
 }
