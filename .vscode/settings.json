@@ -79,5 +79,6 @@
         "variant": "cpp",
         "*.ipp": "cpp"
     },
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "cmake.sourceDirectory": "${workspaceFolder}/lib/ArduinoJson-6.x/extras/tests/Cpp17"
 }

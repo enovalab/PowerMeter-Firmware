@@ -1,38 +1,15 @@
+#include "ErrorHandling/NestedException.h"
+
 #include <iostream>
-#include <exception>
 #include <json.hpp>
-
-template<typename E>
-void rethrowIfNestedRecursive(const E& e)
-{
-    try
-    {
-        std::rethrow_if_nested(e);
-    }
-    catch(const std::exception& ex)
-    {
-        rethrowIfNestedRecursive(ex);
-    }
-}
-
-void rethrowMostNested()
-{
-    try
-    {
-        throw;
-    }
-    catch(const std::exception& e)
-    {
-        rethrowIfNestedRecursive(e);
-    }
-}
 
 void b()
 {
     try
     {
-        json data;
-        data.at("does not exist");
+        json data = {1, 12, 3};
+        data.at(21);
+        // throw 20390;
     }
     catch(...)
     {
@@ -59,22 +36,31 @@ int main()
     {
         a();
     }
-    catch(const std::exception& nestedException)
+    catch(...)
     {
-        std::cout << nestedException.what() << std::endl;
+        // std::cout << ErrorHandling::NestedException::what(1) << std::endl;
         try
         {
-            rethrowIfNestedRecursive(nestedException);
+            ErrorHandling::NestedException::rethrowMostNested();
+        }
+        catch(const int& e)
+        {
+            std::cout << "Caught int exception" << std::endl;
+            std::cout << e << std::endl;
         }
         catch(const json::out_of_range& e)
         {
-            std::cout << "Caught json exception" << std::endl;
+            std::cout << "Caught json::exception" << std::endl;
             std::cout << e.what() << std::endl;
         }
         catch(const std::exception& e)
         {
-            std::cout << "Caught any" << std::endl;
+            std::cout << "Caught base exception" << std::endl;
             std::cout << e.what() << std::endl;
+        }
+        catch(...)
+        {
+            std::cout << "Caught any" << std::endl;
         }
     }
 }
