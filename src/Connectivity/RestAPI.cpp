@@ -55,7 +55,7 @@ void RestAPI::handleWithoutBody(WebRequestMethod method, const std::string& endp
         }
         catch(const std::exception& e)
         {
-            data["error"] = Error::ExceptionStack::what(e);
+            // data["error"] = Error::ExceptionStack::what(e);
             Logging::Logger[Level::Error] << SOURCE_LOCATION << data["error"] << std::endl;
         }
 
@@ -83,7 +83,7 @@ void RestAPI::handleWithBody(WebRequestMethod method, const std::string& endpoin
             }
             catch(const std::exception& e)
             {
-                data["error"] = Error::ExceptionStack::what(e);
+                // data["error"] = Error::ExceptionStack::what(e);
                 Logging::Logger[Level::Error] << SOURCE_LOCATION << data["error"] << std::endl;
             }
 
