@@ -1,15 +1,15 @@
 #include "ErrorHandling/NestedException.h"
 
+#include <exception>
 #include <iostream>
 #include <json.hpp>
+
 
 void b()
 {
     try
     {
-        json data = {1, 12, 3};
-        data.at(21);
-        // throw 20390;
+        throw -2211;
     }
     catch(...)
     {
@@ -38,24 +38,29 @@ int main()
     }
     catch(...)
     {
-        // std::cout << ErrorHandling::NestedException::what(1) << std::endl;
+        std::cout << "EXCEPTION" << std::endl;
         try
         {
             ErrorHandling::NestedException::rethrowMostNested();
         }
         catch(const int& e)
         {
-            std::cout << "Caught int exception" << std::endl;
+            std::cout << "Caught int" << std::endl;
             std::cout << e << std::endl;
         }
-        catch(const json::out_of_range& e)
+        catch(const json::exception& e)
         {
             std::cout << "Caught json::exception" << std::endl;
             std::cout << e.what() << std::endl;
         }
+        catch(const std::runtime_error& e)
+        {
+            std::cout << "Caught std::runtime_error" << std::endl;
+            std::cout << e.what() << std::endl;
+        }
         catch(const std::exception& e)
         {
-            std::cout << "Caught base exception" << std::endl;
+            std::cout << "Caught std::exception" << std::endl;
             std::cout << e.what() << std::endl;
         }
         catch(...)
