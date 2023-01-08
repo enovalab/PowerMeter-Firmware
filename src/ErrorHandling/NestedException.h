@@ -9,7 +9,7 @@ namespace ErrorHandling
     namespace NestedException
     {
         void rethrowMostNested();
-        std::string what(uint8_t indentLevel = 0, char indentChar = ' ');
+        std::string what(uint8_t indentLevel = 1, char indentChar = ' ');
     }
 }
 
