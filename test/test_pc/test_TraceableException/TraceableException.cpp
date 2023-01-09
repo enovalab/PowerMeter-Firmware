@@ -22,7 +22,7 @@ int main()
     }
     catch(...)
     {
-        
+        std::nested_exception
     }
     
 }

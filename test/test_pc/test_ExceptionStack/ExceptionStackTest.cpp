@@ -17,7 +17,7 @@ void c()
 {
     try
     {
-        throw std::runtime_error("foobar");
+        throw std::runtime_error("sjldfsjlfj");
     }
     catch(...)
     {
@@ -34,7 +34,6 @@ void b()
     }
     catch(...)
     {
-        // std::throw_with_nested(std::runtime_error("b() failed"));
         try
         {
             ErrorHandling::NestedException::rethrowMostNested();
@@ -43,10 +42,7 @@ void b()
         {
             std::cout << "Handled MyError" << std::endl;
         }
-        catch(...)
-        {
-            std::throw_with_nested(std::runtime_error("b() failed"));
-        }
+        std::throw_with_nested(std::runtime_error("b() failed"));
     }
 }
 
