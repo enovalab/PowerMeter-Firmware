@@ -1,5 +1,5 @@
 #include "Data/JsonURI.h"
-#include "Error/ExceptionStack.h"
+#include "ErrorHandling/ExceptionTrace.h"
 #include <gtest/gtest.h>
 #include <filesystem>
 #include <fstream>

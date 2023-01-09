@@ -1,12 +1,15 @@
 #include "Data/JsonURI.h"
 #include "Logging/Log.h"
-#include <fstream>
+#include "ErrorHandling/ExceptionTrace.h"
+
+#include <boost/filesystem/fstream.hpp>
 #include <exception>
+#include <sstream>
 
 using namespace Data;
 
 
-JsonURI::JsonURI(const std::string& path, const json::json_pointer& jsonPointer) :
+JsonURI::JsonURI(const fs::path& path, const json::json_pointer& jsonPointer) :
     m_path(path),
     m_jsonPointer(jsonPointer)
 {}
@@ -14,24 +17,25 @@ JsonURI::JsonURI(const std::string& path, const json::json_pointer& jsonPointer)
 
 JsonURI::JsonURI(const std::string& uri)
 {
-    size_t seperatorIndex = uri.find('#');
-    if(seperatorIndex != std::string::npos)
+    try
     {
-        m_path = uri.substr(0, seperatorIndex);
-        try
+        size_t seperatorIndex = uri.find('#');
+        if(seperatorIndex != std::string::npos)
         {
+            m_path = uri.substr(0, seperatorIndex);
             m_jsonPointer = json::json_pointer(uri.substr(seperatorIndex + 1, uri.size()));
         }
-        catch(...)
+        else
         {
-            std::stringstream errorMessage;
-            errorMessage << SOURCE_LOCATION << "Failed to construct from \"" << uri << "\"";
-            std::throw_with_nested(std::runtime_error(errorMessage.str()));
+            m_path = uri;
         }
     }
-    else
+    catch(...)
     {
-        m_path = uri;
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to construct from \"" << uri << "\"";
+        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        throw;
     }
 }
 
@@ -42,7 +46,7 @@ void JsonURI::serialize(const json& data) const
     {
         if(m_jsonPointer.empty())
         {
-            std::ofstream file(m_path);
+            fs::ofstream file(m_path);
             file << data.dump(1, '\t') << std::flush;
         }
         else
@@ -57,7 +61,8 @@ void JsonURI::serialize(const json& data) const
     {
         std::stringstream errorMessage;
         errorMessage << SOURCE_LOCATION << "Failed to serialize \"" << data.dump() << "\" to \"" << getString() << "\"";
-        std::throw_with_nested(std::runtime_error(errorMessage.str()));
+        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        throw;
     }
 }
 
@@ -66,7 +71,7 @@ json JsonURI::deserialize() const
 {
     try
     {
-        std::ifstream file(m_path);
+        fs::ifstream file(m_path);
         if(file.fail())
             return json();
         if(file.peek() < 0)
@@ -85,8 +90,9 @@ json JsonURI::deserialize() const
     catch(...)
     {
         std::stringstream errorMessage;
-        errorMessage << SOURCE_LOCATION << "Failed to deserialize\"" << getString() << "\"";
-        std::throw_with_nested(std::runtime_error(errorMessage.str()));
+        errorMessage << SOURCE_LOCATION << "Failed to deserialize \"" << getString() << "\"";
+        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        throw;
     }
     return json();
 }
@@ -98,14 +104,13 @@ void JsonURI::setJsonPointer(const json::json_pointer& jsonPointer)
 }
 
 
-void JsonURI::setFilePath(const std::string& path)
+void JsonURI::setFilePath(const fs::path& path)
 {
     m_path = path;
 }
 
 
-
-std::string JsonURI::getFilePath() const
+fs::path JsonURI::getFilePath() const
 {
     return m_path;
 }
@@ -119,7 +124,7 @@ json::json_pointer JsonURI::getJsonPointer() const
 
 std::string JsonURI::getString() const
 {
-    std::string uri = m_path;
+    std::string uri = m_path.string();
     if(!m_jsonPointer.empty())
     {
         uri += '#';

@@ -15,7 +15,7 @@ void ExceptionTrace::trace(const std::string& message)
 }
 
 
-std::string ExceptionTrace::what(size_t indentLevel, char indentChar, bool clear)
+std::string ExceptionTrace::what(size_t indentLevel, char indentChar)
 {
     std::stringstream what;
 
@@ -42,9 +42,8 @@ std::string ExceptionTrace::what(size_t indentLevel, char indentChar, bool clear
     {
         what << std::string(indentLevel * traces.size(), indentChar) << "Unexpected Exception" << '\n';
     }
-
-    if(clear)
-        traces.clear();
+    
+    traces.clear();
         
     return what.str();
 }
