@@ -1,17 +1,17 @@
 #include "ErrorHandling/ExceptionTrace.h"
 
-#include <vector>
+#include <deque>
 #include <sstream>
 
 using namespace ErrorHandling;
 
 
-static std::vector<std::string> traces;
+static std::deque<std::string> traces;
 
 
 void ExceptionTrace::trace(const std::string& message)
 {
-    traces.push_back(message);
+    traces.push_front(message);
 }
 
 
@@ -20,7 +20,7 @@ std::string ExceptionTrace::what(size_t indentLevel, char indentChar)
     std::stringstream what;
 
     for(size_t i = 0; i < traces.size(); i++)
-        what << std::string(indentLevel * i, indentChar) << traces[traces.size() - 1 - i] << '\n';
+        what << std::string(indentLevel * i, indentChar) << traces[i] << '\n';
     
     try
     {
