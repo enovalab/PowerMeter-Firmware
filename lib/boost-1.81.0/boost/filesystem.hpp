@@ -16,8 +16,8 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/directory.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/file_status.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/convenience.hpp>
 #if defined(BOOST_FILESYSTEM_DEPRECATED)
 #include <boost/filesystem/string_file.hpp>

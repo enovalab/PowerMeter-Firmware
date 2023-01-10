@@ -70,42 +70,43 @@ void a1()
     catch(...)
     {
         ExceptionTrace::trace("a");
+        throw;
     }
     
 }
 
 
-// TEST(ExceptionTraceTest, normalTrace)
-// {
-//     try
-//     {
-//         a();
-//     }
-//     catch(...)
-//     {
-//         EXPECT_EQ("a\nxb\nxxc\nxxxfoo\n", ExceptionTrace::what(1, 'x'));
-//     }
-// }
+TEST(ExceptionTraceTest, normalTrace)
+{
+    try
+    {
+        a();
+    }
+    catch(...)
+    {
+        EXPECT_EQ("a\nxb\nxxc\nxxxfoo\n", ExceptionTrace::what(1, 'x'));
+    }
+}
 
 
-// TEST(ExceptionTraceTest, catchInbetween)
-// {
-//     try
-//     {
-//         a1();
-//     }
-//     catch(...)
-//     {
-//         FAIL() << "Should have been caught yet" << std::endl;
-//     }
-// }
+TEST(ExceptionTraceTest, catchInbetween)
+{
+    try
+    {
+        a1();
+    }
+    catch(...)
+    {
+        FAIL() << "Should have been caught yet" << std::endl;
+    }
+}
 
 
 TEST(ExceptionTraceTest, clearOnWhat)
 {
     ExceptionTrace::trace("xyz");
-    auto a = ExceptionTrace::what();
-    // EXPECT_EQ("", ExceptionTrace::what());
+    ExceptionTrace::what();
+    EXPECT_EQ("", ExceptionTrace::what());
 }
 
 

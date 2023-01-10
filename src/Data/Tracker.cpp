@@ -64,7 +64,7 @@ float TrackingSpan::average() const
     catch(...)
     {
         std::stringstream errorMessage;
-        errorMessage << SOURCE_LOCATION << "Failed to average data at \"" << m_averageResource.getString() << "\""; 
+        errorMessage << SOURCE_LOCATION << "Failed to average data at \"" << m_averageResource << "\""; 
         std::throw_with_nested(std::runtime_error(errorMessage.str()));
     }
     return NAN;
@@ -95,7 +95,7 @@ time_t TrackingSpan::getLastSampleTimestamp() const
     catch(...)
     {
         std::stringstream errorMessage;
-        errorMessage << SOURCE_LOCATION << "Failed to get timestamp from \"" << m_lastSampleResource.getString() << "\"";
+        errorMessage << SOURCE_LOCATION << "Failed to get timestamp from \"" << m_lastSampleResource << "\"";
         std::throw_with_nested(std::runtime_error(errorMessage.str()));
     }
     return 0;

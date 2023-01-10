@@ -13,7 +13,7 @@ namespace Data
     {
     public:
         JsonURI() {};
-        JsonURI(const fs::path& path, const json::json_pointer& jsonPointer);
+        JsonURI(const fs::path& path, const json::json_pointer& jsonPointer = ""_json_pointer);
         JsonURI(const std::string& uri);
         
         json deserialize() const;
@@ -23,8 +23,8 @@ namespace Data
         void setFilePath(const fs::path& path);
         json::json_pointer getJsonPointer() const;
         fs::path getFilePath() const;
-        std::string getString() const;
         
+        operator std::string() const;
         JsonURI& operator/=(const json::json_pointer& jsonPointer);
         
     private:
@@ -33,6 +33,7 @@ namespace Data
     };
 
     JsonURI operator/(JsonURI lhs, const json::json_pointer& rhs);
+    std::ostream& operator<<(std::ostream& os, const JsonURI& jsonURI);
 }
 
 #endif

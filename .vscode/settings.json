@@ -86,7 +86,8 @@
         "ranges": "cpp",
         "semaphore": "cpp",
         "span": "cpp",
-        "stop_token": "cpp"
+        "stop_token": "cpp",
+        "cerrno": "cpp"
     },
     "git.ignoreLimitWarning": true,
     "cmake.sourceDirectory": "${workspaceFolder}/lib/ArduinoJson-6.x/extras/tests/Cpp17"

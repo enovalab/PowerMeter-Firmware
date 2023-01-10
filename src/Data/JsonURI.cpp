@@ -44,15 +44,14 @@ void JsonURI::serialize(const json& data) const
 {
     try
     {
+        fs::ofstream file(m_path);
         if(m_jsonPointer.empty())
         {
-            fs::ofstream file(m_path);
             file << data.dump(1, '\t') << std::flush;
         }
         else
         {
-            json parentData = JsonURI(m_path, json::json_pointer()).deserialize();
-            std::ofstream file(m_path);
+            json parentData = JsonURI(m_path).deserialize();
             parentData[m_jsonPointer] = data;
             file << parentData.dump(1, '\t') << std::flush;
         }
@@ -60,7 +59,7 @@ void JsonURI::serialize(const json& data) const
     catch(...)
     {
         std::stringstream errorMessage;
-        errorMessage << SOURCE_LOCATION << "Failed to serialize \"" << data.dump() << "\" to \"" << getString() << "\"";
+        errorMessage << SOURCE_LOCATION << "Failed to serialize \"" << data.dump() << "\" to \"" << *this << "\"";
         ErrorHandling::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
@@ -71,26 +70,20 @@ json JsonURI::deserialize() const
 {
     try
     {
+        if(!fs::exists(m_path))
+            throw std::runtime_error('"' + m_path.string() + "\" is does not exist");
+        if(!fs::is_regular_file(m_path))
+            throw std::runtime_error('"' + m_path.string() +"\" is not a file");
+            
         fs::ifstream file(m_path);
-        if(file.fail())
-            return json();
         if(file.peek() < 0)
             return json();
         return json::parse(file).at(m_jsonPointer);
-        // try
-        // {
-        //     return json::parse(file).at(m_jsonPointer);
-        // }
-        // catch(json::out_of_range)
-        // {
-        //     return json();
-        // }
-
     }
     catch(...)
     {
         std::stringstream errorMessage;
-        errorMessage << SOURCE_LOCATION << "Failed to deserialize \"" << getString() << "\"";
+        errorMessage << SOURCE_LOCATION << "Failed to deserialize \"" << *this << "\"";
         ErrorHandling::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
@@ -122,7 +115,7 @@ json::json_pointer JsonURI::getJsonPointer() const
 }
 
 
-std::string JsonURI::getString() const
+JsonURI::operator std::string() const
 {
     std::string uri = m_path.string();
     if(!m_jsonPointer.empty())
@@ -145,4 +138,10 @@ JsonURI Data::operator/(JsonURI lhs, const json::json_pointer& rhs)
 {
     lhs /= rhs;
     return lhs;
+}
+
+std::ostream& Data::operator<<(std::ostream& os, const JsonURI& jsonURI)
+{
+    os << static_cast<std::string>(jsonURI);
+    return os;
 }
