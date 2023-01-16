@@ -24,8 +24,8 @@ namespace Data
 
         float average() const;
         void track(float newValue) const;
-        time_t getTimeSpanSeconsds() const;
-        size_t getNumSamplesPerSpan() const;
+        time_t getTimeSpanSeconsds() const noexcept;
+        size_t getNumSamplesPerSpan() const noexcept;
         time_t getLastSampleTimestamp() const;
         void setLastSampleTimestamp(time_t timestamp) const;
 

@@ -1,5 +1,6 @@
 #include "Data/Tracker.h"
 #include "Logging/Log.h"
+#include "ErrorHandling/ExceptionTrace.h"
 
 #include <fstream>
 #include <exception>
@@ -35,17 +36,20 @@ void TrackingSpan::track(float newValue) const
 
         m_targetResource.serialize(trackerArray);
     }
-    catch(const json::out_of_range& e)
+    catch(json::exception)
     {
-        json trackerArray;
-        trackerArray.push_back(newValue);
-        m_targetResource.serialize(trackerArray);
+        ErrorHandling::ExceptionTrace::clear();
+    }
+    catch(std::runtime_error)
+    {
+        ErrorHandling::ExceptionTrace::clear();
     }
     catch(...)
     {
         std::stringstream errorMessage;
         errorMessage << SOURCE_LOCATION << "Failed to track \"" << newValue << "\"";
-        std::throw_with_nested(std::runtime_error(errorMessage.str()));
+        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        throw;
     }
 }
 
@@ -61,23 +65,32 @@ float TrackingSpan::average() const
 
         return sum / values.size();
     }
+    catch(json::exception)
+    {
+        ErrorHandling::ExceptionTrace::clear();
+    }
+    catch(std::runtime_error)
+    {
+        ErrorHandling::ExceptionTrace::clear();
+    }
     catch(...)
     {
         std::stringstream errorMessage;
         errorMessage << SOURCE_LOCATION << "Failed to average data at \"" << m_averageResource << "\""; 
-        std::throw_with_nested(std::runtime_error(errorMessage.str()));
+        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        throw;
     }
     return NAN;
 }
 
 
-time_t TrackingSpan::getTimeSpanSeconsds() const
+time_t TrackingSpan::getTimeSpanSeconsds() const noexcept
 {
     return m_timeSpanSeconds;
 }
 
 
-size_t TrackingSpan::getNumSamplesPerSpan() const
+size_t TrackingSpan::getNumSamplesPerSpan() const noexcept
 {
     return m_numSamplesPerSpan;
 }
@@ -88,15 +101,22 @@ time_t TrackingSpan::getLastSampleTimestamp() const
     try
     {
         json lastSampleJson = m_lastSampleResource.deserialize();
-
-        if(!lastSampleJson.is_null())
-            return lastSampleJson.get<time_t>();
+        return lastSampleJson.get<time_t>();
+    }
+    catch(json::exception)
+    {
+        ErrorHandling::ExceptionTrace::clear();
+    }
+    catch(std::runtime_error)
+    {
+        ErrorHandling::ExceptionTrace::clear();
     }
     catch(...)
     {
         std::stringstream errorMessage;
         errorMessage << SOURCE_LOCATION << "Failed to get timestamp from \"" << m_lastSampleResource << "\"";
-        std::throw_with_nested(std::runtime_error(errorMessage.str()));
+        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        throw;
     }
     return 0;
 }
@@ -104,7 +124,18 @@ time_t TrackingSpan::getLastSampleTimestamp() const
 
 void TrackingSpan::setLastSampleTimestamp(time_t timestamp) const
 {
-    m_lastSampleResource.serialize(timestamp);
+    try
+    {
+        m_lastSampleResource.serialize(timestamp);
+    }
+    catch(...)
+    {
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to set timestamp to \"" << timestamp << "\"";
+        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        throw;
+    }
+    
 }
 
 
@@ -116,38 +147,48 @@ Tracker::Tracker(const Time::Clock& clock, const std::vector<TrackingSpan>& trac
 
 void Tracker::track(float newValue)
 {
-    m_average << newValue;
-    time_t now = m_clock.now();
-
-    for(size_t i = 0; i < m_trackingSpans.size(); i++)
+    try
     {
-        const TrackingSpan& trackingSpan = m_trackingSpans[i];
-        time_t secondsPassed = now - trackingSpan.getLastSampleTimestamp();
-        time_t secondsBetweenSamples = trackingSpan.getTimeSpanSeconsds() / trackingSpan.getNumSamplesPerSpan();
-        size_t timesElapsed = secondsPassed / secondsBetweenSamples;
+        m_average << newValue;
+        time_t now = m_clock.now();
 
-        for(size_t j = timesElapsed; j > 0; j--)
+        for(size_t i = 0; i < m_trackingSpans.size(); i++)
         {
-            float newValue;
-            if(j == 1)
+            const TrackingSpan& trackingSpan = m_trackingSpans[i];
+            time_t secondsPassed = now - trackingSpan.getLastSampleTimestamp();
+            time_t secondsBetweenSamples = trackingSpan.getTimeSpanSeconsds() / trackingSpan.getNumSamplesPerSpan();
+            size_t timesElapsed = secondsPassed / secondsBetweenSamples;
+
+            for(size_t j = timesElapsed; j > 0; j--)
             {
-                if(i > 0)
+                float newValue;
+                if(j == 1)
                 {
-                    newValue = trackingSpan.average();
+                    if(i > 0)
+                    {
+                        newValue = trackingSpan.average();
+                    }
+                    else
+                    {
+                        newValue = m_average;
+                        m_average.reset();
+                    }
+                    trackingSpan.setLastSampleTimestamp(now);
                 }
                 else
                 {
-                    newValue = m_average;
-                    m_average.reset();
+                    newValue = 0.0f;
                 }
-                trackingSpan.setLastSampleTimestamp(now);
-            }
-            else
-            {
-                newValue = 0.0f;
-            }
 
-            trackingSpan.track(newValue);
+                trackingSpan.track(newValue);
+            }
         }
+    }
+    catch(...)
+    {
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to track \"" << newValue << "\"";
+        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        throw;
     }
 }

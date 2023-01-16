@@ -2,15 +2,15 @@
 #include "Logging/Log.h"
 #include "ErrorHandling/ExceptionTrace.h"
 
-#include <boost/filesystem/fstream.hpp>
+#include <fstream>
 #include <exception>
 #include <sstream>
 
 using namespace Data;
 
 
-JsonURI::JsonURI(const fs::path& path, const json::json_pointer& jsonPointer) :
-    m_path(path),
+JsonURI::JsonURI(const std::string& filePath, const json::json_pointer& jsonPointer) :
+    m_filePath(filePath),
     m_jsonPointer(jsonPointer)
 {}
 
@@ -22,12 +22,12 @@ JsonURI::JsonURI(const std::string& uri)
         size_t seperatorIndex = uri.find('#');
         if(seperatorIndex != std::string::npos)
         {
-            m_path = uri.substr(0, seperatorIndex);
+            m_filePath = uri.substr(0, seperatorIndex);
             m_jsonPointer = json::json_pointer(uri.substr(seperatorIndex + 1, uri.size()));
         }
         else
         {
-            m_path = uri;
+            m_filePath = uri;
         }
     }
     catch(...)
@@ -44,14 +44,14 @@ void JsonURI::serialize(const json& data) const
 {
     try
     {
-        fs::ofstream file(m_path);
+        std::ofstream file(m_filePath);
         if(m_jsonPointer.empty())
         {
             file << data.dump(1, '\t') << std::flush;
         }
         else
         {
-            json parentData = JsonURI(m_path).deserialize();
+            json parentData = JsonURI(m_filePath, json::json_pointer()).deserialize();
             parentData[m_jsonPointer] = data;
             file << parentData.dump(1, '\t') << std::flush;
         }
@@ -70,12 +70,10 @@ json JsonURI::deserialize() const
 {
     try
     {
-        if(!fs::exists(m_path))
-            throw std::runtime_error('"' + m_path.string() + "\" is does not exist");
-        if(!fs::is_regular_file(m_path))
-            throw std::runtime_error('"' + m_path.string() +"\" is not a file");
+        std::ifstream file(m_filePath);
+        if(!file.good())
+            throw std::runtime_error('"' + m_filePath + "\" is not a valid filepath");
             
-        fs::ifstream file(m_path);
         if(file.peek() < 0)
             return json();
         return json::parse(file).at(m_jsonPointer);
@@ -84,6 +82,7 @@ json JsonURI::deserialize() const
     {
         std::stringstream errorMessage;
         errorMessage << SOURCE_LOCATION << "Failed to deserialize \"" << *this << "\"";
+        ErrorHandling::ExceptionTrace::clear();
         ErrorHandling::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
@@ -97,15 +96,15 @@ void JsonURI::setJsonPointer(const json::json_pointer& jsonPointer)
 }
 
 
-void JsonURI::setFilePath(const fs::path& path)
+void JsonURI::setFilePath(const std::string& filePath)
 {
-    m_path = path;
+    m_filePath = filePath;
 }
 
 
-fs::path JsonURI::getFilePath() const
+std::string JsonURI::getFilePath() const
 {
-    return m_path;
+    return m_filePath;
 }
 
 
@@ -117,7 +116,7 @@ json::json_pointer JsonURI::getJsonPointer() const
 
 JsonURI::operator std::string() const
 {
-    std::string uri = m_path.string();
+    std::string uri = m_filePath;
     if(!m_jsonPointer.empty())
     {
         uri += '#';

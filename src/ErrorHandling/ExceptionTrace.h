@@ -8,6 +8,7 @@ namespace ErrorHandling
     namespace ExceptionTrace
     {
         void trace(const std::string& message);
+        void clear();
         std::string what(size_t indentLevel = 1, char indentChar = ' ');
     }
 }

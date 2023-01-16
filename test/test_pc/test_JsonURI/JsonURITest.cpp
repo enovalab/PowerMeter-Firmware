@@ -1,5 +1,4 @@
 #include "Data/JsonURI.h"
-#include "ErrorHandling/ExceptionTrace.h"
 #include <gtest/gtest.h>
 #include <filesystem>
 #include <fstream>
@@ -9,14 +8,21 @@ using Data::JsonURI;
 const std::string testFilePath = "JsonResourceTest.json";
 const json::json_pointer testJsonPointer = "/1/bar"_json_pointer;
 
+
 struct JsonURITest : public testing::Test
 {
-    static void TearDownTestCase()
+    virtual void SetUp() override
     {
-        std::filesystem::remove(testFilePath);
+        std::ofstream testFile(testFilePath);
     }
 
-    JsonURI uut = JsonURI("JsonResourceTest.json", "/1/bar"_json_pointer);
+    virtual void TearDown() override
+    {
+        if(std::filesystem::exists(testFilePath))
+            std::filesystem::remove(testFilePath);
+    }
+
+    JsonURI uut = JsonURI(testFilePath, testJsonPointer);
     json testData = {
         {"foo", 1.0},
         {"bar", 2.0},
@@ -25,15 +31,12 @@ struct JsonURITest : public testing::Test
     };
 };
 
+
 TEST_F(JsonURITest, empty)
 {
     JsonURI empty;
     EXPECT_EQ("", empty.getFilePath());
     EXPECT_EQ(""_json_pointer, empty.getJsonPointer());
-
-    EXPECT_EQ(json(), uut.deserialize());
-    empty.serialize(testData);
-    EXPECT_FALSE(std::filesystem::exists(""));
 }
 
 TEST_F(JsonURITest, checkSettersAndGetters)
@@ -49,28 +52,33 @@ TEST_F(JsonURITest, serializeDeserialize)
 {
     uut.serialize(testData);
     EXPECT_EQ(testData, uut.deserialize());
+
+    uut.serialize(json());
+    EXPECT_EQ(json(), uut.deserialize());
 }
 
 
-TEST_F(JsonURITest, deserializeNonexisting)
+TEST_F(JsonURITest, deserializeNonexistingJsonPointer)
 {
-    uut.setJsonPointer("/does/not/exist"_json_pointer);
-    json result;
-    try
-    {
-        result = uut.deserialize();
-    }
-    catch(const std::exception& e)
-    {
-        Error::ExceptionStack_t exceptionStack = Error::ExceptionStack::get(e);
-        
-    }
+    uut.serialize(testData);
+    uut.setJsonPointer("/0/does/not/exist"_json_pointer);
+    EXPECT_THROW(uut.deserialize(), json::out_of_range);
+}
+
+TEST_F(JsonURITest, deserializeNonexistingFile)
+{
+    uut.setFilePath("doesnot.exist");
+    EXPECT_THROW(uut.deserialize(), std::runtime_error);
 }
 
 
 TEST_F(JsonURITest, checkAppendAndAssign)
 {
-    uut.setJsonPointer(testJsonPointer);
+    JsonURI empty;
+    empty /= "/foo/bar"_json_pointer;
+    EXPECT_EQ("/foo/bar"_json_pointer, empty.getJsonPointer());
+    EXPECT_EQ("", empty.getFilePath());
+
     uut /= "/a/b"_json_pointer;
     EXPECT_EQ(testJsonPointer / "/a/b"_json_pointer, uut.getJsonPointer());
 }
@@ -78,8 +86,12 @@ TEST_F(JsonURITest, checkAppendAndAssign)
 
 TEST_F(JsonURITest, checkAppend)
 {
-    uut.setJsonPointer(testJsonPointer);
-    JsonURI actual = uut / "/a/b"_json_pointer;
+    JsonURI empty;
+    JsonURI actual;
+    actual = empty / "/foo/bar"_json_pointer;
+    EXPECT_EQ("/foo/bar"_json_pointer, actual.getJsonPointer());
+
+    actual = uut / "/a/b"_json_pointer;
     EXPECT_EQ(testJsonPointer / "/a/b"_json_pointer, actual.getJsonPointer());
 }
 

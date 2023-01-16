@@ -15,6 +15,12 @@ void ExceptionTrace::trace(const std::string& message)
 }
 
 
+void ExceptionTrace::clear()
+{
+    traces.clear();
+}
+
+
 std::string ExceptionTrace::what(size_t indentLevel, char indentChar)
 {
     std::stringstream what;

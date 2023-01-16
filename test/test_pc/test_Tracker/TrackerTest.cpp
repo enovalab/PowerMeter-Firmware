@@ -1,12 +1,12 @@
 #include "Data/Tracker.h"
 #include "MockClock.h"
+#include "ErrorHandling/ExceptionTrace.h"
+
 #include <gtest/gtest.h>
 #include <fstream>
 #include <filesystem>
 #include <thread>
 #include <chrono>
-
-#include "Error/ExceptionStack.h"
 
 using namespace Data;
 using namespace std::chrono_literals;
@@ -46,53 +46,67 @@ struct TrackerTest : public testing::Test
 
 TEST_F(TrackerTest, lastSampleShouldInitializeToZero)
 {
-    for(const auto& trackingSpan : trackingSpans)
+    try
     {
-        EXPECT_EQ(0, trackingSpan.getLastSampleTimestamp());
+        for(const auto& trackingSpan : trackingSpans)
+        {
+            EXPECT_EQ(0, trackingSpan.getLastSampleTimestamp());
+        }
+    }
+    catch(...)
+    {
+        FAIL() << ErrorHandling::ExceptionTrace::what() << std::endl;
     }
 }
 
 TEST_F(TrackerTest, shouldFillWithZero)
 {
-    clock.setTimestamp(3601);
     try
     {
+        clock.setTimestamp(3601);
         uut.track(1.0f);
-    }
-    catch(const std::exception& e)
-    {
-        std::cout << Error::ExceptionStack::what(e, 2) << std::endl;
-    }
-    json last60min = JsonURI("TrackerTest.json#/last60min").deserialize();
-    for(size_t i = 0; i < last60min.size() - 1; i++)
-    {
-        EXPECT_EQ(0, last60min.at(i));
-    }
-    EXPECT_EQ(1.0f, last60min.back());
+        json last60min = JsonURI("TrackerTest.json#/last60min").deserialize();
+        for(size_t i = 0; i < last60min.size() - 1; i++)
+        {
+            EXPECT_EQ(0, last60min.at(i));
+        }
+        EXPECT_EQ(1.0f, last60min.back());
 
-    json last24h = JsonURI("TrackerTest.json#/last24h").deserialize();
-    EXPECT_EQ(1.0f / 60, last24h.front());
+        json last24h = JsonURI("TrackerTest.json#/last24h").deserialize();
+        EXPECT_EQ(1.0f / 60, last24h.front());
+    }
+    catch(...)
+    {
+        FAIL() << ErrorHandling::ExceptionTrace::what() << std::endl;
+    }
 }
 
 TEST_F(TrackerTest, arraySizeNotGreaterThanSpecified)
 {
-    while(clock.now() < 3600 * 24 * 7 + 1)
+    try
     {
-        uut.track(1.0f);
-        clock.setTimestamp(clock.now() + 10);
+        while(clock.now() < 3600 * 24 * 7 + 1)
+        {
+            uut.track(1.0f);
+            clock.setTimestamp(clock.now() + 10);
+        }
+
+        json last60min = JsonURI("TrackerTest.json#/last60min").deserialize();
+        EXPECT_TRUE(last60min.is_array());
+        EXPECT_EQ(60, last60min.size());
+
+        json last24h = JsonURI("TrackerTest.json#/last24h").deserialize();
+        EXPECT_TRUE(last24h.is_array());
+        EXPECT_EQ(24, last24h.size());
+
+        json last7d = JsonURI("TrackerTest.json#/last7d").deserialize();
+        EXPECT_TRUE(last7d.is_array());
+        EXPECT_EQ(7, last7d.size());
     }
-
-    json last60min = JsonURI("TrackerTest.json#/last60min").deserialize();
-    EXPECT_TRUE(last60min.is_array());
-    EXPECT_EQ(60, last60min.size());
-
-    json last24h = JsonURI("TrackerTest.json#/last24h").deserialize();
-    EXPECT_TRUE(last24h.is_array());
-    EXPECT_EQ(24, last24h.size());
-
-    json last7d = JsonURI("TrackerTest.json#/last7d").deserialize();
-    EXPECT_TRUE(last7d.is_array());
-    EXPECT_EQ(7, last7d.size());
+    catch(...)
+    {
+        FAIL() << ErrorHandling::ExceptionTrace::what() << std::endl;
+    }
 }
 
 int main()
