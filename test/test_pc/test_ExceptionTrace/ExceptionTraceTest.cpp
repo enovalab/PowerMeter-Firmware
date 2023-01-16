@@ -19,7 +19,6 @@ void c()
     }
 }
 
-
 void b()
 {
     try
@@ -46,7 +45,6 @@ void a()
     }
 }
 
-
 void b1()
 {
     try
@@ -60,12 +58,43 @@ void b1()
     
 }
 
-
 void a1()
 {
     try
     {
         b1();
+    }
+    catch(...)
+    {
+        ExceptionTrace::trace("a");
+        throw;
+    }
+    
+}
+
+void b2()
+{
+    try
+    {
+        for(size_t i = 0; i < 5; i++)
+            c();
+    }
+    // catch(std::runtime_error)
+    // {
+
+    // }
+    catch(...)
+    {
+        ExceptionTrace::trace("b");
+        throw;
+    }
+}
+
+void a2()
+{
+    try
+    {
+        b2();
     }
     catch(...)
     {
@@ -107,6 +136,19 @@ TEST(ExceptionTraceTest, clearOnWhat)
     ExceptionTrace::trace("xyz");
     ExceptionTrace::what();
     EXPECT_EQ("", ExceptionTrace::what());
+}
+
+
+TEST(ExceptionTraceTest, forLoop)
+{
+    try
+    {
+        a2();
+    }
+    catch(...)
+    {
+        std::cout << ExceptionTrace::what() << std::endl;
+    }
 }
 
 
