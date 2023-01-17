@@ -11,15 +11,10 @@ const json::json_pointer testJsonPointer = "/1/bar"_json_pointer;
 
 struct JsonURITest : public testing::Test
 {
-    virtual void SetUp() override
-    {
-        std::ofstream testFile(testFilePath);
-    }
-
     virtual void TearDown() override
     {
-        if(std::filesystem::exists(testFilePath))
-            std::filesystem::remove(testFilePath);
+        // if(std::filesystem::exists(testFilePath))
+        //     std::filesystem::remove(testFilePath);
     }
 
     JsonURI uut = JsonURI(testFilePath, testJsonPointer);
@@ -62,7 +57,7 @@ TEST_F(JsonURITest, deserializeNonexistingJsonPointer)
 {
     uut.serialize(testData);
     uut.setJsonPointer("/0/does/not/exist"_json_pointer);
-    EXPECT_THROW(uut.deserialize(), json::out_of_range);
+    EXPECT_THROW(uut.deserialize(), json::exception);
 }
 
 TEST_F(JsonURITest, deserializeNonexistingFile)

@@ -28,21 +28,26 @@ void TrackingSpan::track(float newValue) const
 {
     try
     {
-        json trackerArray = m_targetResource.deserialize();
+        json trackerArray;
+        try
+        {
+            trackerArray = m_targetResource.deserialize();
+        }
+        catch(json::exception)
+        {
+            ErrorHandling::ExceptionTrace::clear();
+        }
+        catch(std::runtime_error)
+        {
+            ErrorHandling::ExceptionTrace::clear();
+        }
+        
         trackerArray.push_back(newValue);
 
         if(trackerArray.size() > m_numSamplesPerSpan)
             trackerArray.erase(trackerArray.begin());
 
         m_targetResource.serialize(trackerArray);
-    }
-    catch(json::exception)
-    {
-        ErrorHandling::ExceptionTrace::clear();
-    }
-    catch(std::runtime_error)
-    {
-        ErrorHandling::ExceptionTrace::clear();
     }
     catch(...)
     {
@@ -179,7 +184,7 @@ void Tracker::track(float newValue)
                 {
                     newValue = 0.0f;
                 }
-
+                
                 trackingSpan.track(newValue);
             }
         }

@@ -44,14 +44,26 @@ void JsonURI::serialize(const json& data) const
 {
     try
     {
-        std::ofstream file(m_filePath);
+        std::ofstream file;
         if(m_jsonPointer.empty())
         {
+            file.open(m_filePath);
             file << data.dump(1, '\t') << std::flush;
         }
         else
         {
-            json parentData = JsonURI(m_filePath, json::json_pointer()).deserialize();
+            json parentData;
+            
+            try
+            {
+                parentData = JsonURI(m_filePath, json::json_pointer()).deserialize();
+            }
+            catch(json::exception)
+            {}
+            catch(std::runtime_error)
+            {}
+
+            file.open(m_filePath);
             parentData[m_jsonPointer] = data;
             file << parentData.dump(1, '\t') << std::flush;
         }
@@ -82,7 +94,6 @@ json JsonURI::deserialize() const
     {
         std::stringstream errorMessage;
         errorMessage << SOURCE_LOCATION << "Failed to deserialize \"" << *this << "\"";
-        ErrorHandling::ExceptionTrace::clear();
         ErrorHandling::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
