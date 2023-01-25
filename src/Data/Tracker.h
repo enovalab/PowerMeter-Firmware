@@ -15,11 +15,11 @@ namespace Data
     {
     public:
         TrackingSpan(
-            const Data::JsonURI& targetResource,
-            const Data::JsonURI& lastSampleResource, 
+            const Data::JsonURI& targetURI,
+            const Data::JsonURI& lastSampleURI, 
             time_t timeSpanSeconds, 
             size_t numSamplesPerSpan,
-            const Data::JsonURI& averageResource = Data::JsonURI()
+            const Data::JsonURI& averageURI = Data::JsonURI()
         );
 
         float average() const;
@@ -30,11 +30,11 @@ namespace Data
         void setLastSampleTimestamp(time_t timestamp) const;
 
     private:
-        Data::JsonURI m_targetResource;
-        Data::JsonURI m_lastSampleResource;
+        Data::JsonURI m_targetURI;
+        Data::JsonURI m_lastSampleURI;
         time_t m_timeSpanSeconds;
         size_t m_numSamplesPerSpan;
-        Data::JsonURI m_averageResource;
+        Data::JsonURI m_averageURI;
     };
 
 

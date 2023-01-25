@@ -1,6 +1,6 @@
 #include "Data/Tracker.h"
-#include "Logging/Log.h"
-#include "ErrorHandling/ExceptionTrace.h"
+#include "Diagnostics/Log.h"
+#include "Diagnostics/ExceptionTrace.h"
 
 #include <fstream>
 #include <exception>
@@ -16,11 +16,11 @@ TrackingSpan::TrackingSpan(
     size_t numSamplesPerSpan,
     const Data::JsonURI& averageResource
 ) :
-    m_targetResource(targetResource),
+    m_targetURI(targetResource),
     m_timeSpanSeconds(timeSpanSeconds),
     m_numSamplesPerSpan(numSamplesPerSpan),
-    m_lastSampleResource(lastSampleResource),
-    m_averageResource(averageResource)
+    m_lastSampleURI(lastSampleResource),
+    m_averageURI(averageResource)
 {}
 
 
@@ -31,15 +31,15 @@ void TrackingSpan::track(float newValue) const
         json trackerArray;
         try
         {
-            trackerArray = m_targetResource.deserialize();
+            trackerArray = m_targetURI.deserialize();
         }
         catch(json::exception)
         {
-            ErrorHandling::ExceptionTrace::clear();
+            Diagnostics::ExceptionTrace::clear();
         }
         catch(std::runtime_error)
         {
-            ErrorHandling::ExceptionTrace::clear();
+            Diagnostics::ExceptionTrace::clear();
         }
         
         trackerArray.push_back(newValue);
@@ -47,13 +47,13 @@ void TrackingSpan::track(float newValue) const
         if(trackerArray.size() > m_numSamplesPerSpan)
             trackerArray.erase(trackerArray.begin());
 
-        m_targetResource.serialize(trackerArray);
+        m_targetURI.serialize(trackerArray);
     }
     catch(...)
     {
         std::stringstream errorMessage;
         errorMessage << SOURCE_LOCATION << "Failed to track \"" << newValue << "\"";
-        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
 }
@@ -63,7 +63,7 @@ float TrackingSpan::average() const
 {
     try
     {
-        json values = m_averageResource.deserialize();
+        json values = m_averageURI.deserialize();
         float sum = 0;
         for(const json& value : values)
             sum += value.get<float>();
@@ -72,17 +72,17 @@ float TrackingSpan::average() const
     }
     catch(json::exception)
     {
-        ErrorHandling::ExceptionTrace::clear();
+        Diagnostics::ExceptionTrace::clear();
     }
     catch(std::runtime_error)
     {
-        ErrorHandling::ExceptionTrace::clear();
+        Diagnostics::ExceptionTrace::clear();
     }
     catch(...)
     {
         std::stringstream errorMessage;
-        errorMessage << SOURCE_LOCATION << "Failed to average data at \"" << m_averageResource << "\""; 
-        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        errorMessage << SOURCE_LOCATION << "Failed to average data at \"" << m_averageURI << "\""; 
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
     return NAN;
@@ -105,22 +105,22 @@ time_t TrackingSpan::getLastSampleTimestamp() const
 {
     try
     {
-        json lastSampleJson = m_lastSampleResource.deserialize();
+        json lastSampleJson = m_lastSampleURI.deserialize();
         return lastSampleJson.get<time_t>();
     }
     catch(json::exception)
     {
-        ErrorHandling::ExceptionTrace::clear();
+        Diagnostics::ExceptionTrace::clear();
     }
     catch(std::runtime_error)
     {
-        ErrorHandling::ExceptionTrace::clear();
+        Diagnostics::ExceptionTrace::clear();
     }
     catch(...)
     {
         std::stringstream errorMessage;
-        errorMessage << SOURCE_LOCATION << "Failed to get timestamp from \"" << m_lastSampleResource << "\"";
-        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        errorMessage << SOURCE_LOCATION << "Failed to get timestamp from \"" << m_lastSampleURI << "\"";
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
     return 0;
@@ -131,13 +131,13 @@ void TrackingSpan::setLastSampleTimestamp(time_t timestamp) const
 {
     try
     {
-        m_lastSampleResource.serialize(timestamp);
+        m_lastSampleURI.serialize(timestamp);
     }
     catch(...)
     {
         std::stringstream errorMessage;
         errorMessage << SOURCE_LOCATION << "Failed to set timestamp to \"" << timestamp << "\"";
-        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
     
@@ -193,7 +193,7 @@ void Tracker::track(float newValue)
     {
         std::stringstream errorMessage;
         errorMessage << SOURCE_LOCATION << "Failed to track \"" << newValue << "\"";
-        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
 }

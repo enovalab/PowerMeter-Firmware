@@ -1,8 +1,8 @@
 {
     "sta": {
-        "ssid": "YourWiFiNetwork",
-        "password": "SuperSecretStuff",
-        "staticIp": "0.0.0.0",
+        "ssid": "WLAN-T-Com",
+        "password": "GxvuzR8znV",
+        "staticIP": "0.0.0.0",
         "gateway": "0.0.0.0",
         "subnet": "0.0.0.0",
         "primaryDNS": "0.0.0.0",

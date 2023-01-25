@@ -1,34 +1,56 @@
-#include "Measuring/PowerMeter.h"
+#include "Measuring/ACPowerMeter.h"
+#include "Connectivity/RestAPI.h"
+#include "Diagnostics/Log.h"
 
-#define CAL_U 0.4908f
-#define CAL_I 0.01596f
-#define CAL_PHASE 12
-#define PIN_U 33
-#define PIN_I 32
-#define PIN_RELAY 2
+constexpr uint8_t voltagePin = 33;
+constexpr uint8_t currentPin = 32;
 
-using namespace Measuring;
+constexpr float voltageCalibration = 0.4908f;
+constexpr float currentCalibration = 0.01596f;
+constexpr int16_t phaseCalibration = 12;
 
-PowerMeter meter(PIN_U, PIN_I);
+
+Measuring::ACPowerMeter powerMeter(voltagePin, currentPin);
+AsyncWebServer server(80);
+
 
 void setup()
 {
     Serial.begin(115200);
-    pinMode(PIN_RELAY, OUTPUT);
-    digitalWrite(PIN_RELAY, HIGH);
-    meter.calibrate(CAL_U, CAL_I, CAL_PHASE);
+    
+    WiFi.mode(WIFI_AP_STA);
+    WiFi.softAP("Power Measuring Test", "Katek1976");
+    Diagnostics::Logger[Level::Info] << "AP IP Address is: " << WiFi.softAPIP().toString().c_str() << std::endl;
+
+    powerMeter.calibrate(voltageCalibration, currentCalibration, phaseCalibration);
+    
+    Connectivity::RestAPI api(&server);
+    
+    api.handle(Connectivity::HTTP::Method::Get, "", [](json){
+        Measuring::ACPower power = powerMeter.measure();
+        json data;
+        data["voltage"] = power.getVoltageRms();
+        data["current"] = power.getCurrentRms();
+        data["active"] = power.getActivePower();
+        data["apparent"] = power.getApparentPower();
+        data["reactive"] = power.getReactivePower();
+        data["powerFactor"] = power.getPowerFactor();
+        return Connectivity::RestAPI::JsonResponse(data);
+    });
+
+    server.begin();
 }
+
 
 void loop()
 {
+    Measuring::ACPower power = powerMeter.measure();
+    Diagnostics::Logger[Level::Info]
+        << "U = " << power.getVoltageRms() << " Vrms, "
+        << "I = " << power.getCurrentRms() << " Arms, "
+        << "P = " << power.getActivePower() << " W, "
+        << "S = " << power.getApparentPower() << " VA, "
+        << "Q = " << power.getReactivePower() << " var, "
+        << "cosP = " << power.getPowerFactor() << std::endl;
     delay(1000);
-    ACPower measureResult = meter.measure();
-    Serial.printf("U = %fVrms, I = %fArms, P = %fW, S = %fVA, Q = %fvar, cosP = %f\n", 
-        measureResult.getVoltageRms(),
-        measureResult.getCurrentRms(),
-        measureResult.getActivePower(),
-        measureResult.getApparentPower(),
-        measureResult.getReactivePower(),
-        measureResult.getPowerFactor()
-    );
 }

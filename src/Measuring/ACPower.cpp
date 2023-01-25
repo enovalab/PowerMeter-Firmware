@@ -9,6 +9,7 @@ ACPower::ACPower(float voltageRms, float currentRms, float activePower) :
     m_activePower(activePower)
 {}
 
+
 float ACPower::getVoltageRms() const
 {
     return m_voltageRms;

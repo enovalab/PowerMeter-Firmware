@@ -1,0 +1,68 @@
+:root {
+    --main-color: rgb(0, 171, 209);
+    --accent-color: rgb(0, 122, 209);
+    --background-color: rgb(32, 32, 32);
+    --background-color-dark: rgb(24, 24, 24);
+    --contrast-color: rgb(255, 255, 255);
+}
+
+body {
+    margin: 0;
+    user-select: none;
+    font-family: 'Dosis', sans-serif;
+    background-color: var(--background-color);
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+
+header {
+    position: sticky;
+    top: 0;
+    background-color: var(--main-color);
+    height: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: x-large;
+}
+
+header > b {
+    padding-left: 30px;
+}
+
+header > i {
+    padding-right: 30px;
+}
+
+footer {
+    background-color: var(--main-color);
+    position: fixed;
+    bottom: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 45px;
+}
+
+footer > div {
+    background-color: var(--main-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100vw / 4);
+    height: 40px;
+    border-radius: 30px;
+    cursor: pointer;
+}
+
+#power-selector {
+    background-color: var(--accent-color);
+}
+
+main {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}

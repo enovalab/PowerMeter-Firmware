@@ -1,8 +1,9 @@
 #ifdef ESP32
 
 #include "Connectivity/RestAPI.h"
-#include "Logging/Log.h"
-#include "Error/ExceptionStack.h"
+#include "Diagnostics/Log.h"
+#include "Diagnostics/ExceptionTrace.h"
+
 
 using namespace Connectivity;
 
@@ -23,17 +24,21 @@ RestAPI::RestAPI(AsyncWebServer* server, const std::string& baseURI, bool allowC
 }
 
 
-void RestAPI::handle(WebRequestMethod method, const std::string& endpointURI, const JsonHandler& handler)
+void RestAPI::handle(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler)
 {
     switch(method)
     {
-    case HTTP_GET:
+    case HTTP::Method::Get:
         handleWithoutBody(method, endpointURI, handler);
         handleHead(endpointURI);
         break;
     
-    case HTTP_DELETE:
+    case HTTP::Method::Delete:
         handleWithoutBody(method, endpointURI, handler);
+        break;
+
+    case HTTP::Method::Head:
+        handleHead(endpointURI);
         break;
 
     default:
@@ -43,51 +48,60 @@ void RestAPI::handle(WebRequestMethod method, const std::string& endpointURI, co
 }
 
 
-void RestAPI::handleWithoutBody(WebRequestMethod method, const std::string& endpointURI, const JsonHandler& handler)
+void RestAPI::handleWithoutBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler)
 {
-    m_server->on((m_baseURI + endpointURI).c_str(), method, [handler, this](AsyncWebServerRequest* request){
-        json data;
-        uint16_t statusCode = 500;
-
+    m_server->on((m_baseURI + endpointURI).c_str(), static_cast<WebRequestMethod>(method), [handler, this](AsyncWebServerRequest* request){
+        JsonResponse jsonResponse;
         try
         {
-            std::tie(data, statusCode) = handler(json());
+            jsonResponse = handler(json());
         }
-        catch(const std::exception& e)
+        catch(...)
         {
-            // data["error"] = Error::ExceptionStack::what(e);
-            Logging::Logger[Level::Error] << SOURCE_LOCATION << data["error"] << std::endl;
+            jsonResponse.data["error"] = Diagnostics::ExceptionTrace::what();
+            Diagnostics::Logger[Level::Error] << SOURCE_LOCATION << "An Exception occurred, here is what happened:\n"
+                << jsonResponse.data["error"].get<std::string>() << std::endl;
         }
 
-        AsyncWebServerResponse* response = request->beginResponse(statusCode, "application/json", data.dump().c_str());
+        AsyncWebServerResponse* response = request->beginResponse(
+            static_cast<int>(jsonResponse.status),
+            "application/json",
+            jsonResponse.data.dump(1, '\t').c_str()
+        );
+        
         addCORSHeaders(response);
         request->send(response);
     });
 }
 
 
-void RestAPI::handleWithBody(WebRequestMethod method, const std::string& endpointURI, const JsonHandler& handler)
+void RestAPI::handleWithBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler)
 {
-    m_server->on((m_baseURI + endpointURI).c_str(), method, 
+    m_server->on((m_baseURI + endpointURI).c_str(), static_cast<WebRequestMethod>(method), 
         [](AsyncWebServerRequest*){},
         [](AsyncWebServerRequest*, const String&, size_t, uint8_t*, size_t, bool){},
         [handler, this](AsyncWebServerRequest* request, uint8_t* rawData, size_t length, size_t, size_t) {
-            json data;
-            uint16_t statusCode = 500;
-
+            JsonResponse jsonResponse;
+            jsonResponse.status = HTTP::StatusCode::InternalServerError;
             try
             {
                 std::string stringData = reinterpret_cast<char*>(rawData);
                 stringData.resize(length);
-                std::tie(data, statusCode) = handler(json::parse(stringData));
+                jsonResponse = handler(json::parse(stringData));
             }
-            catch(const std::exception& e)
+            catch(...)
             {
-                // data["error"] = Error::ExceptionStack::what(e);
-                Logging::Logger[Level::Error] << SOURCE_LOCATION << data["error"] << std::endl;
+                jsonResponse.data["error"] = Diagnostics::ExceptionTrace::what();
+                Diagnostics::Logger[Level::Error] << SOURCE_LOCATION << "An Exception occurred, here is what happened:\n"
+                    << jsonResponse.data["error"].get<std::string>() << std::endl;
             }
 
-            AsyncWebServerResponse* response = request->beginResponse(statusCode, "application/json", data.dump().c_str());
+            AsyncWebServerResponse* response = request->beginResponse(
+                static_cast<int>(jsonResponse.status), 
+                "application/json",
+                jsonResponse.data.dump(1, '\t').c_str()
+            );
+
             addCORSHeaders(response);
             request->send(response);
         }

@@ -41,10 +41,11 @@ namespace Measuring
 
         inline T get() const
         {
-            if(numValues == 0) return 0;
+            if(numValues == 0) 
+                return 0;
+
             return sum / numValues;
         }
-
 
 
         inline operator T() const

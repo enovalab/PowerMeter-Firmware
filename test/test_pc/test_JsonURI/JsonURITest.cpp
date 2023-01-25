@@ -13,8 +13,8 @@ struct JsonURITest : public testing::Test
 {
     virtual void TearDown() override
     {
-        // if(std::filesystem::exists(testFilePath))
-        //     std::filesystem::remove(testFilePath);
+        if(std::filesystem::exists(testFilePath))
+            std::filesystem::remove(testFilePath);
     }
 
     JsonURI uut = JsonURI(testFilePath, testJsonPointer);

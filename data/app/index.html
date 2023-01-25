@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Power Meter App</title>
+    <link rel="shortcut icon" href="assets/icons/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href="assets/Dosis/dosis.css">
+    <link rel="stylesheet" href="assets/Material Icons/material-icons.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="power/power-page.css">
+    <link rel="stylesheet" href="tracker/tracker-page.css">
+    <script src="assets/ChartJS/Chart.js"></script>
+    
+</head>
+<body>
+    <header class="header-footer-wrapper">
+        <b id="page-title" class="inside-header">Power</b>
+        <i class="material-icons-round" class="inside-header">view_list</i>
+    </header>
+    
+    <footer>
+        <div id="power-selector"><i class="material-icons-round">power</i></div>
+        <div id="tracker-selector"><i class="material-icons-round">query_stats</i></div>
+        <div id="wifi-selector"><i class="material-icons-round">wifi_find</i></div>
+        <div id="config-selector"><i class="material-icons-round">construction</i></div>
+    </footer>    
+    
+    <main>
+        <div id="power-page" style="display: none;">
+            <table>
+                <tr id="active-row">
+                    <td class="label">Active Power</td>
+                    <td class="symbol">P = </td>
+                    <td class="value" id="active">3000</td>
+                    <td class="unit"> W</td>
+                </tr>
+                <tr id="apparent-row">
+                    <td class="label">Apparent Power</td>
+                    <td class="symbol">S = </td>
+                    <td class="value" id="apparent">3000</td>
+                    <td class="unit"> VA</td>
+                </tr>
+                <tr id="reactive-row">
+                    <td class="label">Reactive Power</td>
+                    <td class="symbol">Q = </td>
+                    <td class="value" id="reactive">3000</td>
+                    <td class="unit"> var</td>
+                </tr>                
+                <tr id="voltage-row">
+                    <td class="label">Voltage RMS</td>
+                    <td class="symbol">U = </td>
+                    <td class="value" id="voltage">235</td>
+                    <td class="unit"> V</td>
+                </tr>
+                <tr id="current-row">
+                    <td class="label">Current RMS</td>
+                    <td class="symbol">I = </td>
+                    <td class="value" id="current">0.45</td>
+                    <td class="unit"> A</td>
+                </tr>
+                <tr id="power-factor-row">
+                    <td class="label">Power Factor</td>
+                    <td class="symbol">&lambda; = </td>
+                    <td class="value" id="power-factor">0.99</td>
+                </tr>
+            </table>
+            <input onclick="handleRelayState()" type="checkbox" id="switch"/><label for="switch">Toggle</label>
+        </div>
+        <div id="tracker-page">
+            <div id="chart-wrapper">
+                <canvas id="chart"></canvas>
+            </div>
+            <script src="tracker/chart.js"></script>
+            <div>
+                <i onclick="handleTrackingSpanSelect(i => --i)" class="material-icons-round">arrow_back_ios</i>
+                <h1 id="tracking-span-title">Last 30 Days</h1>
+                <i onclick="handleTrackingSpanSelect(i => ++i)" class="material-icons-round">arrow_forward_ios</i>
+            </div>
+        </div>
+        <div id="wifi-page" style="display: none;">
+            <form action="/action_page.php">
+                <label for="fname">First name:</label>
+                <input type="text" id="fname" name="fname"><br><br>
+                <label for="lname">Last name:</label>
+                <input type="text" id="lname" name="lname"><br><br>
+                <input type="submit" value="Submit">
+              </form>              
+        </div>
+        <div id="config-page" style="display: none;"></div>
+    </main>
+    
+    <script src="index.js"></script>
+    <script src="power/power-page.js"></script> 
+    <script src="tracker/tracker-page.js"></script>
+</body>
+</html>

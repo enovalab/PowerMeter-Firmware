@@ -1,10 +1,10 @@
-#include "ErrorHandling/ExceptionTrace.h"
+#include "Diagnostics/ExceptionTrace.h"
 
 #include <exception>
 #include <iostream>
 #include <gtest/gtest.h>
 
-using namespace ErrorHandling;
+using namespace Diagnostics;
 
 void c()
 {
@@ -72,38 +72,6 @@ void a1()
     
 }
 
-void b2()
-{
-    try
-    {
-        for(size_t i = 0; i < 5; i++)
-            c();
-    }
-    // catch(std::runtime_error)
-    // {
-
-    // }
-    catch(...)
-    {
-        ExceptionTrace::trace("b");
-        throw;
-    }
-}
-
-void a2()
-{
-    try
-    {
-        b2();
-    }
-    catch(...)
-    {
-        ExceptionTrace::trace("a");
-        throw;
-    }
-    
-}
-
 
 TEST(ExceptionTraceTest, normalTrace)
 {
@@ -139,16 +107,11 @@ TEST(ExceptionTraceTest, clearOnWhat)
 }
 
 
-TEST(ExceptionTraceTest, forLoop)
+TEST(ExceptionTraceTest, clear)
 {
-    try
-    {
-        a2();
-    }
-    catch(...)
-    {
-        std::cout << ExceptionTrace::what() << std::endl;
-    }
+    ExceptionTrace::trace("xyz");
+    ExceptionTrace::clear();
+    EXPECT_EQ("", ExceptionTrace::what());
 }
 
 

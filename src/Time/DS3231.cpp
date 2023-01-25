@@ -2,11 +2,14 @@
 
 #include "DS3231.h"
 
+#include <exception>
+
 using namespace Time;
 
 DS3231::DS3231()
 {
-    m_rtc.begin();
+    if(!m_rtc.begin())
+        throw std::runtime_error("Failed to begin I2C Communication to DS3231");
 }
 
 time_t DS3231::now() const

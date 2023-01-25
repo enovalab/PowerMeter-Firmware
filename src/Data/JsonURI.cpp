@@ -1,6 +1,6 @@
 #include "Data/JsonURI.h"
-#include "Logging/Log.h"
-#include "ErrorHandling/ExceptionTrace.h"
+#include "Diagnostics/Log.h"
+#include "Diagnostics/ExceptionTrace.h"
 
 #include <fstream>
 #include <exception>
@@ -34,7 +34,7 @@ JsonURI::JsonURI(const std::string& uri)
     {
         std::stringstream errorMessage;
         errorMessage << SOURCE_LOCATION << "Failed to construct from \"" << uri << "\"";
-        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
 }
@@ -59,7 +59,9 @@ void JsonURI::serialize(const json& data) const
                 parentData = JsonURI(m_filePath, json::json_pointer()).deserialize();
             }
             catch(json::exception)
-            {}
+            {
+                
+            }
             catch(std::runtime_error)
             {}
 
@@ -72,7 +74,7 @@ void JsonURI::serialize(const json& data) const
     {
         std::stringstream errorMessage;
         errorMessage << SOURCE_LOCATION << "Failed to serialize \"" << data.dump() << "\" to \"" << *this << "\"";
-        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
 }
@@ -94,7 +96,7 @@ json JsonURI::deserialize() const
     {
         std::stringstream errorMessage;
         errorMessage << SOURCE_LOCATION << "Failed to deserialize \"" << *this << "\"";
-        ErrorHandling::ExceptionTrace::trace(errorMessage.str());
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
     return json();
