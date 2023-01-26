@@ -1,16 +1,5 @@
-#power-page {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-#power-page > table {
+#power-page .card {
     margin: 50px 10px 50px 10px;
-    padding: 20px;
-    border-radius: 10px;
-
-    background-color: var(--background-color-dark);
     font-size: x-large;
 }
 
@@ -38,12 +27,6 @@
     --text-color: rgb(255, 156, 255);
 }
 
-#power-page tr {
-
-    color: var(--text-color);
-    text-shadow: 2px 2px 10px var(--text-color);
-}
-
 #power-page .label {
     width: 200px;
 }
@@ -59,7 +42,6 @@
 #power-page .value {
     width: 80px;
 }
-
 
 
 #power-page input[type=checkbox]{

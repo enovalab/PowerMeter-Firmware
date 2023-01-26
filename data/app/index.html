@@ -10,27 +10,21 @@
     <link rel="stylesheet" href="assets/Dosis/dosis.css">
     <link rel="stylesheet" href="assets/Material Icons/material-icons.css">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="power/power-page.css">
-    <link rel="stylesheet" href="tracker/tracker-page.css">
+    <link rel="stylesheet" href="power/PowerPage.css">
+    <link rel="stylesheet" href="tracker/TrackerPage.css">
+    <link rel="stylesheet" href="wifi/WiFiPage.css">
     <script src="assets/ChartJS/Chart.js"></script>
-    
 </head>
 <body>
-    <header class="header-footer-wrapper">
+    <header>
         <b id="page-title" class="inside-header">Power</b>
         <i class="material-icons-round" class="inside-header">view_list</i>
     </header>
     
-    <footer>
-        <div id="power-selector"><i class="material-icons-round">power</i></div>
-        <div id="tracker-selector"><i class="material-icons-round">query_stats</i></div>
-        <div id="wifi-selector"><i class="material-icons-round">wifi_find</i></div>
-        <div id="config-selector"><i class="material-icons-round">construction</i></div>
-    </footer>    
     
     <main>
-        <div id="power-page" style="display: none;">
-            <table>
+        <div id="power-page" class="page">
+            <table class="card">
                 <tr id="active-row">
                     <td class="label">Active Power</td>
                     <td class="symbol">P = </td>
@@ -67,33 +61,86 @@
                     <td class="value" id="power-factor">0.99</td>
                 </tr>
             </table>
-            <input onclick="handleRelayState()" type="checkbox" id="switch"/><label for="switch">Toggle</label>
+            <input type="checkbox" id="switch"/><label for="switch"></label>
         </div>
-        <div id="tracker-page">
+        <div id="tracker-page" class="page">
             <div id="chart-wrapper">
                 <canvas id="chart"></canvas>
             </div>
-            <script src="tracker/chart.js"></script>
             <div>
-                <i onclick="handleTrackingSpanSelect(i => --i)" class="material-icons-round">arrow_back_ios</i>
+                <i id="previous-tracking-span" class="material-icons-round">arrow_back_ios</i>
                 <h1 id="tracking-span-title">Last 30 Days</h1>
-                <i onclick="handleTrackingSpanSelect(i => ++i)" class="material-icons-round">arrow_forward_ios</i>
+                <i id="next-tracking-span" class="material-icons-round">arrow_forward_ios</i>
             </div>
         </div>
-        <div id="wifi-page" style="display: none;">
-            <form action="/action_page.php">
-                <label for="fname">First name:</label>
-                <input type="text" id="fname" name="fname"><br><br>
-                <label for="lname">Last name:</label>
-                <input type="text" id="lname" name="lname"><br><br>
-                <input type="submit" value="Submit">
-              </form>              
+        <div id="wifi-page" class="page">
+            <form id="sta" class="card">
+                <h2>Stationary</h2>
+                <div>
+                    <label for="ssid">SSID: </label>
+                    <input type="text" name="ssid">
+                </div>
+                <div>
+                    <label for="password">Password: </label>
+                    <input type="password" name="password">
+                </div>
+                <div>
+                    <label for="staticIP">Static IP: </label>
+                    <input type="url" name="staticIP">
+                </div>
+                <div>
+                    <label for="gateway">Gateway: </label>
+                    <input type="url" name="gateway">
+                </div>
+                <div>
+                    <label for="subnet">Subnet Mask: </label>
+                    <input type="url" name="subnet">
+                </div>
+                <div>
+                    <label for="primaryDNS">Primary DNS: </label>
+                    <input type="url" name="primaryDNS">
+                </div>
+                <div>
+                    <label for="secondaryDNS">Secondary DNS: </label>
+                    <input type="url" name="secondaryDNS">
+                </div>
+                <div class="submit-wrapper">
+                    <button type="submit">Update Settings</button>
+                </div>
+            </form>
+            
+            <form id="ap" class="card">
+                <h2>Accesspoint</h2>
+                <div>
+                    <label for="ssid">SSID: </label>
+                    <input type="text" name="ssid">
+                </div>
+                <div>
+                    <label for="password">Password: </label>
+                    <input type="password" name="password">
+                </div>
+                <div class="submit-wrapper">
+                    <button type="submit">Update Settings</button>
+                </div>
+            </form>
         </div>
-        <div id="config-page" style="display: none;"></div>
+        <div id="config-page" class="page">
+            
+        </div>
     </main>
+    <footer>
+        <div id="power-menu"><i class="material-icons-round">power</i></div>
+        <div id="tracker-menu"><i class="material-icons-round">query_stats</i></div>
+        <div id="wifi-menu"><i class="material-icons-round">wifi_find</i></div>
+        <div id="config-menu"><i class="material-icons-round">construction</i></div>
+    </footer>    
     
+    <script src="CircularIteratableArray.js"></script>
+    <script src="TrackingSpan.js"></script>
+    <script src="Page.js"></script>
+    <script src="RelaySwitch.js"></script>
     <script src="index.js"></script>
-    <script src="power/power-page.js"></script> 
-    <script src="tracker/tracker-page.js"></script>
+    <script src="power/PowerPage.js"></script> 
+    <script src="tracker/TrackerPage.js"></script>
 </body>
 </html>
