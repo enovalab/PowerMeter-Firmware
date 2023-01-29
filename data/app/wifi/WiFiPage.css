@@ -29,9 +29,6 @@
     width: 60%;
 }
 
-#wifi-page .submit-wrapper {
-    justify-content: flex-end;
-}
 
 #wifi-page button {
     width: 60%;
@@ -41,4 +38,8 @@
     font-weight: bold;
     background-color: var(--main-color);
     border: 0;
+}
+
+#wifi-page button::before {
+    content: "";
 }

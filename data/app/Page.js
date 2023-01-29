@@ -10,13 +10,13 @@ class Page {
     setActive(active) {
         if(active) {
             this.page.style = "display: flex";
-            this.menu.style = "visibility: visible";
+            this.menu.style = "background-color: var(--accent-color)";
             this.title.innerText = this.titleText;
             this.onActivation();
         }
         else {
             this.page.style = "display: none";
-            this.menu.style = "visibility: hidden";
+            this.menu.style = "background-color: var(--main-color)";
         }
     }
 }

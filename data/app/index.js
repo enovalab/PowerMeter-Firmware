@@ -21,7 +21,7 @@ document.addEventListener("wheel", (event) => {
     activateOnlyActive(pages);
 });
 
-document.querySelectorAll("footer > div").forEach((footerDiv, index) => {
+document.querySelectorAll("footer div").forEach((footerDiv, index) => {
     footerDiv.addEventListener("click", (event) => {
         pages.setActive(index);
         activateOnlyActive(pages);
