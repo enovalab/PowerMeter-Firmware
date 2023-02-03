@@ -5,8 +5,8 @@ namespace System
 {
     namespace PowerMeter
     {
-        void init();
-        void run();        
+        void init() noexcept;
+        void run() noexcept;        
     };
 }
 

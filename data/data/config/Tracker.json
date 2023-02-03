@@ -1,8 +1,15 @@
 [
     {
-
+        "targetURI": "/littlefs/data/tracker/last60min.json",
+        "lastSampleURI": "/littlefs/data/tracker/lastSamples.json#/last60min",
+        "timeSpanSeconds": 3600,
+        "numSamplesPerSpan": 60
     },
     {
-        
+        "targetURI": "/littlefs/data/tracker/last24h.json",
+        "lastSampleURI": "/littlefs/data/tracker/lastSamples.json#/last24h",
+        "timeSpanSeconds": 86400,
+        "numSamplesPerSpan": 24,
+        "averageURI": "/littlefs/data/tracker/last60min.json"
     }
 ]

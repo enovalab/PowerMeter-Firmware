@@ -1,8 +1,6 @@
 #if defined(ESP32) && !defined(PIO_UNIT_TESTING)
 
 #include "System/PowerMeter.h"
-#include <iostream>
-#include <Arduino.h>
 
 void setup()
 {
@@ -11,7 +9,7 @@ void setup()
 
 void loop()
 {
-    // System::PowerMeter::run();
+    System::PowerMeter::run();
 }
 
 #endif

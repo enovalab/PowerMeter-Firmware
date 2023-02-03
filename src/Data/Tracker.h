@@ -41,7 +41,8 @@ namespace Data
     class Tracker
     {
     public:
-        Tracker(const Time::Clock& clock, const std::vector<TrackingSpan>& trackingSpans);
+        Tracker(const Time::Clock& clock, const std::vector<TrackingSpan>& trackingSpans = {}) noexcept;
+        void setTrackingSpans(const std::vector<TrackingSpan>& trackingSpans) noexcept;
         void track(float newValue);
     
     private:

@@ -9,7 +9,7 @@
 using namespace Data;
 
 
-JsonURI::JsonURI(const std::string& filePath, const json::json_pointer& jsonPointer) :
+JsonURI::JsonURI(const std::string& filePath, const json::json_pointer& jsonPointer) noexcept :
     m_filePath(filePath),
     m_jsonPointer(jsonPointer)
 {}
@@ -103,31 +103,31 @@ json JsonURI::deserialize() const
 }
 
 
-void JsonURI::setJsonPointer(const json::json_pointer& jsonPointer)
+void JsonURI::setJsonPointer(const json::json_pointer& jsonPointer) noexcept
 {
     m_jsonPointer = jsonPointer;
 }
 
 
-void JsonURI::setFilePath(const std::string& filePath)
+void JsonURI::setFilePath(const std::string& filePath) noexcept
 {
     m_filePath = filePath;
 }
 
 
-std::string JsonURI::getFilePath() const
+std::string JsonURI::getFilePath() const noexcept
 {
     return m_filePath;
 }
 
 
-json::json_pointer JsonURI::getJsonPointer() const
+json::json_pointer JsonURI::getJsonPointer() const noexcept
 {
     return m_jsonPointer;
 }
 
 
-JsonURI::operator std::string() const
+JsonURI::operator std::string() const noexcept
 {
     std::string uri = m_filePath;
     if(!m_jsonPointer.empty())
@@ -139,20 +139,20 @@ JsonURI::operator std::string() const
 }
 
 
-JsonURI& JsonURI::operator/=(const json::json_pointer& jsonPointer)
+JsonURI& JsonURI::operator/=(const json::json_pointer& jsonPointer) noexcept
 {
     m_jsonPointer /= jsonPointer;
     return *this;
 }
 
 
-JsonURI Data::operator/(JsonURI lhs, const json::json_pointer& rhs)
+JsonURI Data::operator/(JsonURI lhs, const json::json_pointer& rhs) noexcept
 {
     lhs /= rhs;
     return lhs;
 }
 
-std::ostream& Data::operator<<(std::ostream& os, const JsonURI& jsonURI)
+std::ostream& Data::operator<<(std::ostream& os, const JsonURI& jsonURI) noexcept
 {
     os << static_cast<std::string>(jsonURI);
     return os;

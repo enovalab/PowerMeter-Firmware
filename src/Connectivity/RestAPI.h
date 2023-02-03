@@ -25,14 +25,14 @@ namespace Connectivity
 
         using JsonHandler = std::function<JsonResponse(const json&)>;
 
-        RestAPI(AsyncWebServer* server, const std::string& baseURI = "/", bool allowCORS = true);
-        void handle(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler);
+        RestAPI(AsyncWebServer* server, const std::string& baseURI = "/", bool allowCORS = true) noexcept;
+        void handle(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler) noexcept;
 
     private:
-        void handleWithoutBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler);
-        void handleWithBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler);
-        void handleHead(const std::string& endpointURI);
-        void addCORSHeaders(AsyncWebServerResponse* response);
+        void handleWithoutBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler) noexcept;
+        void handleWithBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler) noexcept;
+        void handleHead(const std::string& endpointURI) noexcept;
+        void addCORSHeaders(AsyncWebServerResponse* response) noexcept;
 
         AsyncWebServer* m_server;
         std::string m_baseURI;

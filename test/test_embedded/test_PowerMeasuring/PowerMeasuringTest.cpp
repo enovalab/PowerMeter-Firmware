@@ -6,17 +6,21 @@ constexpr uint8_t voltagePin = 33;
 constexpr uint8_t currentPin = 32;
 
 constexpr float voltageCalibration = 0.4908f;
-constexpr float currentCalibration = 0.01596f;
+constexpr float currentCalibration = 0.01479f;
 constexpr int16_t phaseCalibration = 12;
 
 
 Measuring::ACPowerMeter powerMeter(voltagePin, currentPin);
+Measuring::ACPower power(0.0f, 0.0f, 0.0f);
 AsyncWebServer server(80);
 
 
 void setup()
 {
     Serial.begin(115200);
+
+    pinMode(2, OUTPUT);
+    digitalWrite(2, HIGH);
     
     WiFi.mode(WIFI_AP_STA);
     WiFi.softAP("Power Measuring Test", "Katek1976");
@@ -24,10 +28,9 @@ void setup()
 
     powerMeter.calibrate(voltageCalibration, currentCalibration, phaseCalibration);
     
-    Connectivity::RestAPI api(&server);
+    Connectivity::RestAPI api(&server, "/api");
     
-    api.handle(Connectivity::HTTP::Method::Get, "", [](json){
-        Measuring::ACPower power = powerMeter.measure();
+    api.handle(Connectivity::HTTP::Method::Get, "/power", [](json){
         json data;
         data["voltage"] = power.getVoltageRms();
         data["current"] = power.getCurrentRms();
@@ -38,13 +41,18 @@ void setup()
         return Connectivity::RestAPI::JsonResponse(data);
     });
 
+    api.handle(Connectivity::HTTP::Method::Get, "/toggle", [](json){
+        digitalWrite(2, !digitalRead(2));
+        return Connectivity::RestAPI::JsonResponse();
+    });
+
     server.begin();
 }
 
 
 void loop()
 {
-    Measuring::ACPower power = powerMeter.measure();
+    power = powerMeter.measure();
     Diagnostics::Logger[Level::Info]
         << "U = " << power.getVoltageRms() << " Vrms, "
         << "I = " << power.getCurrentRms() << " Arms, "
@@ -52,5 +60,4 @@ void loop()
         << "S = " << power.getApparentPower() << " VA, "
         << "Q = " << power.getReactivePower() << " var, "
         << "cosP = " << power.getPowerFactor() << std::endl;
-    delay(1000);
 }

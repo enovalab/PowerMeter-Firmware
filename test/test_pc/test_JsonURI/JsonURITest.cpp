@@ -32,6 +32,19 @@ TEST_F(JsonURITest, empty)
     JsonURI empty;
     EXPECT_EQ("", empty.getFilePath());
     EXPECT_EQ(""_json_pointer, empty.getJsonPointer());
+    EXPECT_EQ("", static_cast<std::string>(empty));
+
+    empty = JsonURI("");
+    EXPECT_EQ("", empty.getFilePath());
+    EXPECT_EQ(""_json_pointer, empty.getJsonPointer());
+    EXPECT_EQ("", static_cast<std::string>(empty));
+}
+
+TEST_F(JsonURITest, construct)
+{
+    JsonURI testURI("foo/bar.json#/hello/1/world");
+    EXPECT_EQ("foo/bar.json", testURI.getFilePath());
+    EXPECT_EQ("/hello/1/world"_json_pointer, testURI.getJsonPointer());
 }
 
 TEST_F(JsonURITest, checkSettersAndGetters)

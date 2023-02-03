@@ -12,19 +12,19 @@ namespace
 }
 
 
-void ExceptionTrace::trace(const std::string& message)
+void ExceptionTrace::trace(const std::string& message) noexcept
 {
     traces.push_back(message);
 }
 
 
-void ExceptionTrace::clear()
+void ExceptionTrace::clear() noexcept
 {
     traces.clear();
 }
 
 
-std::string ExceptionTrace::what(size_t indentLevel, char indentChar)
+std::string ExceptionTrace::what(size_t indentLevel, char indentChar) noexcept
 {
     std::stringstream what;
 

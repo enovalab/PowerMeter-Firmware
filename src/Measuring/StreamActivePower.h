@@ -13,33 +13,33 @@ namespace Measuring
         T sum = 0;
 
     public:
-        inline T add(T instantU, T instantI)
+        inline T add(T instantU, T instantI) noexcept
         {
             sum += instantU * instantI;
             return sum / ++numValues;
         }
 
 
-        inline T operator<<(T instantP)
+        inline T operator<<(T instantP) noexcept
         {
             sum += instantP;
             return sum / ++numValues;
         }
 
     
-        inline size_t getNumValues() const
+        inline size_t getNumValues() const noexcept
         {
             return numValues;
         }
 
-        inline void reset()
+        inline void reset() noexcept
         {
             numValues = 0;
             sum = 0;
         }
 
 
-        inline T get() const
+        inline T get() const noexcept
         {
             if(numValues == 0) 
                 return 0;
@@ -48,7 +48,7 @@ namespace Measuring
         }
 
 
-        inline operator T() const
+        inline operator T() const noexcept
         {
             return get();
         }

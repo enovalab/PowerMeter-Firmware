@@ -9,7 +9,7 @@ using namespace Measuring;
 
 namespace
 {
-    size_t makeIndexCircular(int32_t index, size_t size)
+    size_t makeIndexCircular(int32_t index, size_t size) noexcept
     {
         index %= static_cast<int32_t>(size);
         if (index < 0)
@@ -17,21 +17,31 @@ namespace
         
         return index;
     }
+
+    float calculateZero(const std::vector<float>& samples) noexcept
+    {
+        float sum;
+        for(const auto& sample : samples)
+            sum += sample;
+        return sum / samples.size();
+    }
 }
 
-ACPowerMeter::ACPowerMeter(uint8_t pinU, uint8_t pinI) : 
+
+ACPowerMeter::ACPowerMeter(uint8_t pinU, uint8_t pinI) noexcept : 
     m_pinU(pinU),
     m_pinI(pinI)
 {}
 
-void ACPowerMeter::calibrate(float calU, float calI, int32_t calPhase)
+
+void ACPowerMeter::calibrate(float calU, float calI, int32_t calPhase) noexcept
 {
     m_calU = calU;
     m_calI = calI;
     m_calPhase = calPhase;
 }
 
-Measuring::ACPower ACPowerMeter::measure(size_t numPeriods)
+Measuring::ACPower ACPowerMeter::measure(size_t numPeriods) noexcept
 {
     std::vector<float> samplesU;
     std::vector<float> samplesI;
@@ -59,16 +69,12 @@ Measuring::ACPower ACPowerMeter::measure(size_t numPeriods)
         streamI << instantI;
         streamP << instantU * instantI;
     }
-    return Measuring::ACPower(streamU, streamI, streamP);
-}
 
-
-float ACPowerMeter::calculateZero(const std::vector<float>& samples)
-{
-    float sum;
-    for(const auto& sample : samples)
-        sum += sample;
-    return sum / samples.size();
+    return Measuring::ACPower(
+        (streamU < 5.0f) ? 0.0f : streamU,
+        (streamI < 0.04f) ? 0.0f : streamI,
+        (streamP < 1.0f) ? 0.0f : streamP
+    );
 }
 
 #endif

@@ -10,18 +10,16 @@ namespace Measuring
     class ACPowerMeter
     {
     public:
-        ACPowerMeter(uint8_t pinU, uint8_t pinI);
-        void calibrate(float calU, float calI, int32_t calPhase);
-        ACPower measure(size_t numPeriods = 20);
+        ACPowerMeter(uint8_t pinU, uint8_t pinI) noexcept;
+        void calibrate(float calU, float calI, int32_t calPhase) noexcept;
+        ACPower measure(size_t numPeriods = 20) noexcept;
 
     private:
-        uint8_t m_pinU;
-        uint8_t m_pinI;
-        float m_calU;
-        float m_calI;
-        int32_t m_calPhase;
-        
-        float calculateZero(const std::vector<float>& samples);
+        uint8_t m_pinU = 0;
+        uint8_t m_pinI = 0;
+        float m_calU = 0.0f;
+        float m_calI = 0.0f;
+        int32_t m_calPhase = 0;
     };
 }
 

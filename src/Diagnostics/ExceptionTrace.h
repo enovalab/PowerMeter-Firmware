@@ -7,9 +7,9 @@ namespace Diagnostics
 {
     namespace ExceptionTrace
     {
-        void trace(const std::string& message);
-        void clear();
-        std::string what(size_t indentLevel = 1, char indentChar = ' ');
+        void trace(const std::string& message) noexcept;
+        void clear() noexcept;
+        std::string what(size_t indentLevel = 1, char indentChar = ' ') noexcept;
     }
 }
 

@@ -6,13 +6,13 @@ namespace Measuring
     class ACPower
     {
     public:
-        ACPower(float voltageRms, float currentRms, float activePower);
-        float getVoltageRms() const;
-        float getCurrentRms() const;
-        float getActivePower() const;
-        float getReactivePower() const;
-        float getApparentPower() const;
-        float getPowerFactor() const;
+        ACPower(float voltageRms, float currentRms, float activePower) noexcept;
+        float getVoltageRms() const noexcept;
+        float getCurrentRms() const noexcept;
+        float getActivePower() const noexcept;
+        float getReactivePower() const noexcept;
+        float getApparentPower() const noexcept;
+        float getPowerFactor() const noexcept;
 
     private:
         float m_voltageRms;

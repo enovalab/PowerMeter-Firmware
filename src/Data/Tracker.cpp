@@ -144,10 +144,16 @@ void TrackingSpan::setLastSampleTimestamp(time_t timestamp) const
 }
 
 
-Tracker::Tracker(const Time::Clock& clock, const std::vector<TrackingSpan>& trackingSpans) : 
+Tracker::Tracker(const Time::Clock& clock, const std::vector<TrackingSpan>& trackingSpans) noexcept : 
     m_clock(clock),
     m_trackingSpans(trackingSpans)
 {}
+
+
+void Tracker::setTrackingSpans(const std::vector<TrackingSpan>& trackingSpans) noexcept
+{
+    m_trackingSpans = trackingSpans;
+}
 
 
 void Tracker::track(float newValue)

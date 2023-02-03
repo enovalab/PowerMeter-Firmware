@@ -1,5 +1,6 @@
 #include "Diagnostics/Log.h"
 #include <algorithm>
+#include <exception>
 
 using namespace Diagnostics;
 
@@ -9,32 +10,32 @@ namespace Diagnostics
 }
 
 
-Log::Log(Level level, std::ostream* stream, bool showLevel) :
+Log::Log(Level level, std::ostream* stream, bool showLevel) noexcept :
     m_level(level),
     m_stream(stream),
     m_showLevel(showLevel)
 {}
 
 
-void Log::setLevel(Level level)
+void Log::setLevel(Level level) noexcept
 {
     m_level = level;
 }
 
 
-void Log::setOutputStream(std::ostream* stream)
+void Log::setOutputStream(std::ostream* stream) noexcept
 {
     m_stream = stream;
 }
 
 
-void Log::setShowLevel(bool showLevel)
+void Log::setShowLevel(bool showLevel) noexcept
 {
     m_showLevel = showLevel;
 }
 
 
-std::ostream& Log::operator[](Level level)
+std::ostream& Log::operator[](Level level) noexcept
 {
     if(level <= m_level && level > Level::Silent)
     {
@@ -73,31 +74,29 @@ Level Log::getLevelByName(std::string name)
         return Level::Debug;
     if(name == "INFO")
         return Level::Info;
+    if(name == "VERBOSE")
+        return Level::Verbose;
 
-    return Level::Verbose;
+    std::stringstream errorMessage;
+    errorMessage << "Failed to convert \"" << name << "\" to 'Diagnostics::Log::Level'";
+    throw std::runtime_error(errorMessage.str());
 }
 
 
-std::string Log::getNameByLevel(Level level)
+std::string Log::getNameByLevel(Level level) noexcept
 {
     switch(level)
     {
     case Level::Error:
         return "Error";
-        break;
     case Level::Warning:
         return "Warning";
-        break;
     case Level::Debug:
         return "Debug";
-        break;
     case Level::Info:
         return "Info";
-        break;
     case Level::Verbose:
         return "Verbose";
-        break;
-    default:
-        return "";
     }
+    return "";
 }

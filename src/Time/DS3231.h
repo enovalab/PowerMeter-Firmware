@@ -10,8 +10,8 @@ namespace Time
     class DS3231 : public Clock
     {
     public:
-        DS3231();
-        time_t now() const override;
+        void begin();
+        time_t now() const noexcept override;
 
     private:
         RTC_DS3231 m_rtc;

@@ -29,13 +29,13 @@ namespace Diagnostics
         };
 
         static Level getLevelByName(std::string name);
-        static std::string getNameByLevel(Level level);
+        static std::string getNameByLevel(Level level) noexcept;
 
-        Log(Level level, std::ostream* stream, bool showLevel = false);
-        void setLevel(Level level);
-        void setOutputStream(std::ostream* stream);
-        void setShowLevel(bool showLevel);
-        std::ostream& operator[](Level level);
+        Log(Level level, std::ostream* stream, bool showLevel = false) noexcept;
+        void setLevel(Level level) noexcept;
+        void setOutputStream(std::ostream* stream) noexcept;
+        void setShowLevel(bool showLevel) noexcept;
+        std::ostream& operator[](Level level) noexcept;
 
     private:
         Level m_level;

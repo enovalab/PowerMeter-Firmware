@@ -8,7 +8,7 @@
 using namespace Connectivity;
 
 
-RestAPI::RestAPI(AsyncWebServer* server, const std::string& baseURI, bool allowCORS) : 
+RestAPI::RestAPI(AsyncWebServer* server, const std::string& baseURI, bool allowCORS) noexcept : 
     m_server(server),
     m_baseURI(baseURI),
     m_allowCORS(allowCORS)
@@ -24,7 +24,7 @@ RestAPI::RestAPI(AsyncWebServer* server, const std::string& baseURI, bool allowC
 }
 
 
-void RestAPI::handle(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler)
+void RestAPI::handle(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler) noexcept
 {
     switch(method)
     {
@@ -48,7 +48,7 @@ void RestAPI::handle(HTTP::Method method, const std::string& endpointURI, const 
 }
 
 
-void RestAPI::handleWithoutBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler)
+void RestAPI::handleWithoutBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler) noexcept
 {
     m_server->on((m_baseURI + endpointURI).c_str(), static_cast<WebRequestMethod>(method), [handler, this](AsyncWebServerRequest* request){
         JsonResponse jsonResponse;
@@ -75,7 +75,7 @@ void RestAPI::handleWithoutBody(HTTP::Method method, const std::string& endpoint
 }
 
 
-void RestAPI::handleWithBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler)
+void RestAPI::handleWithBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler) noexcept
 {
     m_server->on((m_baseURI + endpointURI).c_str(), static_cast<WebRequestMethod>(method), 
         [](AsyncWebServerRequest*){},
@@ -109,7 +109,7 @@ void RestAPI::handleWithBody(HTTP::Method method, const std::string& endpointURI
 }
 
 
-void RestAPI::handleHead(const std::string& endpointURI)
+void RestAPI::handleHead(const std::string& endpointURI) noexcept
 {
     m_server->on((m_baseURI + endpointURI).c_str(), HTTP_HEAD, [this](AsyncWebServerRequest* request){
         AsyncWebServerResponse* response = request->beginResponse(204);
@@ -119,7 +119,7 @@ void RestAPI::handleHead(const std::string& endpointURI)
 }
 
 
-void RestAPI::addCORSHeaders(AsyncWebServerResponse* response)
+void RestAPI::addCORSHeaders(AsyncWebServerResponse* response) noexcept
 {
     if(m_allowCORS)
     {
