@@ -9,6 +9,7 @@
 #include "Connectivity/RestAPI.h"
 
 #include <ESPAsyncWebServer.h>
+#include <AsyncElegantOTA.h>
 #include <LittleFS.h>
 #include <fstream>
 
@@ -19,70 +20,72 @@ namespace
     Measuring::ACPowerMeter powerMeter(33, 32);
     Measuring::ACPower power(0, 0, 0);
     AsyncWebServer server(80);
+    Connectivity::RestAPI api(&server, "/api");
     Time::DS3231 rtc;
     Data::Tracker tracker(rtc);
 
-    void configureLogger(const Data::JsonURI& configURI)
+    void configureLogger(const Data::JsonURI& loggerConfigURI)
     {
         try
         {
-            json configJson = configURI.deserialize();
+            json loggerConfigJson = loggerConfigURI.deserialize();
 
-            Serial.begin(configJson.at("baudRate"));
-            Diagnostics::Logger.setLevel(Diagnostics::Log::getLevelByName(configJson.at("level")));
-            Diagnostics::Logger.setShowLevel(configJson.at("showLevel"));
+            Serial.begin(loggerConfigJson.at("baudRate"));
+            Diagnostics::Logger.setLevel(Diagnostics::Log::getLevelByName(loggerConfigJson.at("level")));
+            Diagnostics::Logger.setShowLevel(loggerConfigJson.at("showLevel"));
 
-            if(configJson.at("fileMode"))
+            if(loggerConfigJson.at("fileMode"))
             {
-                static std::ofstream logFile(configJson.at("logFile"));
+                static std::ofstream logFile(loggerConfigJson.at("logFile"));
                 Diagnostics::Logger.setOutputStream(&logFile);
             }
         }
         catch(...)
         {
             std::stringstream errorMessage;
-            errorMessage << SOURCE_LOCATION << "Failed to configure 'Diagnostics::Logger' from \"" << configURI << '"';
+            errorMessage << SOURCE_LOCATION << "Failed to configure 'Diagnostics::Logger' from \"" << loggerConfigURI << '"';
             Diagnostics::ExceptionTrace::trace(errorMessage.str());
             throw;
         }
     }
 
 
-    void configureACPowerMeter(const Data::JsonURI& configURI)
+    void configureACPowerMeter(const Data::JsonURI& powerMeterConfigURI)
     {
         Diagnostics::Logger[Level::Info] << "Configuring measuring unit..." << std::endl;
         try
         {
-            json configJson = configURI.deserialize();
-            powerMeter = Measuring::ACPowerMeter(
-                configJson.at("/pins/voltage"_json_pointer),
-                configJson.at("/pins/current"_json_pointer)
-            );
+            json powerMeterConfigJson = powerMeterConfigURI.deserialize();
 
-            powerMeter.calibrate(
-                configJson.at("/calibration/voltage"_json_pointer),
-                configJson.at("/calibration/current"_json_pointer),
-                configJson.at("/calibration/phase"_json_pointer)
-            );
+            const uint16_t& pinU = powerMeterConfigJson.at("/pins/voltage"_json_pointer); 
+            const uint16_t& pinI = powerMeterConfigJson.at("/pins/current"_json_pointer);
+
+            powerMeter = Measuring::ACPowerMeter(pinU, pinI);
+
+            const float& calU = powerMeterConfigJson.at("/calibration/voltage"_json_pointer);
+            const float& calI = powerMeterConfigJson.at("/calibration/current"_json_pointer);
+            const float& calPhase = powerMeterConfigJson.at("/calibration/phase"_json_pointer);
+
+            powerMeter.calibrate(calU, calI, calPhase);
         }
         catch(...)
         {
             std::stringstream errorMessage;
-            errorMessage << SOURCE_LOCATION << "Failed to configure 'Measuring::PowerMeter' from \"" << configURI << '"';
+            errorMessage << SOURCE_LOCATION << "Failed to configure 'Measuring::PowerMeter' from \"" << powerMeterConfigURI << '"';
             Diagnostics::ExceptionTrace::trace(errorMessage.str());
             throw;
         }
     }
 
 
-    void configureRelay(const Data::JsonURI& configURI)
+    void configureRelay(const Data::JsonURI& relayConfigURI)
     {
         Diagnostics::Logger[Level::Info] << "Configuring Relay..." << std::endl;
         try
         {
-            json configJson = configURI.deserialize();
-            int pin = configJson.at("pin");
-            bool state = configJson.at("state");
+            json relayConfigJson = relayConfigURI.deserialize();
+            const uint16_t& pin = relayConfigJson.at("pin");;
+            bool state = relayConfigJson.at("state");
             pinMode(pin, OUTPUT);
             digitalWrite(pin, state);
             Diagnostics::Logger[Level::Info] << "Relay configured. Pin " << pin << " set to " << std::boolalpha << state << std::endl;
@@ -90,18 +93,18 @@ namespace
         catch(...)
         {
             std::stringstream errorMessage;
-            errorMessage << SOURCE_LOCATION << "Failed to configure Relay from \"" << configURI << '"';
+            errorMessage << SOURCE_LOCATION << "Failed to configure Relay from \"" << relayConfigURI << '"';
             Diagnostics::ExceptionTrace::trace(errorMessage.str());
             throw;
         }
     }
 
 
-    void configureTracker(const Data::JsonURI& configURI)
+    void configureTracker(const Data::JsonURI& trackerConfigURI)
     {
         try
         {
-            json jsonTrackingSpans = configURI.deserialize();
+            json jsonTrackingSpans = trackerConfigURI.deserialize();
             std::vector<Data::TrackingSpan> trackingSpans;
             for(const auto& jsonTrackingSpan : jsonTrackingSpans)
             {
@@ -118,26 +121,26 @@ namespace
         catch(...)
         {
             std::stringstream errorMessage;
-            errorMessage << SOURCE_LOCATION << "Failed to configure 'Data::Tracker' from \"" << configURI << '"';
+            errorMessage << SOURCE_LOCATION << "Failed to configure 'Data::Tracker' from \"" << trackerConfigURI << '"';
             Diagnostics::ExceptionTrace::trace(errorMessage.str());
         }
     }
 
 
-    bool connectWifiStationary(const Data::JsonURI& configURI)
+    bool connectWifiStationary(const Data::JsonURI& staConfigURI)
     {
         Diagnostics::Logger[Level::Info] << "Configuring WiFi in stationary mode..." << std::endl;
         try
         {
-            json configJson = configURI.deserialize();
+            json staConfigJson = staConfigURI.deserialize();
 
-            const std::string& ssid = configJson.at("ssid");
-            const std::string& password = configJson.at("password");
-            const std::string& staticIP = configJson.at("staticIP");
-            const std::string& gateway = configJson.at("gateway");
-            const std::string& subnet = configJson.at("subnet");
-            const std::string& primaryDNS = configJson.at("primaryDNS");
-            const std::string& secondaryDNS = configJson.at("secondaryDNS");
+            const std::string& ssid = staConfigJson.at("ssid");
+            const std::string& password = staConfigJson.at("password");
+            const std::string& staticIP = staConfigJson.at("staticIP");
+            const std::string& gateway = staConfigJson.at("gateway");
+            const std::string& subnet = staConfigJson.at("subnet");
+            const std::string& primaryDNS = staConfigJson.at("primaryDNS");
+            const std::string& secondaryDNS = staConfigJson.at("secondaryDNS");
 
             auto parseIP = [](const std::string& address) 
             {
@@ -150,8 +153,7 @@ namespace
             WiFi.mode(WIFI_STA);
             WiFi.config(parseIP(staticIP), parseIP(gateway), parseIP(subnet), parseIP(primaryDNS), parseIP(secondaryDNS));
             WiFi.begin(ssid.c_str(), password.c_str());
-            delay(500);
-            if(WiFi.status() == WL_CONNECTED)
+            if(WiFi.waitForConnectResult() == WL_CONNECTED)
             {
                 Diagnostics::Logger[Level::Info] << "Sucessfully connected to " << ssid  << " IP: http://" << WiFi.localIP().toString().c_str() << std::endl;
                 return true;
@@ -160,7 +162,7 @@ namespace
         catch(...)
         {
             std::stringstream errorMessage;
-            errorMessage << SOURCE_LOCATION << "Failed to configure WiFi as Stationary from \"" << configURI << '"';
+            errorMessage << SOURCE_LOCATION << "Failed to configure WiFi in Stationary Mode from \"" << staConfigURI << '"';
             Diagnostics::ExceptionTrace::trace(errorMessage.str());
             throw;
         }
@@ -168,14 +170,14 @@ namespace
     }
 
 
-    void configureWifiAccesspoint(const Data::JsonURI& configURI)
+    void configureWifiAccesspoint(const Data::JsonURI& apConfigURI)
     {
-        Diagnostics::Logger[Level::Info] << "Configuring WiFi as sccesspoint..." << std::endl;
+        Diagnostics::Logger[Level::Info] << "Configuring WiFi as accesspoint..." << std::endl;
         try
         {
-            json configJson = configURI.deserialize();
-            const std::string& ssid = configJson.at("ssid");
-            const std::string& password = configJson.at("password");
+            json apConfigJson = apConfigURI.deserialize();
+            const std::string& ssid = apConfigJson.at("ssid");
+            const std::string& password = apConfigJson.at("password");
 
             WiFi.mode(WIFI_AP);
             WiFi.softAP(ssid.c_str(), password.c_str());
@@ -183,24 +185,49 @@ namespace
         catch(...)
         {
             std::stringstream errorMessage;
-            errorMessage << SOURCE_LOCATION << "Failed to configure WiFi as Accesspoint from \"" << configURI << '"';
+            errorMessage << SOURCE_LOCATION << "Failed to configure WiFi as accesspoint from \"" << apConfigURI << '"';
             Diagnostics::ExceptionTrace::trace(errorMessage.str());
             throw;
         }
     }
 
 
-    void configureWifi(const Data::JsonURI& configURI)
+    void configureWifi(const Data::JsonURI& wifiConfigURI)
     {
-        if(!connectWifiStationary(configURI / "/sta"_json_pointer))
-            configureWifiAccesspoint(configURI / "/ap"_json_pointer);
+        if(!connectWifiStationary(wifiConfigURI / "/sta"_json_pointer))
+            configureWifiAccesspoint(wifiConfigURI / "/ap"_json_pointer);
+    }
+
+
+    void addTrackerAPIHandlers(const Data::JsonURI& trackerConfigURI)
+    {
+        json jsonTrackingSpans = trackerConfigURI.deserialize();
+
+        auto getFromJsonURI = [](const std::string& jsonURI, const json& data) {
+            return Connectivity::RestAPI::JsonResponse(Data::JsonURI(jsonURI).deserialize());
+        };
+
+        using namespace std::placeholders;
+        for(const auto& jsonTrackingSpan : jsonTrackingSpans)
+        {
+            Diagnostics::Logger[Level::Verbose] << jsonTrackingSpan.at("name") << std::endl;
+
+            std::stringstream uri;
+            uri << "/tracker/" << jsonTrackingSpan.at("name").get<std::string>() << std::endl;
+            Diagnostics::Logger[Level::Verbose] << uri.str() << std::endl;
+            api.handle(
+                Connectivity::HTTP::Method::Get, 
+                uri.str(), 
+                std::bind(getFromJsonURI, "/lol", _1)
+            );
+        }
     }
 
 
     void addAPIHandlers()
     {
         Diagnostics::Logger[Level::Info] << "Adding API Handlers..." << std::endl;
-        Connectivity::RestAPI api(&server, "/api");
+        
 
         api.handle(Connectivity::HTTP::Method::Get, "/power", [](json){
             json data;
@@ -212,19 +239,6 @@ namespace
             data["powerFactor"] = power.getPowerFactor();
             return Connectivity::RestAPI::JsonResponse(data);
         });
-
-        auto getFromJsonURI = [](const json& data, const std::string& jsonURI) {
-            return Connectivity::RestAPI::JsonResponse(Data::JsonURI(jsonURI).deserialize());
-        };
-
-        using namespace std::placeholders;
-
-        api.handle(Connectivity::HTTP::Method::Get, "/tracker/last60min", std::bind(getFromJsonURI, _1, POWERMETER_TRACKER_LAST60MIN_URI));
-        api.handle(Connectivity::HTTP::Method::Get, "/tracker/last24h", std::bind(getFromJsonURI, _1, POWERMETER_TRACKER_LAST24H_URI));
-        api.handle(Connectivity::HTTP::Method::Get, "/tracker/last7d", std::bind(getFromJsonURI, _1, POWERMETER_TRACKER_LAST7D_URI));
-        api.handle(Connectivity::HTTP::Method::Get, "/tracker/last30d", std::bind(getFromJsonURI, _1, POWERMETER_TRACKER_LAST30D_URI));
-        api.handle(Connectivity::HTTP::Method::Get, "/tracker/last12m", std::bind(getFromJsonURI, _1, POWERMETER_TRACKER_LAST12M_URI));
-        api.handle(Connectivity::HTTP::Method::Get, "/tracker/last10a", std::bind(getFromJsonURI, _1, POWERMETER_TRACKER_LAST10A_URI));
     }
 }
 
@@ -243,6 +257,9 @@ void PowerMeter::init() noexcept
         configureRelay(Data::JsonURI(POWERMETER_RELAY_CONFIG_URI));
         configureTracker(Data::JsonURI(POWERMETER_TRACKER_CONFIG_URI));
         addAPIHandlers();
+        addTrackerAPIHandlers(Data::JsonURI(POWERMETER_TRACKER_CONFIG_URI));
+
+        AsyncElegantOTA.begin(&server);
         server.serveStatic("/", LittleFS, "/app")
             .setDefaultFile("index.html");
 

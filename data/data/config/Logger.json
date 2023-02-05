@@ -3,5 +3,5 @@
     "showLevel": true,
     "fileMode": false,
     "baudRate": 115200,
-    "logFile": "/log/log.log"
+    "logFile": "/littlefs/data/log/log.log"
 }
