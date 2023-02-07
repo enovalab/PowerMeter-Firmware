@@ -88,7 +88,7 @@ json JsonURI::deserialize() const
         if(!file.good())
             throw std::runtime_error('"' + m_filePath + "\" is not a valid filepath");
             
-        if(file.peek() < 0)
+        if(file.peek() == EOF)
             return json();
         return json::parse(file).at(m_jsonPointer);
     }

@@ -1,7 +1,7 @@
 {
     "level": "Verbose",
     "showLevel": true,
-    "fileMode": false,
+    "fileMode": true,
     "baudRate": 115200,
-    "logFile": "/littlefs/data/log/log.log"
+    "logFile": "/littlefs/log/log.log"
 }

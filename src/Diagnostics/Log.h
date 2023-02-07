@@ -31,7 +31,7 @@ namespace Diagnostics
         static Level getLevelByName(std::string name);
         static std::string getNameByLevel(Level level) noexcept;
 
-        Log(Level level, std::ostream* stream, bool showLevel = false) noexcept;
+        Log(Level level, std::ostream* stream = &std::cout, bool showLevel = false) noexcept;
         void setLevel(Level level) noexcept;
         void setOutputStream(std::ostream* stream) noexcept;
         void setShowLevel(bool showLevel) noexcept;

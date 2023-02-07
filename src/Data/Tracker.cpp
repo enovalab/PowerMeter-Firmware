@@ -89,7 +89,7 @@ float TrackingSpan::average() const
 }
 
 
-time_t TrackingSpan::getTimeSpanSeconsds() const noexcept
+time_t TrackingSpan::getTimeSpanSeconds() const noexcept
 {
     return m_timeSpanSeconds;
 }
@@ -140,7 +140,12 @@ void TrackingSpan::setLastSampleTimestamp(time_t timestamp) const
         Diagnostics::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
-    
+}
+
+
+bool TrackingSpan::hasAverageURI() const noexcept
+{
+    return static_cast<std::string>(m_averageURI).length() > 0;
 }
 
 
@@ -156,6 +161,26 @@ void Tracker::setTrackingSpans(const std::vector<TrackingSpan>& trackingSpans) n
 }
 
 
+void Tracker::init()
+{
+    try
+    {
+        for(const auto& trackingSpan : m_trackingSpans)
+        {
+            if(trackingSpan.getLastSampleTimestamp() == 0)
+                trackingSpan.setLastSampleTimestamp(m_clock.now());
+        }
+    }
+    catch(...)
+    {
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to initialize tracker" << std::endl;
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
+        throw;
+    }
+}
+
+
 void Tracker::track(float newValue)
 {
     try
@@ -163,26 +188,27 @@ void Tracker::track(float newValue)
         m_average << newValue;
         time_t now = m_clock.now();
 
-        for(size_t i = 0; i < m_trackingSpans.size(); i++)
+        for(const auto& trackingSpan : m_trackingSpans)
         {
-            const TrackingSpan& trackingSpan = m_trackingSpans[i];
             time_t secondsPassed = now - trackingSpan.getLastSampleTimestamp();
-            time_t secondsBetweenSamples = trackingSpan.getTimeSpanSeconsds() / trackingSpan.getNumSamplesPerSpan();
+            time_t secondsBetweenSamples = trackingSpan.getTimeSpanSeconds() / trackingSpan.getNumSamplesPerSpan();
             size_t timesElapsed = secondsPassed / secondsBetweenSamples;
 
-            for(size_t j = timesElapsed; j > 0; j--)
+            for(size_t i = timesElapsed; i > 0; i--)
             {
                 float newValue;
-                if(j == 1)
+                if(i == 1)
                 {
-                    if(i > 0)
+                    if(trackingSpan.hasAverageURI())
                     {
                         newValue = trackingSpan.average();
+                        // Diagnostics::Logger[Level::Debug] << "Averaged from json: " << newValue << std::endl;
                     }
                     else
                     {
                         newValue = m_average;
                         m_average.reset();
+                        // Diagnostics::Logger[Level::Debug] << "Averaged from 'StreamAverage': " << newValue << " numValues in Average: " << m_average.getNumValues() << std::endl;
                     }
                     trackingSpan.setLastSampleTimestamp(now);
                 }
@@ -190,8 +216,8 @@ void Tracker::track(float newValue)
                 {
                     newValue = 0.0f;
                 }
-                
                 trackingSpan.track(newValue);
+                // Diagnostics::Logger[Level::Debug] << "Tracked: " << newValue << std::endl;
             }
         }
     }

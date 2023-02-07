@@ -27,7 +27,6 @@
 class AsyncElegantOtaClass{
 
     public:
-
         void setID(const char* id){
             _id = id;
         }
@@ -164,5 +163,5 @@ class AsyncElegantOtaClass{
 
 };
 
-AsyncElegantOtaClass AsyncElegantOTA;
+extern AsyncElegantOtaClass AsyncElegantOTA;
 #endif

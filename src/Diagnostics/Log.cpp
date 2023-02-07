@@ -6,7 +6,7 @@ using namespace Diagnostics;
 
 namespace Diagnostics
 {
-    Log Logger = Log(Level::Verbose, &std::cout, true);
+    Log Logger = Log(Level::Verbose);
 }
 
 

@@ -2,6 +2,8 @@
 #include "Connectivity/RestAPI.h"
 #include "Diagnostics/Log.h"
 
+#include <AsyncElegantOTA.h>
+
 constexpr uint8_t voltagePin = 33;
 constexpr uint8_t currentPin = 32;
 
@@ -46,6 +48,7 @@ void setup()
         return Connectivity::RestAPI::JsonResponse();
     });
 
+    AsyncElegantOTA.begin(&server);
     server.begin();
 }
 

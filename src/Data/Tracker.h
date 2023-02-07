@@ -24,10 +24,11 @@ namespace Data
 
         float average() const;
         void track(float newValue) const;
-        time_t getTimeSpanSeconsds() const noexcept;
+        time_t getTimeSpanSeconds() const noexcept;
         size_t getNumSamplesPerSpan() const noexcept;
         time_t getLastSampleTimestamp() const;
         void setLastSampleTimestamp(time_t timestamp) const;
+        bool hasAverageURI() const noexcept;
 
     private:
         Data::JsonURI m_targetURI;
@@ -43,6 +44,7 @@ namespace Data
     public:
         Tracker(const Time::Clock& clock, const std::vector<TrackingSpan>& trackingSpans = {}) noexcept;
         void setTrackingSpans(const std::vector<TrackingSpan>& trackingSpans) noexcept;
+        void init();
         void track(float newValue);
     
     private:
