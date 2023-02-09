@@ -64,10 +64,14 @@ Measuring::ACPower ACPowerMeter::measure(size_t numPeriods) noexcept
     for(size_t i = 0; i < samplesU.size(); i++)
     {
         float instantU = (samplesU[i] - zeroU) * m_calU;
+        // float instantI = (samplesI[i] - zeroI) * m_calI;
         float instantI = ewmaI.filter((samplesI[makeIndexCircular(i + m_calPhase, samplesI.size())] - zeroI) * m_calI);
-        streamU << instantU;
-        streamI << instantI;
-        streamP << instantU * instantI;
+        // streamU << instantU;
+        // streamI << instantI;
+        // streamP << instantU * instantI;
+        streamU << 230.0f;
+        streamI << 5.0f;
+        streamP << 230.0f * 5.0f;
     }
 
     return Measuring::ACPower(

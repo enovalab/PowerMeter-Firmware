@@ -25,6 +25,7 @@ namespace
     Time::DS3231 rtc;
     Data::Tracker tracker(rtc);
 
+
     Connectivity::RestAPI::JsonResponse handleGetJsonURI(const Data::JsonURI& jsonURI, json)
     {
         return Connectivity::RestAPI::JsonResponse(jsonURI.deserialize());
@@ -98,19 +99,21 @@ namespace
         {
             json powerMeterConfigJson = measuringConfigURI.deserialize();
 
-            const uint16_t& pinU = powerMeterConfigJson.at("/pins/voltage"_json_pointer); 
-            const uint16_t& pinI = powerMeterConfigJson.at("/pins/current"_json_pointer);
+            uint16_t pinU = powerMeterConfigJson.at("/pins/voltage"_json_pointer); 
+            uint16_t pinI = powerMeterConfigJson.at("/pins/current"_json_pointer);
 
             powerMeter = Measuring::ACPowerMeter(pinU, pinI);
 
-            const float& calU = powerMeterConfigJson.at("/calibration/voltage"_json_pointer);
-            const float& calI = powerMeterConfigJson.at("/calibration/current"_json_pointer);
-            const float& calPhase = powerMeterConfigJson.at("/calibration/phase"_json_pointer);
+            float calU = powerMeterConfigJson.at("/calibration/voltage"_json_pointer);
+            float calI = powerMeterConfigJson.at("/calibration/current"_json_pointer);
+            int16_t calPhase = powerMeterConfigJson.at("/calibration/phase"_json_pointer);
 
             powerMeter.calibrate(calU, calI, calPhase);
 
             api.handle(Connectivity::HTTP::Method::Get, "/power", [](json){
                 json data;
+                Measuring::ACPower power(0, 0, 0);
+                power = powerMeter.measure();
                 data["voltage"] = power.getVoltageRms();
                 data["current"] = power.getCurrentRms();
                 data["active"] = power.getActivePower();
@@ -197,7 +200,8 @@ namespace
                 );
             }
             tracker.setTrackingSpans(trackingSpans);
-            tracker.init();
+            if(tracker.init())
+                Diagnostics::Logger[Level::Info] << "Initialized last sample timestamps" << std::endl;
 
             api.handle(Connectivity::HTTP::Method::Get, "/config/tracker", std::bind(handleGetJsonURI, trackerConfigURI, _1));
             api.handle(Connectivity::HTTP::Method::Patch, "/config/tracker", [trackerConfigURI](const json& data){
@@ -224,7 +228,7 @@ namespace
         try
         {
             json staConfigJson = staConfigURI.deserialize();
-
+            
             const std::string& ssid = staConfigJson.at("ssid");
             const std::string& password = staConfigJson.at("password");
             const std::string& staticIP = staConfigJson.at("staticIP");
@@ -244,11 +248,6 @@ namespace
             WiFi.mode(WIFI_STA);
             WiFi.config(parseIP(staticIP), parseIP(gateway), parseIP(subnet), parseIP(primaryDNS), parseIP(secondaryDNS));
             WiFi.begin(ssid.c_str(), password.c_str());
-            if(WiFi.waitForConnectResult() == WL_CONNECTED)
-            {
-                Diagnostics::Logger[Level::Info] << "Sucessfully connected to " << ssid  << " IP: http://" << WiFi.localIP().toString().c_str() << std::endl;
-                return true;
-            }
 
             api.handle(Connectivity::HTTP::Method::Get, "/config/wifi/sta", std::bind(handleGetJsonURI, staConfigURI, _1));
             api.handle(Connectivity::HTTP::Method::Patch, "/config/wifi/sta", [staConfigURI](const json& data){
@@ -256,6 +255,18 @@ namespace
                 configureWifiStationary(staConfigURI);
                 return jsonResponse;
             });
+
+            if(WiFi.waitForConnectResult() == WL_CONNECTED)
+            {
+                Diagnostics::Logger[Level::Info] 
+                    << "Sucessfully connected to " 
+                    << ssid  
+                    << " IP: http://" 
+                    << WiFi.localIP().toString().c_str() 
+                    << std::endl;
+
+                return true;
+            }
         }
         catch(...)
         {
@@ -312,28 +323,32 @@ namespace
 
 void PowerMeter::init() noexcept
 {
+    Serial.begin(115200);
+    LittleFS.begin(POWERMETER_FORMAT_FS_ON_FAIL, "/littlefs", 30);
+    AsyncElegantOTA.begin(&server);
+    rtc.begin();
+    server.serveStatic("/", LittleFS, "/app").setDefaultFile("index.html");
+
+    api.handle(Connectivity::HTTP::Method::Get, "/reboot", [](json){
+        Diagnostics::Logger[Level::Info] << "Rebooting Power Meter..." << std::endl;
+        ESP.restart();
+        return Connectivity::RestAPI::JsonResponse();
+    });
+
+    api.handle(Connectivity::HTTP::Method::Get, "/info", [](json){
+        
+        return Connectivity::RestAPI::JsonResponse();
+    });
+
+    
     try
     {
-        Serial.begin(115200);
-        LittleFS.begin(POWERMETER_FORMAT_FS_ON_FAIL, "/littlefs", 30);
-
         configureLogger(Data::JsonURI(POWERMETER_LOGGER_CONFIG_URI));
         Diagnostics::Logger[Level::Info] << "Booting..." << std::endl;
         configureWifi(Data::JsonURI(POWERMETER_WIFI_CONFIG_URI));
         configureMeasuring(Data::JsonURI(POWERMETER_MEASURING_CONFIG_URI));
         configureRelay(Data::JsonURI(POWERMETER_RELAY_CONFIG_URI));
-        rtc.begin();
         configureTracker(Data::JsonURI(POWERMETER_TRACKER_CONFIG_URI));
-        AsyncElegantOTA.begin(&server);
-        server.serveStatic("/", LittleFS, "/app").setDefaultFile("index.html");
-
-        server.on("/reboot", HTTP_GET, [](AsyncWebServerRequest* request){
-            Diagnostics::Logger[Level::Info] << "Rebooting Power Meter..." << std::endl;
-            ESP.restart();
-            request->send(200);
-        });
-
-        server.begin();
     }
     catch(...)
     {
@@ -341,6 +356,7 @@ void PowerMeter::init() noexcept
             << Diagnostics::ExceptionTrace::what() << std::endl;
     }
     Diagnostics::Logger[Level::Info] << "Boot sequence finished. Running..." << std::endl;
+    server.begin();
 }
 
 
@@ -348,9 +364,7 @@ void PowerMeter::run() noexcept
 {
     try
     {
-        power = powerMeter.measure();
-        // power = Measuring::ACPower(23, 2, 4);
-        tracker.track(power.getActivePower());
+        
     }
     catch(...)
     {

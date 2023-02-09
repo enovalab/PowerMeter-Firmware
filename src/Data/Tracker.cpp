@@ -161,14 +161,17 @@ void Tracker::setTrackingSpans(const std::vector<TrackingSpan>& trackingSpans) n
 }
 
 
-void Tracker::init()
+bool Tracker::init()
 {
     try
     {
         for(const auto& trackingSpan : m_trackingSpans)
         {
             if(trackingSpan.getLastSampleTimestamp() == 0)
+            {
                 trackingSpan.setLastSampleTimestamp(m_clock.now());
+                return true;
+            }
         }
     }
     catch(...)
@@ -178,6 +181,7 @@ void Tracker::init()
         Diagnostics::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
+    return false;
 }
 
 

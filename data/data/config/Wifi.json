@@ -1,5 +1,6 @@
 {
     "sta": {
+        "ip": "0.0.0.0",
         "ssid": "WLAN-T-Com",
         "password": "GxvuzR8znV",
         "staticIP": "0.0.0.0",
