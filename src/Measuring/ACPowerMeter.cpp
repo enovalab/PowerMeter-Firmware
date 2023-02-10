@@ -2,8 +2,9 @@
 
 #include "Measuring/ACPowerMeter.h"
 #include "Measuring/StreamRMS.h"
-#include "Measuring/StreamActivePower.h"
+#include <StreamAverage.h>
 #include <Ewma.h>
+#include <iostream>
 
 using namespace Measuring;
 
@@ -59,19 +60,16 @@ Measuring::ACPower ACPowerMeter::measure(size_t numPeriods) noexcept
     Ewma ewmaI(0.12, 0);
     Measuring::StreamRMS<float> streamU;
     Measuring::StreamRMS<float> streamI;
-    Measuring::StreamActivePower<float> streamP;
+    StreamAverage<float> streamP;
     
     for(size_t i = 0; i < samplesU.size(); i++)
     {
         float instantU = (samplesU[i] - zeroU) * m_calU;
-        // float instantI = (samplesI[i] - zeroI) * m_calI;
         float instantI = ewmaI.filter((samplesI[makeIndexCircular(i + m_calPhase, samplesI.size())] - zeroI) * m_calI);
-        // streamU << instantU;
-        // streamI << instantI;
-        // streamP << instantU * instantI;
-        streamU << 230.0f;
-        streamI << 5.0f;
-        streamP << 230.0f * 5.0f;
+        
+        streamU << instantU;
+        streamI << instantI;
+        streamP << instantU * instantI;
     }
 
     return Measuring::ACPower(

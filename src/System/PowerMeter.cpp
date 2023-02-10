@@ -112,7 +112,6 @@ namespace
 
             api.handle(Connectivity::HTTP::Method::Get, "/power", [](json){
                 json data;
-                Measuring::ACPower power(0, 0, 0);
                 power = powerMeter.measure();
                 data["voltage"] = power.getVoltageRms();
                 data["current"] = power.getCurrentRms();
@@ -326,7 +325,6 @@ void PowerMeter::init() noexcept
     Serial.begin(115200);
     LittleFS.begin(POWERMETER_FORMAT_FS_ON_FAIL, "/littlefs", 30);
     AsyncElegantOTA.begin(&server);
-    rtc.begin();
     server.serveStatic("/", LittleFS, "/app").setDefaultFile("index.html");
 
     api.handle(Connectivity::HTTP::Method::Get, "/reboot", [](json){
@@ -343,6 +341,7 @@ void PowerMeter::init() noexcept
     
     try
     {
+        rtc.begin();
         configureLogger(Data::JsonURI(POWERMETER_LOGGER_CONFIG_URI));
         Diagnostics::Logger[Level::Info] << "Booting..." << std::endl;
         configureWifi(Data::JsonURI(POWERMETER_WIFI_CONFIG_URI));
@@ -364,7 +363,9 @@ void PowerMeter::run() noexcept
 {
     try
     {
-        
+        power = powerMeter.measure();
+        tracker.track(power.getActivePower());
+        delay(500);
     }
     catch(...)
     {

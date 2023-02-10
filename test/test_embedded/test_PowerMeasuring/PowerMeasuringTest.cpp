@@ -14,6 +14,7 @@ constexpr int16_t phaseCalibration = 12;
 
 Measuring::ACPowerMeter powerMeter(voltagePin, currentPin);
 AsyncWebServer server(80);
+Measuring::ACPower power(0, 0, 0);
 
 
 void setup()
@@ -33,7 +34,7 @@ void setup()
     
     api.handle(Connectivity::HTTP::Method::Get, "/power", [](json){
         json data;
-        Measuring::ACPower power = powerMeter.measure();
+        power = powerMeter.measure();
         data["voltage"] = power.getVoltageRms();
         data["current"] = power.getCurrentRms();
         data["active"] = power.getActivePower();
@@ -55,7 +56,7 @@ void setup()
 
 void loop()
 {
-    Measuring::ACPower power = powerMeter.measure();
+    power = powerMeter.measure();
     Diagnostics::Logger[Level::Info]
         << "U = " << power.getVoltageRms() << " Vrms, "
         << "I = " << power.getCurrentRms() << " Arms, "
