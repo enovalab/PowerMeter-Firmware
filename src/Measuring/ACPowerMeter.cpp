@@ -10,6 +10,22 @@ using namespace Measuring;
 
 namespace
 {
+    template<typename ContainerType, typename ValueType>
+    float getAtFloatIndex(const ContainerType& container, float index)
+    {
+        size_t indexA = static_cast<size_t>(index);
+        size_t indexB = indexA + 1;
+        float weightA = index - indexA;
+        if(weightA == 0)
+            return container.at(indexA);
+
+        float weightB = 1 - weightA;
+        const ValueType& valueA = container.at(indexA);
+        const ValueType& valueB = container.at(indexB);
+
+        return valueA * weightB + valueB * weightA;
+    }
+
     size_t makeIndexCircular(int32_t index, size_t size) noexcept
     {
         index %= static_cast<int32_t>(size);

@@ -79,7 +79,31 @@ void RestAPI::handleWithBody(HTTP::Method method, const std::string& endpointURI
 {
     m_server->on((m_baseURI + endpointURI).c_str(), static_cast<WebRequestMethod>(method), 
         [](AsyncWebServerRequest*){},
-        [](AsyncWebServerRequest*, const String&, size_t, uint8_t*, size_t, bool){},
+        [handler, this](AsyncWebServerRequest* request, const String& filename, size_t index, uint8_t* rawData, size_t length, bool final){
+            JsonResponse jsonResponse;
+            jsonResponse.status = HTTP::StatusCode::InternalServerError;
+            try
+            {
+                std::string stringData = reinterpret_cast<char*>(rawData);
+                stringData.resize(length);
+                jsonResponse = handler(json::parse(stringData));
+            }
+            catch(...)
+            {
+                jsonResponse.data["error"] = Diagnostics::ExceptionTrace::what();
+                Diagnostics::Logger[Level::Error] << SOURCE_LOCATION << "An Exception occurred, here is what happened:\n"
+                    << jsonResponse.data["error"].get<std::string>() << std::endl;
+            }
+
+            AsyncWebServerResponse* response = request->beginResponse(
+                static_cast<int>(jsonResponse.status), 
+                "application/json",
+                jsonResponse.data.dump(1, '\t').c_str()
+            );
+
+            addCORSHeaders(response);
+            request->send(response);
+        },
         [handler, this](AsyncWebServerRequest* request, uint8_t* rawData, size_t length, size_t, size_t) {
             JsonResponse jsonResponse;
             jsonResponse.status = HTTP::StatusCode::InternalServerError;
