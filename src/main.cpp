@@ -4,7 +4,7 @@
 
 void setup()
 {
-    System::PowerMeter::init();
+    System::PowerMeter::boot();
 }
 
 void loop()

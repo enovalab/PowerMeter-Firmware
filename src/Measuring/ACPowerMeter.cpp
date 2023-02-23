@@ -2,97 +2,123 @@
 
 #include "Measuring/ACPowerMeter.h"
 #include "Measuring/StreamRMS.h"
+#include "Diagnostics/ExceptionTrace.h"
+#include "Diagnostics/Log.h"
 #include <StreamAverage.h>
 #include <Ewma.h>
 #include <iostream>
+#include <sstream>
+#include <array>
+#include <vector>
+#include <math.h>
 
 using namespace Measuring;
 
 namespace
 {
-    template<typename ContainerType, typename ValueType>
-    float getAtFloatIndex(const ContainerType& container, float index)
+    adc1_channel_t gpioToAdc1Channel(uint16_t pin)
     {
-        size_t indexA = static_cast<size_t>(index);
-        size_t indexB = indexA + 1;
-        float weightA = index - indexA;
+        for(adc1_channel_t channel; channel < ADC1_CHANNEL_MAX; channel = static_cast<adc1_channel_t>(channel + 1))
+        {                
+            gpio_num_t gpio;
+            adc1_pad_get_io_num(channel, &gpio);
+            if(static_cast<uint16_t>(gpio) == pin)
+                return channel;
+        }
+        std::stringstream errorMessage;
+        errorMessage << pin << " is not a Channel of ADC1";
+        throw std::runtime_error(errorMessage.str());
+    }
+    
+    float compensatePhaseShift(float* sampleBuffer, size_t index, float calPhase)
+    {
+        auto at = [sampleBuffer](int32_t index){
+            size_t numSamples = sizeof(sampleBuffer) / sizeof(float);
+            index %= static_cast<int32_t>(numSamples);
+            if (index < 0)
+                index += numSamples;
+            return sampleBuffer[index];
+        };
+        
+        index += static_cast<int32_t>(calPhase);
+        size_t indexNext = index + 1 ;
+        float weightA = calPhase - static_cast<int32_t>(calPhase);
         if(weightA == 0)
-            return container.at(indexA);
-
+            return at(index);
         float weightB = 1 - weightA;
-        const ValueType& valueA = container.at(indexA);
-        const ValueType& valueB = container.at(indexB);
-
+        float valueA = at(index);
+        float valueB = at(indexNext);
         return valueA * weightB + valueB * weightA;
     }
 
-    size_t makeIndexCircular(int32_t index, size_t size) noexcept
+    template<typename T>
+    T average(T* sampleBuffer) noexcept
     {
-        index %= static_cast<int32_t>(size);
-        if (index < 0)
-            return size + index;
-        
-        return index;
-    }
-
-    float calculateZero(const std::vector<float>& samples) noexcept
-    {
-        float sum;
-        for(const auto& sample : samples)
-            sum += sample;
-        return sum / samples.size();
+        size_t numSamples = sizeof(sampleBuffer) / sizeof(T);
+        T sum;
+        for(size_t i = 0; i < numSamples; i++)
+            sum += sampleBuffer[i];
+        return sum / static_cast<float>(numSamples);
     }
 }
 
 
-ACPowerMeter::ACPowerMeter(uint8_t pinU, uint8_t pinI) noexcept : 
-    m_pinU(pinU),
-    m_pinI(pinI)
-{}
+ACPowerMeter::ACPowerMeter(uint16_t pinU, uint16_t pinI)
+{
+    try
+    {
+        m_adcChannelU = gpioToAdc1Channel(pinU);
+        m_adcChannelI = gpioToAdc1Channel(pinI);
+    }
+    catch(...)
+    {
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to construct from pinU = " << pinU << ", pinI = " << pinI;
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
+        throw;
+    }
+}
 
 
-void ACPowerMeter::calibrate(float calU, float calI, int32_t calPhase) noexcept
+void ACPowerMeter::calibrate(float calU, float calI, float calPhase) noexcept
 {
     m_calU = calU;
     m_calI = calI;
     m_calPhase = calPhase;
 }
 
-Measuring::ACPower ACPowerMeter::measure(size_t numPeriods) noexcept
+ACPower ACPowerMeter::measure()
 {
-    std::vector<float> samplesU;
-    std::vector<float> samplesI;
+    constexpr size_t numPeriods = 20;
 
+    std::array<uint16_t, numPeriods * 300> samplesU;
+    std::array<uint16_t, numPeriods * 300> samplesI;
+
+    size_t bufferIndex = 0;
     uint32_t startMicros = micros();
-    while(micros() - startMicros < 20000 * numPeriods)
+    while(micros() - startMicros < (numPeriods * 20000))
     {
-        samplesU.push_back(analogRead(m_pinU));
-        samplesI.push_back(analogRead(m_pinI));
+        samplesU[bufferIndex] = adc1_get_raw(m_adcChannelU);
+        samplesI[bufferIndex] = adc1_get_raw(m_adcChannelI);
+        bufferIndex++;
     }
 
-    float zeroU = calculateZero(samplesU);
-    float zeroI = calculateZero(samplesI);
+    uint16_t zeroU = average(samplesU.data());
+    uint16_t zeroI = average(samplesI.data());
 
-    Ewma ewmaI(0.12, 0);
-    Measuring::StreamRMS<float> streamU;
-    Measuring::StreamRMS<float> streamI;
-    StreamAverage<float> streamP;
-    
-    for(size_t i = 0; i < samplesU.size(); i++)
+    for(size_t i = 0; i < bufferIndex; i++)
     {
-        float instantU = (samplesU[i] - zeroU) * m_calU;
-        float instantI = ewmaI.filter((samplesI[makeIndexCircular(i + m_calPhase, samplesI.size())] - zeroI) * m_calI);
-        
-        streamU << instantU;
-        streamI << instantI;
-        streamP << instantU * instantI;
+        float instantU = samplesU[i] - zeroU;
+        float instantI = samplesI[i] - zeroI;
+        std::cout << instantU << std::endl;
     }
 
-    return Measuring::ACPower(
-        (streamU < 5.0f) ? 0.0f : streamU,
-        (streamI < 0.04f) ? 0.0f : streamI,
-        (streamP < 1.0f) ? 0.0f : streamP
-    );
+    for(size_t i = 0; i < 100; i++)
+    {
+        std::cout << 0 << std::endl;
+    }
+
+    return ACPower(0, 0, 0);
 }
 
 #endif

@@ -52,11 +52,12 @@ namespace
     {
         try
         {
+            Diagnostics::Logger.setLevel(Level::Silent);
             Diagnostics::Logger[Level::Info] << "Configuring Logger..." << std::endl;
             json loggerConfigJson = loggerConfigURI.deserialize();
 
             Serial.begin(loggerConfigJson.at("baudRate"));
-            Diagnostics::Logger.setLevel(Diagnostics::Log::getLevelByName(loggerConfigJson.at("level")));
+            // Diagnostics::Logger.setLevel(Diagnostics::Log::getLevelByName(loggerConfigJson.at("level")));
             Diagnostics::Logger.setShowLevel(loggerConfigJson.at("showLevel"));
             const std::string& logFilePath = loggerConfigJson.at("logFile");
 
@@ -320,12 +321,10 @@ namespace
 
 }
 
-void PowerMeter::init() noexcept
+void PowerMeter::boot() noexcept
 {
     Serial.begin(115200);
     LittleFS.begin(POWERMETER_FORMAT_FS_ON_FAIL, "/littlefs", 30);
-    AsyncElegantOTA.begin(&server);
-    server.serveStatic("/", LittleFS, "/app").setDefaultFile("index.html");
 
     api.handle(Connectivity::HTTP::Method::Get, "/reboot", [](json){
         Diagnostics::Logger[Level::Info] << "Rebooting Power Meter..." << std::endl;
@@ -354,8 +353,11 @@ void PowerMeter::init() noexcept
         Diagnostics::Logger[Level::Error] << SOURCE_LOCATION << "An Exception occurred, here is what happened:\n"
             << Diagnostics::ExceptionTrace::what() << std::endl;
     }
-    Diagnostics::Logger[Level::Info] << "Boot sequence finished. Running..." << std::endl;
+    
+    AsyncElegantOTA.begin(&server);
+    server.serveStatic("/", LittleFS, "/app").setDefaultFile("index.html");
     server.begin();
+    Diagnostics::Logger[Level::Info] << "Boot sequence finished. Running..." << std::endl;
 }
 
 
@@ -363,6 +365,7 @@ void PowerMeter::run() noexcept
 {
     try
     {
+        Diagnostics::Logger[Level::Verbose] << "Running..." << std::endl;
         power = powerMeter.measure();
         tracker.track(power.getActivePower());
         delay(500);
