@@ -13,7 +13,7 @@ namespace Measuring
     public:
         ACPowerMeter(uint16_t pinU, uint16_t pinI);
         void calibrate(float calU, float calI, float calPhase) noexcept;
-        ACPower measure();
+        ACPower measure(size_t numSamples = 20);
 
     private:
         adc1_channel_t m_adcChannelU = ADC1_CHANNEL_0;

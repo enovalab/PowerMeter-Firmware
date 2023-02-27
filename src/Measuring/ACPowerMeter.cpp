@@ -30,7 +30,7 @@ namespace
         throw std::runtime_error(errorMessage.str());
     }
     
-    float compensatePhaseShift(float* sampleBuffer, size_t index, float calPhase)
+    float compensatePhaseShift(const float* sampleBuffer, size_t index, float calPhase)
     {
         auto at = [sampleBuffer](int32_t index){
             size_t numSamples = sizeof(sampleBuffer) / sizeof(float);
@@ -60,6 +60,29 @@ namespace
             sum += sampleBuffer[i];
         return sum / static_cast<float>(numSamples);
     }
+
+    class ExponetialHighPassFilter
+    {
+    private: 
+        float m_beta;
+        float m_previousInput;
+        float m_previousOutput;
+
+    public:
+        ExponetialHighPassFilter(float beta, float initInput, float initOutput) : 
+            m_beta(beta),
+            m_previousInput(initInput),
+            m_previousOutput(initOutput)
+        {}
+
+        float operator()(float input)
+        {
+            float output = 0.5f * (2 - m_beta) * (input - m_previousInput) + (1 - m_beta) * m_previousOutput;
+            m_previousInput = input;
+            m_previousOutput = output;
+            return output;
+        }
+    };
 }
 
 
@@ -87,38 +110,78 @@ void ACPowerMeter::calibrate(float calU, float calI, float calPhase) noexcept
     m_calPhase = calPhase;
 }
 
-ACPower ACPowerMeter::measure()
+// ACPower ACPowerMeter::measure()
+// {
+//     constexpr size_t numPeriods = 20;
+
+//     std::vector<float> samplesU;
+//     std::vector<float> samplesI;
+
+//     uint32_t startMicros = micros();
+//     while(micros() - startMicros < (numPeriods * 20000))
+//     {
+//         samplesU.push_back(adc1_get_raw(m_adcChannelU));
+//         samplesI.push_back(adc1_get_raw(m_adcChannelI));
+//     }
+
+//     float sumU = 0.0f;
+//     float sumI = 0.0f;
+//     float sumP = 0.0f;
+
+//     ExponetialHighPassFilter filterU(0.01f, samplesU[0] * m_calU, 0);
+//     ExponetialHighPassFilter filterI(0.01f, samplesI[0] * m_calI, 0);
+
+//     for(size_t i = 0; i < samplesU.size(); i++)
+//     {
+//         float instantU = filterU(samplesU[i] * m_calU);
+//         float instantI = filterI(samplesI[i] * m_calI);
+//         float instantP = instantU * instantI;
+
+//         sumU += instantU * instantU;
+//         sumI += instantI * instantI;
+//         sumP += instantP;
+//     }
+
+//     float rmsU = sqrtf(sumU / samplesU.size());
+//     float rmsI = sqrtf(sumI / samplesI.size());
+//     float avgP = sumP / samplesU.size();
+
+//     std::cout << "Sample Rate: " << samplesU.size() / (numPeriods * 20.0f) << " kHz, Free Heap: " << ESP.getFreeHeap() << " bytes" << std::endl; 
+
+//     return ACPower(
+//         (rmsU < 5.0f) ? 0.0f : rmsU,
+//         (rmsI < 0.04f) ? 0.0f : rmsI,
+//         (avgP < 1.0f) ? 0.0f : avgP
+//     );
+// }
+
+ACPower ACPowerMeter::measure(size_t numPeriods)
 {
-    constexpr size_t numPeriods = 20;
+    ExponetialHighPassFilter filterU(0.01f, adc1_get_raw(m_adcChannelU) * m_calU, 0.0f);
+    ExponetialHighPassFilter filterI(0.01f, adc1_get_raw(m_adcChannelI) * m_calI, 0.0f);
+    StreamRMS<float> streamU;
+    StreamRMS<float> streamI;
+    StreamAverage<float> streamP;
 
-    std::array<uint16_t, numPeriods * 300> samplesU;
-    std::array<uint16_t, numPeriods * 300> samplesI;
-
-    size_t bufferIndex = 0;
+    size_t numSamples = 0;
     uint32_t startMicros = micros();
     while(micros() - startMicros < (numPeriods * 20000))
     {
-        samplesU[bufferIndex] = adc1_get_raw(m_adcChannelU);
-        samplesI[bufferIndex] = adc1_get_raw(m_adcChannelI);
-        bufferIndex++;
-    }
+        numSamples++;
+        float instantU = filterU(adc1_get_raw(m_adcChannelU) * m_calU);
+        float instantI = filterI(adc1_get_raw(m_adcChannelI) * m_calI);
+        float instantP = instantU * instantI;
 
-    uint16_t zeroU = average(samplesU.data());
-    uint16_t zeroI = average(samplesI.data());
+        streamU << instantU;
+        streamI << instantI;
+        streamP << instantP;
+    } 
 
-    for(size_t i = 0; i < bufferIndex; i++)
-    {
-        float instantU = samplesU[i] - zeroU;
-        float instantI = samplesI[i] - zeroI;
-        std::cout << instantU << std::endl;
-    }
-
-    for(size_t i = 0; i < 100; i++)
-    {
-        std::cout << 0 << std::endl;
-    }
-
-    return ACPower(0, 0, 0);
+    return ACPower(
+        (streamU.get() < 5.0f) ? 0.0f : streamU.get(),
+        (streamI.get() < 0.04f) ? 0.0f : streamI,
+        (streamP < 1.0f) ? 0.0f : streamP
+    );
 }
 
 #endif

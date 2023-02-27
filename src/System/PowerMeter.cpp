@@ -52,12 +52,12 @@ namespace
     {
         try
         {
-            Diagnostics::Logger.setLevel(Level::Silent);
+            // Diagnostics::Logger.setLevel(Level::Silent);
             Diagnostics::Logger[Level::Info] << "Configuring Logger..." << std::endl;
             json loggerConfigJson = loggerConfigURI.deserialize();
 
             Serial.begin(loggerConfigJson.at("baudRate"));
-            // Diagnostics::Logger.setLevel(Diagnostics::Log::getLevelByName(loggerConfigJson.at("level")));
+            Diagnostics::Logger.setLevel(Diagnostics::Log::getLevelByName(loggerConfigJson.at("level")));
             Diagnostics::Logger.setShowLevel(loggerConfigJson.at("showLevel"));
             const std::string& logFilePath = loggerConfigJson.at("logFile");
 
@@ -365,10 +365,10 @@ void PowerMeter::run() noexcept
 {
     try
     {
-        Diagnostics::Logger[Level::Verbose] << "Running..." << std::endl;
+        // Diagnostics::Logger[Level::Verbose] << "Running..." << std::endl;
         power = powerMeter.measure();
-        tracker.track(power.getActivePower());
-        delay(500);
+        // tracker.track(power.getActivePower());
+        // delay(500);
     }
     catch(...)
     {
