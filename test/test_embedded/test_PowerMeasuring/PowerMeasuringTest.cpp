@@ -7,9 +7,9 @@
 constexpr uint8_t voltagePin = 33;
 constexpr uint8_t currentPin = 32;
 
-constexpr float voltageCalibration = 0.4908f;
-constexpr float currentCalibration = 0.01479f;
-constexpr int16_t phaseCalibration = 12;
+constexpr float voltageCalibration = 587.1;
+constexpr float currentCalibration = 15.7;
+constexpr float phaseCalibration = -1.1;
 
 
 Measuring::ACPowerMeter powerMeter(voltagePin, currentPin);

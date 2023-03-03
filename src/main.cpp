@@ -2,14 +2,17 @@
 
 #include "System/PowerMeter.h"
 
+static bool bootSuccessful = false;
+
 void setup()
 {
-    System::PowerMeter::boot();
+    bootSuccessful = System::PowerMeter::boot();
 }
 
 void loop()
 {
-    System::PowerMeter::run();
+    if(bootSuccessful)
+        System::PowerMeter::run();
 }
 
 #endif

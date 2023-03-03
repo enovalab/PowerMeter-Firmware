@@ -1,39 +1,39 @@
 {
-    "lastHour": {
+    "last60min": {
         "targetURI": "/littlefs/tracker/last60min.json",
         "lastSampleURI": "/littlefs/tracker/lastSamples.json#/last60min",
         "timeSpanSeconds": 3600,
         "numSamplesPerSpan": 60
     },
-    "lastDay": {
+    "last24h": {
         "targetURI": "/littlefs/tracker/last24h.json",
         "lastSampleURI": "/littlefs/tracker/lastSamples.json#/last24h",
         "timeSpanSeconds": 86400,
         "numSamplesPerSpan": 24,
         "averageURI": "/littlefs/tracker/last60min.json"
     },
-    "lastWeek": {
+    "last7d": {
         "targetURI": "/littlefs/tracker/last7d.json",
         "lastSampleURI": "/littlefs/tracker/lastSamples.json#/last7d",
         "timeSpanSeconds": 604800,
         "numSamplesPerSpan": 7,
         "averageURI": "/littlefs/tracker/last24h.json"
     },
-    "lastMonth": {
+    "last30d": {
         "targetURI": "/littlefs/tracker/last30d.json",
         "lastSampleURI": "/littlefs/tracker/lastSamples.json#/last30d",
         "timeSpanSeconds": 2592000,
         "numSamplesPerSpan": 30,
         "averageURI": "/littlefs/tracker/last24h.json"
     },
-    "lastYear": {
+    "last12m": {
         "targetURI": "/littlefs/tracker/last12m.json",
         "lastSampleURI": "/littlefs/tracker/lastSamples.json#/last12m",
         "timeSpanSeconds": 31104000,
         "numSamplesPerSpan": 12,
         "averageURI": "/littlefs/tracker/last30d.json"
     },
-    "lastDecade": {
+    "last10a": {
         "targetURI": "/littlefs/tracker/last10a.json",
         "lastSampleURI": "/littlefs/tracker/lastSamples.json#/last10a",
         "timeSpanSeconds": 311040000,

@@ -24,7 +24,7 @@ void ExceptionTrace::clear() noexcept
 }
 
 
-std::string ExceptionTrace::what(size_t indentLevel, char indentChar) noexcept
+std::string ExceptionTrace::what(size_t indentLevel, char indentChar)
 {
     std::stringstream what;
 
