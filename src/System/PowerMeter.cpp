@@ -39,11 +39,21 @@ namespace
     Connectivity::RestAPI::JsonResponse handlePatchJsonURI(const Data::JsonURI& jsonURI, const json& data)
     {
         json storedData = jsonURI.deserialize();
+        size_t sizeBefore = storedData.size();
         storedData.update(data, true);
+
+        if(storedData.size() > sizeBefore)
+            throw std::runtime_error("Adding properties using PATCH is not allowed");
+
         jsonURI.serialize(storedData);
         return Connectivity::RestAPI::JsonResponse(jsonURI.deserialize());
     }
 
+    void configureLogger(const Data::JsonURI& loggerConfigURI);
+    void configureMeasuring(const Data::JsonURI& measuringConfigURI);
+    void configureRelay(const Data::JsonURI& relayConfigURI);
+    void configureTracker(const Data::JsonURI& trackerConfigURI);
+    void configureWifi(const Data::JsonURI& wifiConfigURI);
 
     void configureLogger(const Data::JsonURI& loggerConfigURI)
     {
@@ -239,9 +249,10 @@ namespace
     }
 
 
-    bool configureWifiStationary(const Data::JsonURI& staConfigURI)
+    bool configureWifiStationary(const Data::JsonURI& wifiConfigURI)
     {
         Diagnostics::Logger[Level::Info] << "Configuring WiFi in stationary mode..." << std::endl;
+        Data::JsonURI staConfigURI = wifiConfigURI / "/sta"_json_pointer;
         try
         {
             json staConfigJson = staConfigURI.deserialize();
@@ -262,16 +273,16 @@ namespace
                 return ip;
             };
 
-            WiFi.mode(WIFI_STA);
+            // WiFi.mode(WIFI_AP_STA);
             WiFi.config(parseIP(staticIP), parseIP(gateway), parseIP(subnet), parseIP(primaryDNS), parseIP(secondaryDNS));
             WiFi.begin(ssid.c_str(), password.c_str());
 
             api.handle(Connectivity::HTTP::Method::Get, "/config/wifi/sta", std::bind(handleGetJsonURI, staConfigURI, _1));
-            api.handle(Connectivity::HTTP::Method::Patch, "/config/wifi/sta", [staConfigURI](const json& data){
+            api.handle(Connectivity::HTTP::Method::Patch, "/config/wifi/sta", [wifiConfigURI, staConfigURI](const json& data){
                 Diagnostics::Logger[Level::Debug] << data << std::endl;
-                const Connectivity::RestAPI::JsonResponse& jsonResponse = handlePatchJsonURI(staConfigURI, data);
-                configureWifiStationary(staConfigURI);
-                return jsonResponse; 
+                handlePatchJsonURI(staConfigURI, data);
+                configureWifi(wifiConfigURI);
+                return Connectivity::RestAPI::JsonResponse();
             });
 
             if(WiFi.waitForConnectResult() == WL_CONNECTED)
@@ -282,7 +293,8 @@ namespace
                     << " IP: http://"
                     << WiFi.localIP().toString().c_str()
                     << std::endl;
-                (staConfigURI / "/ip"_json_pointer).serialize(WiFi.localIP().toString().c_str());
+                (wifiConfigURI / "/ip"_json_pointer).serialize("111.111.111.111");
+                // WiFi.mode(WIFI_STA);
                 return true;
             }
         }
@@ -297,23 +309,24 @@ namespace
     }
 
 
-    void configureWifiAccesspoint(const Data::JsonURI& apConfigURI)
+    void configureWifiAccesspoint(const Data::JsonURI& wifiConfigURI)
     {
         Diagnostics::Logger[Level::Info] << "Configuring WiFi as accesspoint..." << std::endl;
+        Data::JsonURI apConfigURI = wifiConfigURI / "/ap"_json_pointer;
         try
         {
             json apConfigJson = apConfigURI.deserialize();
             const std::string& ssid = apConfigJson.at("ssid");
             const std::string& password = apConfigJson.at("password");
 
-            WiFi.mode(WIFI_AP);
+            // WiFi.mode(WIFI_AP);
             WiFi.softAP(ssid.c_str(), password.c_str());
 
             api.handle(Connectivity::HTTP::Method::Get, "/config/wifi/ap", std::bind(handleGetJsonURI, apConfigURI, _1));
-            api.handle(Connectivity::HTTP::Method::Patch, "/config/wifi/ap", [apConfigURI](const json& data){
+            api.handle(Connectivity::HTTP::Method::Patch, "/config/wifi/ap", [wifiConfigURI, apConfigURI](const json& data){
                 const Connectivity::RestAPI::JsonResponse& jsonResponse = handlePatchJsonURI(apConfigURI, data);
-                configureWifiAccesspoint(apConfigURI);
-                return jsonResponse; 
+                configureWifi(wifiConfigURI);
+                return jsonResponse;
             });
         }
         catch(...)
@@ -328,11 +341,12 @@ namespace
 
     void configureWifi(const Data::JsonURI& wifiConfigURI)
     {
-        Diagnostics::Logger[Level::Info] << "Configuringn WiFi..." << std::endl;
-        if(!configureWifiStationary(wifiConfigURI / "/sta"_json_pointer))
+        Diagnostics::Logger[Level::Info] << "Configuring WiFi..." << std::endl;
+        WiFi.mode(WIFI_AP_STA);
+        if(!configureWifiStationary(wifiConfigURI))
         {
-            configureWifiAccesspoint(wifiConfigURI / "/ap"_json_pointer);
             Diagnostics::Logger[Level::Info] << "Couldn't connect to stationary network. Setting up acesspoint..." << std::endl;
+            configureWifiAccesspoint(wifiConfigURI);
         }
         Diagnostics::Logger[Level::Info] << "WiFi configured sucessfully." << std::endl;
     }
@@ -355,7 +369,10 @@ bool PowerMeter::boot() noexcept
     });
 
     api.handle(Connectivity::HTTP::Method::Get, "/info", [](json){
-        return Connectivity::RestAPI::JsonResponse(); 
+        json data;
+        data["mac"] = ESP.getEfuseMac();
+        data["firmware"] = POWERMETER_FIRMWARE_VERSION;
+        return Connectivity::RestAPI::JsonResponse(data); 
     });
 
     try
@@ -386,14 +403,6 @@ void PowerMeter::run() noexcept
     try
     {
         power = powerMeter.measure();
-        Diagnostics::Logger[Level::Debug]
-            << "U = " << power.getVoltageRms() << " Vrms, "
-            << "I = " << power.getCurrentRms() << " Arms, "
-            << "P = " << power.getActivePower() << " W, "
-            << "S = " << power.getApparentPower() << " VA, "
-            << "Q = " << power.getReactivePower() << " var, "
-            << "cosP = " << power.getPowerFactor() << std::endl;
-
         tracker.track(power.getActivePower());
         delay(500);
     }
