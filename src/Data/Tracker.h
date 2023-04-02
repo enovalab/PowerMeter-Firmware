@@ -44,7 +44,7 @@ namespace Data
     public:
         Tracker(const Time::Clock& clock, const std::vector<TrackingSpan>& trackingSpans = {}) noexcept;
         void setTrackingSpans(const std::vector<TrackingSpan>& trackingSpans) noexcept;
-        bool init();
+        void init();
         void track(float newValue);
     
     private:

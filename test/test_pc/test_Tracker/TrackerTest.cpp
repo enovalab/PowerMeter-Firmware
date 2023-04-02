@@ -85,7 +85,7 @@ TEST_F(TrackerTest, arraySizeNotGreaterThanSpecified)
     {
         while(clock.now() < 3600 * 24 * 7 + 1)
         {
-            uut.track(1.0f);
+            uut.track(rand());
             clock.setTimestamp(clock.now() + 10);
         }
 
@@ -106,6 +106,7 @@ TEST_F(TrackerTest, arraySizeNotGreaterThanSpecified)
         FAIL() << Diagnostics::ExceptionTrace::what() << std::endl;
     }
 }
+
 
 int main()
 {

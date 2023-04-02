@@ -5,6 +5,7 @@
 #include <fstream>
 #include <exception>
 #include <algorithm>
+#include <math.h>
 
 using namespace Data;
 
@@ -41,7 +42,7 @@ void TrackingSpan::track(float newValue) const
         {
             Diagnostics::ExceptionTrace::clear();
         }
-        
+
         trackerArray.push_back(newValue);
 
         if(trackerArray.size() > m_numSamplesPerSpan)
@@ -161,17 +162,14 @@ void Tracker::setTrackingSpans(const std::vector<TrackingSpan>& trackingSpans) n
 }
 
 
-bool Tracker::init()
+void Tracker::init()
 {
     try
     {
         for(const auto& trackingSpan : m_trackingSpans)
         {
             if(trackingSpan.getLastSampleTimestamp() == 0)
-            {
                 trackingSpan.setLastSampleTimestamp(m_clock.now());
-                return true;
-            }
         }
     }
     catch(...)
@@ -181,7 +179,6 @@ bool Tracker::init()
         Diagnostics::ExceptionTrace::trace(errorMessage.str());
         throw;
     }
-    return false;
 }
 
 
@@ -189,14 +186,22 @@ void Tracker::track(float newValue)
 {
     try
     {
+        if(!isfinite(newValue))
+            newValue = 0.0f;
+
         m_average << newValue;
         time_t now = m_clock.now();
 
         for(const auto& trackingSpan : m_trackingSpans)
         {
+            // Diagnostics::Logger[Level::Debug] << "Handling TrackingSpan: " << trackingSpan.m_targetURI << std::endl;
+
             time_t secondsPassed = now - trackingSpan.getLastSampleTimestamp();
             time_t secondsBetweenSamples = trackingSpan.getTimeSpanSeconds() / trackingSpan.getNumSamplesPerSpan();
             size_t timesElapsed = secondsPassed / secondsBetweenSamples;
+            // Diagnostics::Logger[Level::Debug] << "now: " << now << std::endl;
+            // Diagnostics::Logger[Level::Debug] << "lastSample: " << trackingSpan.getLastSampleTimestamp() << std::endl;
+            // Diagnostics::Logger[Level::Debug] << "TimesElapsed: " << timesElapsed << std::endl;
 
             for(size_t i = timesElapsed; i > 0; i--)
             {

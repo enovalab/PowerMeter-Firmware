@@ -19,13 +19,18 @@ using namespace std::placeholders;
 namespace
 {
     Measuring::ACPowerMeter powerMeter(33, 32);
-    Measuring::ACPower power(0, 0, 0);
-    AsyncWebServer server(80);
-    Connectivity::RestAPI api(&server, "/api");
     Time::DS3231 rtc;
     Data::Tracker tracker(rtc);
+    AsyncWebServer server(80);
+    Connectivity::RestAPI api(&server, "/api", {
+        Connectivity::HTTP::Header("Access-Control-Request-Method", "*"),
+        Connectivity::HTTP::Header("Access-Control-Expose-Headers", "*"),
+        Connectivity::HTTP::Header("Access-Control-Allow-Methods", "*"),
+        Connectivity::HTTP::Header("Access-Control-Allow-Origin", "*"),
+        Connectivity::HTTP::Header("Access-Control-Allow-Headers", "*")
+    });
 
-    Connectivity::RestAPI::JsonResponse handleGetJsonURI(const Data::JsonURI& jsonURI, json)
+    Connectivity::RestAPI::JsonResponse handleGetJsonURI(const Data::JsonURI& jsonURI)
     {
         return Connectivity::RestAPI::JsonResponse(jsonURI.deserialize());
     }
@@ -43,17 +48,11 @@ namespace
         storedData.update(data, true);
 
         if(storedData.size() > sizeBefore)
-            throw std::runtime_error("Adding properties using PATCH is not allowed");
+            throw std::runtime_error("The PowerMeter API does not allow adding properties using PATCH");
 
         jsonURI.serialize(storedData);
         return Connectivity::RestAPI::JsonResponse(jsonURI.deserialize());
     }
-
-    void configureLogger(const Data::JsonURI& loggerConfigURI);
-    void configureMeasuring(const Data::JsonURI& measuringConfigURI);
-    void configureRelay(const Data::JsonURI& relayConfigURI);
-    void configureTracker(const Data::JsonURI& trackerConfigURI);
-    void configureWifi(const Data::JsonURI& wifiConfigURI);
 
     void configureLogger(const Data::JsonURI& loggerConfigURI)
     {
@@ -80,9 +79,9 @@ namespace
                 logFile.open(logFilePath, std::ios::app); 
             });
 
-            api.handle(Connectivity::HTTP::Method::Get, "/config/logger", std::bind(handleGetJsonURI, loggerConfigURI, _1));
+            api.handle(Connectivity::HTTP::Method::Get, "/config/logger", std::bind(handleGetJsonURI, loggerConfigURI));
             api.handle(Connectivity::HTTP::Method::Patch, "/config/logger", [loggerConfigURI](const json& data){
-                const Connectivity::RestAPI::JsonResponse& jsonResponse = handlePatchJsonURI(loggerConfigURI, data);
+                Connectivity::RestAPI::JsonResponse jsonResponse = handlePatchJsonURI(loggerConfigURI, data);
                 configureLogger(loggerConfigURI);
                 return jsonResponse; 
             });
@@ -119,7 +118,7 @@ namespace
 
             api.handle(Connectivity::HTTP::Method::Get, "/power", [](json){
                 json data;
-                power = powerMeter.measure();
+                Measuring::ACPower power = powerMeter.measure();
                 data["voltage"] = power.getVoltageRms();
                 data["current"] = power.getCurrentRms();
                 data["active"] = power.getActivePower();
@@ -128,9 +127,9 @@ namespace
                 data["powerFactor"] = power.getPowerFactor();
                 return Connectivity::RestAPI::JsonResponse(data);
             });
-            api.handle(Connectivity::HTTP::Method::Get, "/config/measuring", std::bind(handleGetJsonURI, measuringConfigURI, _1));
+            api.handle(Connectivity::HTTP::Method::Get, "/config/measuring", std::bind(handleGetJsonURI, measuringConfigURI));
             api.handle(Connectivity::HTTP::Method::Patch, "/config/measuring", [measuringConfigURI](const json& data){
-                const Connectivity::RestAPI::JsonResponse& jsonResponse = handlePatchJsonURI(measuringConfigURI, data);
+                Connectivity::RestAPI::JsonResponse jsonResponse = handlePatchJsonURI(measuringConfigURI, data);
                 configureMeasuring(measuringConfigURI);
                 return jsonResponse; 
             });
@@ -160,9 +159,9 @@ namespace
             pinMode(pin, OUTPUT);
             digitalWrite(pin, state);
 
-            api.handle(Connectivity::HTTP::Method::Get, "/config/relay", std::bind(handleGetJsonURI, relayConfigURI, _1));
+            api.handle(Connectivity::HTTP::Method::Get, "/config/relay", std::bind(handleGetJsonURI, relayConfigURI));
             api.handle(Connectivity::HTTP::Method::Patch, "/config/relay", [relayConfigURI](const json& data){
-                const Connectivity::RestAPI::JsonResponse& jsonResponse = handlePatchJsonURI(relayConfigURI, data);
+                Connectivity::RestAPI::JsonResponse jsonResponse = handlePatchJsonURI(relayConfigURI, data);
                 json relayConfigJson = relayConfigURI.deserialize();
                 const uint16_t& pin = relayConfigJson.at("pin");;
                 bool state = relayConfigJson.at("state");
@@ -204,35 +203,31 @@ namespace
                 api.handle(
                     Connectivity::HTTP::Method::Get,
                     std::string("/tracker/") + jsonTrackingSpan.key(),
-                    std::bind(handleGetJsonURI, Data::JsonURI(jsonTrackingSpan.value().at("targetURI")), _1)
+                    std::bind(handleGetJsonURI, Data::JsonURI(jsonTrackingSpan.value().at("targetURI")))
                 );
             }
 
             api.handle(Connectivity::HTTP::Method::Get, "/tracker", [jsonTrackingSpans](json){
                 json jsonTrackerData;
                 for(const auto &jsonTrackingSpan : jsonTrackingSpans.items())
-                {
                     jsonTrackerData[jsonTrackingSpan.key()] = Data::JsonURI(jsonTrackingSpan.value().at("targetURI")).deserialize();
-                }
+                // Diagnostics::Logger[Level::Debug] << jsonTrackerData.dump(1, ' ') << std::endl;
                 return Connectivity::RestAPI::JsonResponse(jsonTrackerData);
             });
 
             api.handle(Connectivity::HTTP::Method::Put, "/tracker", [jsonTrackingSpans](const json& jsonTrackerData){
 
                 for(const auto &jsonTrackingSpan : jsonTrackingSpans.items())
-                {
                     Data::JsonURI(jsonTrackingSpan.value().at("targetURI")).serialize(jsonTrackerData.at(jsonTrackingSpan.key()));
-                }
                 return Connectivity::RestAPI::JsonResponse(jsonTrackerData);
             });
 
             tracker.setTrackingSpans(trackingSpans);
-            if(tracker.init())
-                Diagnostics::Logger[Level::Info] << "Initialized last sample timestamps" << std::endl;
+            tracker.init();
 
-            api.handle(Connectivity::HTTP::Method::Get, "/config/tracker", std::bind(handleGetJsonURI, trackerConfigURI, _1));
+            api.handle(Connectivity::HTTP::Method::Get, "/config/tracker", std::bind(handleGetJsonURI, trackerConfigURI));
             api.handle(Connectivity::HTTP::Method::Patch, "/config/tracker", [trackerConfigURI](const json &data){
-                const Connectivity::RestAPI::JsonResponse& jsonResponse = handlePatchJsonURI(trackerConfigURI, data);
+                Connectivity::RestAPI::JsonResponse jsonResponse = handlePatchJsonURI(trackerConfigURI, data);
                 configureTracker(trackerConfigURI);
                 return jsonResponse; 
             });
@@ -262,8 +257,6 @@ namespace
             const std::string& staticIP = staConfigJson.at("staticIP");
             const std::string& gateway = staConfigJson.at("gateway");
             const std::string& subnet = staConfigJson.at("subnet");
-            const std::string& primaryDNS = staConfigJson.at("primaryDNS");
-            const std::string& secondaryDNS = staConfigJson.at("secondaryDNS");
 
             auto parseIP = [](const std::string& address)
             {
@@ -272,31 +265,14 @@ namespace
                     Diagnostics::Logger[Level::Warning] << SOURCE_LOCATION << "Could not convert \"" << address << "\" to 'IPAdress'" << std::endl;
                 return ip;
             };
-
-            // WiFi.mode(WIFI_AP_STA);
-            WiFi.config(parseIP(staticIP), parseIP(gateway), parseIP(subnet), parseIP(primaryDNS), parseIP(secondaryDNS));
+            
+            WiFi.disconnect(true);
+            WiFi.config(parseIP(staticIP), parseIP(gateway), parseIP(subnet));
             WiFi.begin(ssid.c_str(), password.c_str());
+            WiFi.setSleep(false);
 
-            api.handle(Connectivity::HTTP::Method::Get, "/config/wifi/sta", std::bind(handleGetJsonURI, staConfigURI, _1));
-            api.handle(Connectivity::HTTP::Method::Patch, "/config/wifi/sta", [wifiConfigURI, staConfigURI](const json& data){
-                Diagnostics::Logger[Level::Debug] << data << std::endl;
-                handlePatchJsonURI(staConfigURI, data);
-                configureWifi(wifiConfigURI);
-                return Connectivity::RestAPI::JsonResponse();
-            });
-
-            if(WiFi.waitForConnectResult() == WL_CONNECTED)
-            {
-                Diagnostics::Logger[Level::Info]
-                    << "Sucessfully connected to "
-                    << ssid
-                    << " IP: http://"
-                    << WiFi.localIP().toString().c_str()
-                    << std::endl;
-                (wifiConfigURI / "/ip"_json_pointer).serialize("111.111.111.111");
-                // WiFi.mode(WIFI_STA);
+            if(WiFi.waitForConnectResult(3000) == WL_CONNECTED)
                 return true;
-            }
         }
         catch(...)
         {
@@ -309,7 +285,7 @@ namespace
     }
 
 
-    void configureWifiAccesspoint(const Data::JsonURI& wifiConfigURI)
+    bool configureWifiAccesspoint(const Data::JsonURI& wifiConfigURI)
     {
         Diagnostics::Logger[Level::Info] << "Configuring WiFi as accesspoint..." << std::endl;
         Data::JsonURI apConfigURI = wifiConfigURI / "/ap"_json_pointer;
@@ -319,15 +295,7 @@ namespace
             const std::string& ssid = apConfigJson.at("ssid");
             const std::string& password = apConfigJson.at("password");
 
-            // WiFi.mode(WIFI_AP);
-            WiFi.softAP(ssid.c_str(), password.c_str());
-
-            api.handle(Connectivity::HTTP::Method::Get, "/config/wifi/ap", std::bind(handleGetJsonURI, apConfigURI, _1));
-            api.handle(Connectivity::HTTP::Method::Patch, "/config/wifi/ap", [wifiConfigURI, apConfigURI](const json& data){
-                const Connectivity::RestAPI::JsonResponse& jsonResponse = handlePatchJsonURI(apConfigURI, data);
-                configureWifi(wifiConfigURI);
-                return jsonResponse;
-            });
+            return WiFi.softAP(ssid.c_str(), password.c_str());
         }
         catch(...)
         {
@@ -342,13 +310,71 @@ namespace
     void configureWifi(const Data::JsonURI& wifiConfigURI)
     {
         Diagnostics::Logger[Level::Info] << "Configuring WiFi..." << std::endl;
-        WiFi.mode(WIFI_AP_STA);
-        if(!configureWifiStationary(wifiConfigURI))
+        
+        auto wifiModeToString = [](WiFiMode_t mode){
+            switch(mode)
+            {
+                case WiFiMode_t::WIFI_MODE_AP:
+                    return "Acesspoint";
+                case WiFiMode_t::WIFI_MODE_STA:
+                    return "Stationary";
+                case WiFiMode_t::WIFI_MODE_APSTA:
+                    return "Acesspoint + Stationary";
+                default:
+                    throw std::runtime_error("Invalid WiFi mode");
+            }
+        };
+
+        api.handle(Connectivity::HTTP::Method::Get, "/config/wifi", [wifiConfigURI, wifiModeToString](json){
+            Connectivity::RestAPI::JsonResponse jsonResponse = handleGetJsonURI(wifiConfigURI);
+            jsonResponse.data.at("sta").erase("password");
+            jsonResponse.data["mode"] = wifiModeToString(WiFi.getMode());
+            jsonResponse.data["sta"]["ip"] = WiFi.localIP().toString().c_str();
+            jsonResponse.data["ap"]["ip"] = WiFi.softAPIP().toString().c_str();
+            return jsonResponse;
+        });
+
+        api.handle(Connectivity::HTTP::Method::Patch, "/config/wifi", [wifiConfigURI, wifiModeToString](const json& data){
+            Connectivity::RestAPI::JsonResponse jsonResponse = handlePatchJsonURI(wifiConfigURI, data);
+            configureWifi(wifiConfigURI);
+            jsonResponse.data.at("sta").erase("password");
+            jsonResponse.data["mode"] = wifiModeToString(WiFi.getMode());
+            jsonResponse.data["sta"]["ip"] = WiFi.localIP().toString().c_str();
+            jsonResponse.data["ap"]["ip"] = WiFi.softAPIP().toString().c_str();
+            return jsonResponse;
+        });
+
+        try
         {
-            Diagnostics::Logger[Level::Info] << "Couldn't connect to stationary network. Setting up acesspoint..." << std::endl;
-            configureWifiAccesspoint(wifiConfigURI);
+            WiFi.mode(WiFiMode_t::WIFI_MODE_STA);
+            if(configureWifiStationary(wifiConfigURI))
+            {
+                Diagnostics::Logger[Level::Info] 
+                    << "WiFi configured sucessfully in Stationary Mode. " 
+                    << "IP: http://" << WiFi.localIP().toString().c_str()
+                    << std::endl;
+                return;
+            }
+            Diagnostics::Logger[Level::Info] << "Couldn't connect to local Network. Setting up Acesspoint..." << std::endl;
+            WiFi.mode(WiFiMode_t::WIFI_MODE_AP);
+            if(configureWifiAccesspoint(wifiConfigURI))
+            {
+                Diagnostics::Logger[Level::Info] 
+                    << "WiFi configured sucessfully in Acesspoint Mode. "
+                    << "IP: http://" << WiFi.softAPIP().toString().c_str()
+                    << std::endl;
+                return;
+            }
+
+            throw std::runtime_error("Failed to configure WiFi");        
         }
-        Diagnostics::Logger[Level::Info] << "WiFi configured sucessfully." << std::endl;
+        catch(...)
+        {
+            std::stringstream errorMessage;
+            errorMessage << SOURCE_LOCATION << "Failed to configure WiFi from \"" << wifiConfigURI << '"';
+            Diagnostics::ExceptionTrace::trace(errorMessage.str());
+            throw;
+        }
     }
 }
 
@@ -365,13 +391,14 @@ bool PowerMeter::boot() noexcept
     api.handle(Connectivity::HTTP::Method::Get, "/reboot", [](json){
         Diagnostics::Logger[Level::Info] << "Rebooting Power Meter..." << std::endl;
         ESP.restart();
-        return Connectivity::RestAPI::JsonResponse(); 
+        return Connectivity::RestAPI::JsonResponse(nullptr, Connectivity::HTTP::StatusCode::NoContent); 
     });
 
     api.handle(Connectivity::HTTP::Method::Get, "/info", [](json){
         json data;
         data["mac"] = ESP.getEfuseMac();
         data["firmware"] = POWERMETER_FIRMWARE_VERSION;
+        data["uptimeMilliseconds"] = millis();
         return Connectivity::RestAPI::JsonResponse(data); 
     });
 
@@ -402,7 +429,7 @@ void PowerMeter::run() noexcept
 {
     try
     {
-        power = powerMeter.measure();
+        Measuring::ACPower power = powerMeter.measure();
         tracker.track(power.getActivePower());
         delay(500);
     }

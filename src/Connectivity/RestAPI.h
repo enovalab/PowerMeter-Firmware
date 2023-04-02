@@ -24,19 +24,42 @@ namespace Connectivity
         };
 
         using JsonHandler = std::function<JsonResponse(const json&)>;
+        using HeaderList = std::vector<Connectivity::HTTP::Header>;
 
-        RestAPI(AsyncWebServer* server, const std::string& baseURI = "/", bool allowCORS = true) noexcept;
-        void handle(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler) noexcept;
+        RestAPI(
+            AsyncWebServer* server, 
+            const std::string& baseURI = "/", 
+            const HeaderList& defaultHeaders = {}
+        ) noexcept;
+
+        void handle(
+            HTTP::Method method, 
+            const std::string& endpointURI, 
+            const JsonHandler& handler,
+            const HeaderList& headers = {}
+        ) noexcept;
 
     private:
-        void handleWithoutBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler) noexcept;
-        void handleWithBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler) noexcept;
-        void handleHead(const std::string& endpointURI) noexcept;
-        void addCORSHeaders(AsyncWebServerResponse* response) noexcept;
+        void handleWithoutBody(
+            HTTP::Method method, 
+            const std::string& endpointURI, 
+            const JsonHandler& handler, 
+            const HeaderList& headers
+        ) noexcept;
+
+        void handleWithBody(
+            HTTP::Method method, 
+            const std::string& endpointURI, 
+            const JsonHandler& handler, 
+            const HeaderList& headers
+        ) noexcept;
+
+        void handleHead(const std::string& endpointURI, const HeaderList& headers) noexcept;
+        void addHeaders(AsyncWebServerResponse* response, const HeaderList& headers) noexcept;
 
         AsyncWebServer* m_server;
         std::string m_baseURI;
-        bool m_allowCORS;
+        HeaderList m_defaultHeaders;
     };
 }
 

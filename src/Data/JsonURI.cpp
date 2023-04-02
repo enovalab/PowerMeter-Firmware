@@ -59,9 +59,7 @@ void JsonURI::serialize(const json& data) const
                 parentData = JsonURI(m_filePath, json::json_pointer()).deserialize();
             }
             catch(json::exception)
-            {
-                
-            }
+            {}
             catch(std::runtime_error)
             {}
 

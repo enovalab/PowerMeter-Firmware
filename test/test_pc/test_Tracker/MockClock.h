@@ -11,7 +11,7 @@ public:
         m_now = now;
     }
 
-    time_t now() const override
+    time_t now() const noexcept override
     {
         return m_now;
     }

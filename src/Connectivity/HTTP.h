@@ -2,11 +2,20 @@
 #define CONNECTIVITY_HTTP_H
 
 #include <ESPAsyncWebServer.h>
+#include <string>
 
 namespace Connectivity
 {
     namespace HTTP
     {
+        struct Header
+        {
+            Header(const std::string& key, const std::string& value) : key(key), value(value)
+            {}
+            std::string key;
+            std::string value;
+        };
+
         enum class Method : uint8_t
         {
             Get = HTTP_GET,

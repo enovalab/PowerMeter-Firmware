@@ -1,13 +1,10 @@
 {
     "sta": {
-        "ip": "0.0.0.0",
-        "ssid": "Samuel",
-        "password": "Samu0705",
+        "ssid": "WLAN-T-Com",
+        "password": "GxvuzR8znV",
         "staticIP": "0.0.0.0",
         "gateway": "0.0.0.0",
-        "subnet": "0.0.0.0",
-        "primaryDNS": "0.0.0.0",
-        "secondaryDNS": "0.0.0.0"
+        "subnet": "0.0.0.0"
     },
     "ap": {
         "ssid": "Power Meter AP",
