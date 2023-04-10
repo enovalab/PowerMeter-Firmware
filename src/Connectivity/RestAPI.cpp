@@ -14,7 +14,7 @@ RestAPI::RestAPI(AsyncWebServer* server, const std::string& baseURI, const Heade
     m_defaultHeaders(defaultHeaders)
 {
     m_server->on(m_baseURI.c_str(), HTTP_OPTIONS, [this](AsyncWebServerRequest* request) {
-        AsyncWebServerResponse* response = request->beginResponse(204);
+        AsyncWebServerResponse* response = request->beginResponse(static_cast<uint16_t>(HTTP::StatusCode::NoContent));
         addHeaders(response, {});
         request->send(response);
     });
@@ -61,7 +61,7 @@ void RestAPI::handleWithoutBody(HTTP::Method method, const std::string& endpoint
         }
 
         AsyncWebServerResponse* response = request->beginResponse(
-            static_cast<int>(jsonResponse.status),
+            static_cast<uint16_t>(jsonResponse.status),
             "application/json",
             jsonResponse.data.dump(1, '\t').c_str()
         );
@@ -93,7 +93,7 @@ void RestAPI::handleWithBody(HTTP::Method method, const std::string& endpointURI
             }
 
             AsyncWebServerResponse* response = request->beginResponse(
-                static_cast<int>(jsonResponse.status), 
+                static_cast<uint16_t>(jsonResponse.status), 
                 "application/json",
                 jsonResponse.data.dump(1, '\t').c_str()
             );
@@ -118,7 +118,7 @@ void RestAPI::handleWithBody(HTTP::Method method, const std::string& endpointURI
             }
 
             AsyncWebServerResponse* response = request->beginResponse(
-                static_cast<int>(jsonResponse.status), 
+                static_cast<uint16_t>(jsonResponse.status), 
                 "application/json",
                 jsonResponse.data.dump(1, '\t').c_str()
             );
