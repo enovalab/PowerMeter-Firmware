@@ -1,6 +1,6 @@
 #ifdef ESP32
 
-#include "System/PowerMeter.h"
+#include "Device/PowerMeter.h"
 #include "Diagnostics/Log.h"
 #include "Diagnostics/ExceptionTrace.h"
 #include "Measuring/ACPowerMeter.h"
@@ -13,8 +13,7 @@
 #include <LittleFS.h>
 #include <fstream>
 
-using namespace System;
-using namespace std::placeholders;
+using namespace Device;
 
 namespace
 {
@@ -22,6 +21,7 @@ namespace
     Time::DS3231 rtc;
     Data::Tracker tracker(rtc);
     AsyncWebServer server(80);
+    AsyncWebSocket powerWebsocket("/ws/power");
     Connectivity::RestAPI api(&server, "/api", {
         Connectivity::HTTP::Header("Access-Control-Request-Method", "*"),
         Connectivity::HTTP::Header("Access-Control-Expose-Headers", "*"),
@@ -399,6 +399,10 @@ bool PowerMeter::boot() noexcept
         data["mac"] = ESP.getEfuseMac();
         data["firmware"] = POWERMETER_FIRMWARE_VERSION;
         data["uptimeMilliseconds"] = millis();
+        data["filesystem"]["totalBytes"] = LittleFS.totalBytes();
+        data["filesystem"]["usedBytes"] = LittleFS.usedBytes();
+        data["heap"]["totalBytes"] = ESP.getHeapSize();
+        data["heap"]["usedBytes"] = ESP.getHeapSize() - ESP.getFreeHeap();
         return Connectivity::RestAPI::JsonResponse(data); 
     });
 
@@ -421,6 +425,8 @@ bool PowerMeter::boot() noexcept
     }
 
     Diagnostics::Logger[Level::Info] << "Boot sequence finished. Running..." << std::endl;
+
+    server.addHandler(&powerWebsocket);
     server.begin();
     return success;
 }
@@ -430,7 +436,19 @@ void PowerMeter::run() noexcept
     try
     {
         Measuring::ACPower power = powerMeter.measure();
+
         tracker.track(power.getActivePower());
+
+        json powerJson;
+        powerJson["voltage"] = power.getVoltageRms();
+        powerJson["current"] = power.getCurrentRms();
+        powerJson["active"] = power.getActivePower();
+        powerJson["apparent"] = power.getApparentPower();
+        powerJson["reactive"] = power.getReactivePower();
+        powerJson["powerFactor"] = power.getPowerFactor();
+        powerWebsocket.textAll(powerJson.dump().c_str());
+        powerWebsocket.cleanupClients();
+
         delay(500);
     }
     catch(...)

@@ -1,18 +1,18 @@
 #if defined(ESP32) && !defined(PIO_UNIT_TESTING)
 
-#include "System/PowerMeter.h"
+#include "Device/PowerMeter.h"
 
 static bool bootSuccessful = false;
 
 void setup()
 {
-    bootSuccessful = System::PowerMeter::boot();
+    bootSuccessful = Device::PowerMeter::boot();
 }
 
 void loop()
 {
     if(bootSuccessful)
-        System::PowerMeter::run();
+        Device::PowerMeter::run();
 }
 
 #endif

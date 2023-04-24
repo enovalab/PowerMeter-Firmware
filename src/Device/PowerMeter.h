@@ -1,7 +1,7 @@
-#ifndef SYSTEM_POWERMETER_H
-#define SYSTEM_POWERMETER_H
+#ifndef DEVICE_POWERMETER_H
+#define DEVICE_POWERMETER_H
 
-namespace System
+namespace Device
 {
     namespace PowerMeter
     {
