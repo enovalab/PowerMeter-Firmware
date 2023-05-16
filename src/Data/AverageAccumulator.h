@@ -9,7 +9,8 @@ namespace Data
     {
     public:
         AverageAccumulator(const JsonURI& storageURI);
-        float get();
+        float getAverage();
+        size_t getCount();
         float add(float value);
         void reset();
     

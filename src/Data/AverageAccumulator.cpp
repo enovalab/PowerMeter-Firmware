@@ -3,9 +3,7 @@
 using namespace Data;
 
 AverageAccumulator::AverageAccumulator(const JsonURI& storageURI) : m_storageURI(storageURI)
-{
-    serialize();
-}
+{}
 
 
 float AverageAccumulator::add(float value)
@@ -14,14 +12,25 @@ float AverageAccumulator::add(float value)
     m_accumulator += value;
     m_count++;
     serialize();
+    if(m_count == 0.0f)
+        return 0.0f;
     return m_accumulator / m_count;
 }
 
 
-float AverageAccumulator::get()
+float AverageAccumulator::getAverage()
 {
     deserialize();
+    if(m_count == 0.0f)
+        return 0.0f;
     return m_accumulator / m_count;
+}
+
+
+size_t AverageAccumulator::getCount()
+{
+    deserialize();
+    return m_count;
 }
 
 
@@ -44,7 +53,14 @@ void AverageAccumulator::serialize()
 
 void AverageAccumulator::deserialize()
 {
-    json data = m_storageURI.deserialize();
-    m_count = data.at("count");
-    m_accumulator = data.at("accumulator");
+    try
+    {
+        json data = m_storageURI.deserialize();
+        m_count = data.at("count");
+        m_accumulator = data.at("accumulator");
+    }
+    catch(const std::exception& exception)
+    {
+        reset();
+    }
 }
