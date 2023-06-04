@@ -9,12 +9,12 @@ AverageAccumulator::AverageAccumulator(const JsonURI& storageURI) : m_storageURI
 float AverageAccumulator::add(float value)
 {
     deserialize();
-    m_accumulator += value;
+    m_sum += value;
     m_count++;
     serialize();
     if(m_count == 0.0f)
         return 0.0f;
-    return m_accumulator / m_count;
+    return m_sum / m_count;
 }
 
 
@@ -23,7 +23,7 @@ float AverageAccumulator::getAverage()
     deserialize();
     if(m_count == 0.0f)
         return 0.0f;
-    return m_accumulator / m_count;
+    return m_sum / m_count;
 }
 
 
@@ -37,7 +37,7 @@ size_t AverageAccumulator::getCount()
 void AverageAccumulator::reset()
 {
     m_count = 0;
-    m_accumulator = 0.0f;
+    m_sum = 0.0f;
     serialize();
 }
 
@@ -46,7 +46,7 @@ void AverageAccumulator::serialize()
 {
     json data;
     data["count"] = m_count;
-    data["accumulator"] = m_accumulator;
+    data["sum"] = m_sum;
     m_storageURI.serialize(data);
 }
 
@@ -57,7 +57,7 @@ void AverageAccumulator::deserialize()
     {
         json data = m_storageURI.deserialize();
         m_count = data.at("count");
-        m_accumulator = data.at("accumulator");
+        m_sum = data.at("sum");
     }
     catch(const std::exception& exception)
     {

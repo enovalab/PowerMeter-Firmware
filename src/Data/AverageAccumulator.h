@@ -19,7 +19,7 @@ namespace Data
         void serialize();
 
         size_t m_count = 0;
-        float m_accumulator = 0.0f;
+        float m_sum = 0.0f;
         JsonURI m_storageURI;
     };
 }
