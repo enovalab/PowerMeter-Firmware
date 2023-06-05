@@ -6,7 +6,7 @@ namespace Measuring
     class ACPower
     {
     public:
-        ACPower(float voltageRms, float currentRms, float activePower) noexcept;
+        ACPower(float voltage_Vrms, float current_Arms, float activePower_W) noexcept;
         float getVoltageRms() const noexcept;
         float getCurrentRms() const noexcept;
         float getActivePower() const noexcept;
@@ -15,9 +15,9 @@ namespace Measuring
         float getPowerFactor() const noexcept;
 
     private:
-        float m_voltageRms;
-        float m_currentRms;
-        float m_activePower;
+        float m_voltage_Vrms;
+        float m_current_Arms;
+        float m_activePower_W;
     };
 }
 

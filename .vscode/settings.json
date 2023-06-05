@@ -89,6 +89,5 @@
         "stop_token": "cpp",
         "cerrno": "cpp"
     },
-    "git.ignoreLimitWarning": true,
-    "cmake.sourceDirectory": "${workspaceFolder}/lib/ArduinoJson-6.x/extras/tests/Cpp17"
+    "git.ignoreLimitWarning": true
 }
