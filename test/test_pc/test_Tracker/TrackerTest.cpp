@@ -2,10 +2,16 @@
 #include "MockClock.h"
 #include "Data/AverageAccumulator.h"
 #include "Diagnostics/ExceptionTrace.h"
+#include "Diagnostics/Log.h"
 
 #include <gtest/gtest.h>
+#include <ctime>
 
 using namespace Data;
+
+constexpr time_t duration_s = 3600;
+constexpr size_t sampleCount = 60;
+
 
 struct TrackerTest : public testing::Test
 {
@@ -16,17 +22,18 @@ struct TrackerTest : public testing::Test
 
     void TearDown() override
     {
-        // std::filesystem::remove_all("TrackerTest");
+        std::filesystem::remove_all("TrackerTest");
     }
 
-    MockClock mockClock;
+    MockClock mockClock = MockClock(time(nullptr));
     Tracker uut = Tracker(
         "Test Tracker",
-        3600,
-        60,
+        duration_s,
+        sampleCount,
         mockClock,
         JsonURI("TrackerTest/data.json"),
-        JsonURI("TrackerTest/lastSample.json"),
+        JsonURI("TrackerTest/timestamps.json#/lastInput"),
+        JsonURI("TrackerTest/timestamps.json#/lastSample"),
         AverageAccumulator(JsonURI("TrackerTest/accumulator.json"))
     );
 };
@@ -49,17 +56,37 @@ struct TrackerTest : public testing::Test
 // }
 
 
-TEST_F(TrackerTest, track)
+// TEST_F(TrackerTest, track)
+// {
+//     for(size_t i = 0; i < 3601; i++)
+//     {
+//         uut.track(1.0f);
+//         mockClock.tick();
+//     }
+// }
+
+
+TEST_F(TrackerTest, shouldFillWhilePowerDown)
 {
-    for(size_t i = 0; i < 3600; i++)
+    for(size_t i = 0; i < 1000; i++)
     {
         uut.track(1.0f);
-        mockClock.setTimestamp(mockClock.now() + 1);
+        mockClock.tick();
     }
+    mockClock.tick(1000);
+    for(size_t i = 0; i < 1620; i++)
+    {
+        uut.track(1.0f);
+        mockClock.tick();
+    }
+    json data = uut.getData().at("data");
+    EXPECT_EQ(data.size(), sampleCount);
 }
+
 
 int main()
 {
     testing::InitGoogleTest();
-	return RUN_ALL_TESTS();
+    int a = RUN_ALL_TESTS();
+	return a;
 }

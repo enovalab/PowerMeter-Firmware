@@ -12,6 +12,7 @@ Tracker::Tracker(
     size_t sampleCount,
     const Time::Clock& clock,
     const JsonURI& dataURI,
+    const JsonURI& lastInputURI,
     const JsonURI& lastSampleURI,
     const AverageAccumulator& accumulator
 ) : 
@@ -20,6 +21,7 @@ Tracker::Tracker(
     m_sampleCount(sampleCount),
     m_clock(clock),
     m_dataURI(dataURI),
+    m_lastInputURI(lastInputURI),
     m_lastSampleURI(lastSampleURI),
     m_accumulator(accumulator)
 {}
@@ -29,51 +31,29 @@ void Tracker::track(float value)
 {
     if(!isfinite(value))
         throw std::runtime_error("value must be finite number");
+
+    time_t secondsSinceLastInput = m_clock.now() - getTimestamp(m_lastInputURI);
+
+    if(secondsSinceLastInput <= 0)
+        return;
     
-    m_accumulator.add(value);
+    for(size_t i = 0; i < secondsSinceLastInput; i++)
+    {
+        m_lastInputURI.serialize(m_clock.now());
+        m_accumulator.add(value);
+    }
 
-    time_t lastSampleTimestamp;
-    try
-    {
-        m_lastSampleURI.deserialize();
-    }
-    catch(...) 
-    {
-        Diagnostics::ExceptionTrace::clear();
-        lastSampleTimestamp = m_clock.now();
-        m_lastSampleURI.serialize(lastSampleTimestamp);
-    }
-    size_t timesElapsed = (m_clock.now() - lastSampleTimestamp) / (m_duration_s / m_sampleCount);
     
-    for(size_t i = timesElapsed; i > 0; i--)
+    uint32_t timesElapsed = (m_clock.now() - getTimestamp(m_lastSampleURI)) / (m_duration_s / m_sampleCount);
+
+    if(timesElapsed > 0)
     {
-        // Zeit in der das Gerät ausgeschaltet war mit 0 auffüllen
-        float value = 0.0f;
+        for(size_t i = 0; i < timesElapsed - 1; i++)
+            updateData(0.0f);
 
-        // Letzter (aktueller) Wert aus Akkumulator holen
-        if(i == 1)
-        {
-            value = m_accumulator.getAverage();
-            m_accumulator.reset();
-            m_lastSampleURI.serialize(lastSampleTimestamp);
-        }
-        json values;
-        try
-        {
-            values = m_dataURI.deserialize();
-        }                     
-        catch(...)
-        {
-            Diagnostics::ExceptionTrace::clear();
-        }
-        values.push_back(value);
-
-        if(values.size() > m_sampleCount)
-            values.erase(values.begin());
-        
-        m_dataURI.serialize(values);
+        updateData(m_accumulator.getAverage());
+        m_accumulator.reset();
     }
-
 }
 
 
@@ -93,4 +73,40 @@ json Tracker::getData() const
         data["data"] = json::array_t();
     }
     return data;
+}
+
+
+void Tracker::updateData(float value)
+{
+    json values;
+    try
+    {
+        values = m_dataURI.deserialize();
+    }                     
+    catch(...)
+    {
+        Diagnostics::ExceptionTrace::clear();
+    }
+    values.push_back(value);
+
+    if(values.size() > m_sampleCount)
+        values.erase(values.begin());
+    
+    m_dataURI.serialize(values);
+    m_lastSampleURI.serialize(m_clock.now());
+}
+
+
+time_t Tracker::getTimestamp(const JsonURI& timestampURI)
+{
+    try
+    {
+        return timestampURI.deserialize();
+    }
+    catch(...) 
+    {
+        Diagnostics::ExceptionTrace::clear();
+        timestampURI.serialize(m_clock.now());
+        return m_clock.now();
+    }
 }
