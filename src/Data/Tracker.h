@@ -19,7 +19,7 @@ namespace Data
             const JsonURI& lastInputURI,
             const JsonURI& lastSampleURI,
             const AverageAccumulator& accumulator
-        );
+        ) noexcept;
         void track(float value);
         json getData() const;
 

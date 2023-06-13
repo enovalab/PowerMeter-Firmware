@@ -10,27 +10,27 @@ ACPower::ACPower(float voltage_Vrms, float current_Arms, float activePower_W) no
 {}
 
 
-float ACPower::getVoltageRms() const noexcept
+float ACPower::getVoltage_Vrms() const noexcept
 {
     return m_voltage_Vrms;
 }
 
 
-float ACPower::getCurrentRms() const noexcept
+float ACPower::getCurrent_Arms() const noexcept
 {
     return m_current_Arms;
 }
 
 
-float ACPower::getActivePower() const noexcept
+float ACPower::getActivePower_W() const noexcept
 {
     return m_activePower_W;
 }
 
 
-float ACPower::getReactivePower() const noexcept
+float ACPower::getReactivePower_var() const noexcept
 {
-    float apparentPower_VA = getApparentPower();
+    float apparentPower_VA = getApparentPower_VA();
     float reactivePower_var = sqrt(apparentPower_VA * apparentPower_VA - m_activePower_W * m_activePower_W);
     if(isnanf(reactivePower_var))
         return 0.0f;
@@ -38,7 +38,7 @@ float ACPower::getReactivePower() const noexcept
 }
 
 
-float ACPower::getApparentPower() const noexcept
+float ACPower::getApparentPower_VA() const noexcept
 {
     return m_voltage_Vrms * m_current_Arms;
 }
@@ -46,7 +46,7 @@ float ACPower::getApparentPower() const noexcept
 
 float ACPower::getPowerFactor() const noexcept
 {   
-    float powerFactor = m_activePower_W / getApparentPower();
+    float powerFactor = m_activePower_W / getApparentPower_VA();
     if(powerFactor > 0.99f)
         powerFactor = 1.0f;
     if(isnanf(powerFactor))

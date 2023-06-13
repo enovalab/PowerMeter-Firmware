@@ -3,5 +3,5 @@
     "showLevel": true,
     "fileMode": false,
     "baudRate": 115200,
-    "logFile": "/littlefs/log/log.log"
+    "logFile": "/littlefs/PowerMeterLog.log"
 }

@@ -53,7 +53,6 @@ void JsonURI::serialize(const json& data) const
         else
         {
             json parentData;
-            
             try
             {
                 parentData = JsonURI(m_filePath, json::json_pointer()).deserialize();
@@ -62,7 +61,6 @@ void JsonURI::serialize(const json& data) const
             {}
             catch(std::runtime_error)
             {}
-
             file.open(m_filePath);
             parentData[m_jsonPointer] = data;
             file << parentData.dump(1, '\t') << std::flush;

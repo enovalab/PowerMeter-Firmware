@@ -12,6 +12,7 @@
 #include <AsyncElegantOTA.h>
 #include <LittleFS.h>
 #include <fstream>
+#include <vector>
 
 using namespace Device;
 
@@ -19,7 +20,7 @@ namespace
 {
     Measuring::ACPowerMeter powerMeter(33, 32);
     Time::DS3231 rtc;
-    Data::Tracker tracker(rtc);
+    std::vector<Data::Tracker> trackers;
     AsyncWebServer server(80);
     AsyncWebSocket powerWebsocket("/ws/power");
     Connectivity::RestAPI api(&server, "/api", {
@@ -35,11 +36,13 @@ namespace
         return Connectivity::RestAPI::JsonResponse(jsonURI.deserialize());
     }
 
+
     Connectivity::RestAPI::JsonResponse handlePutJsonURI(const Data::JsonURI& jsonURI, const json& data)
     {
         jsonURI.serialize(data);
         return Connectivity::RestAPI::JsonResponse(jsonURI.deserialize());
     }
+
 
     Connectivity::RestAPI::JsonResponse handlePatchJsonURI(const Data::JsonURI& jsonURI, const json& data)
     {
@@ -53,6 +56,7 @@ namespace
         jsonURI.serialize(storedData);
         return Connectivity::RestAPI::JsonResponse(jsonURI.deserialize());
     }
+
 
     void configureLogger(const Data::JsonURI& loggerConfigURI)
     {
@@ -119,11 +123,11 @@ namespace
             api.handle(Connectivity::HTTP::Method::Get, "/power", [](json){
                 json data;
                 Measuring::ACPower power = powerMeter.measure();
-                data["voltage"] = power.getVoltageRms();
-                data["current"] = power.getCurrentRms();
-                data["active"] = power.getActivePower();
-                data["apparent"] = power.getApparentPower();
-                data["reactive"] = power.getReactivePower();
+                data["voltage_Vrms"] = power.getVoltage_Vrms();
+                data["current_Arms"] = power.getCurrent_Arms();
+                data["activePower_W"] = power.getActivePower_W();
+                data["apparentPower_VA"] = power.getApparentPower_VA();
+                data["reactivePower_var"] = power.getReactivePower_var();
                 data["powerFactor"] = power.getPowerFactor();
                 return Connectivity::RestAPI::JsonResponse(data);
             });
@@ -182,54 +186,37 @@ namespace
     }
 
 
-    void configureTracker(const Data::JsonURI& trackerConfigURI)
+    void configureTrackers(const Data::JsonURI& trackerConfigURI)
     {
         try
         {
-            Diagnostics::Logger[Level::Info] << "Configuring tracker..." << std::endl;
-            json jsonTrackingSpans = trackerConfigURI.deserialize();
-            std::vector<Data::TrackingSpan> trackingSpans;
-
-            for(const auto &jsonTrackingSpan : jsonTrackingSpans.items())
+            Diagnostics::Logger[Level::Info] << "Configuring trackers..." << std::endl;
+            json jsonTrackers = trackerConfigURI.deserialize();
+            for(const auto& jsonTracker : jsonTrackers)
             {
-                const Data::JsonURI &targetURI = Data::JsonURI(jsonTrackingSpan.value().at("targetURI"));
-                const Data::JsonURI &lastSampleURI = Data::JsonURI(jsonTrackingSpan.value().at("lastSampleURI"));
-                uint32_t timeSpanSeconds = jsonTrackingSpan.value().at("timeSpanSeconds");
-                uint32_t numSamplesPerSpan = jsonTrackingSpan.value().at("numSamplesPerSpan");
-                const Data::JsonURI &averageURI = Data::JsonURI(jsonTrackingSpan.value().value("averageURI", ""));
-
-                trackingSpans.push_back(Data::TrackingSpan(targetURI, lastSampleURI, timeSpanSeconds, numSamplesPerSpan, averageURI));
-
-                api.handle(
-                    Connectivity::HTTP::Method::Get,
-                    std::string("/tracker/") + jsonTrackingSpan.key(),
-                    std::bind(handleGetJsonURI, Data::JsonURI(jsonTrackingSpan.value().at("targetURI")))
+                trackers.emplace_back(
+                    jsonTracker.at("title"),
+                    jsonTracker.at("duration_s"),
+                    jsonTracker.at("sampleCount"),
+                    rtc,
+                    Data::JsonURI(jsonTracker.at("dataURI")),
+                    Data::JsonURI(jsonTracker.at("lastInputURI")),
+                    Data::JsonURI(jsonTracker.at("lastSampleURI")),
+                    Data::JsonURI(jsonTracker.at("accumulatorURI"))
                 );
             }
+            
+            api.handle(Connectivity::HTTP::Method::Get, "/trackers", [](json){
+                json data = json::array_t();
+                for(const auto& tracker : trackers)
+                    data.push_back(tracker.getData());
 
-            api.handle(Connectivity::HTTP::Method::Get, "/tracker", [jsonTrackingSpans](json){
-                json jsonTrackerData;
-                for(const auto &jsonTrackingSpan : jsonTrackingSpans.items())
-                    jsonTrackerData[jsonTrackingSpan.key()] = Data::JsonURI(jsonTrackingSpan.value().at("targetURI")).deserialize();
-                // Diagnostics::Logger[Level::Debug] << jsonTrackerData.dump(1, ' ') << std::endl;
-                return Connectivity::RestAPI::JsonResponse(jsonTrackerData);
+                return Connectivity::RestAPI::JsonResponse(data);
             });
 
-            api.handle(Connectivity::HTTP::Method::Put, "/tracker", [jsonTrackingSpans](const json& jsonTrackerData){
-
-                for(const auto &jsonTrackingSpan : jsonTrackingSpans.items())
-                    Data::JsonURI(jsonTrackingSpan.value().at("targetURI")).serialize(jsonTrackerData.at(jsonTrackingSpan.key()));
-                return Connectivity::RestAPI::JsonResponse(jsonTrackerData);
-            });
-
-            tracker.setTrackingSpans(trackingSpans);
-            tracker.init();
-
-            api.handle(Connectivity::HTTP::Method::Get, "/config/tracker", std::bind(handleGetJsonURI, trackerConfigURI));
-            api.handle(Connectivity::HTTP::Method::Patch, "/config/tracker", [trackerConfigURI](const json &data){
-                Connectivity::RestAPI::JsonResponse jsonResponse = handlePatchJsonURI(trackerConfigURI, data);
-                configureTracker(trackerConfigURI);
-                return jsonResponse; 
+            api.handle(Connectivity::HTTP::Method::Get, "/config/trackers", std::bind(handleGetJsonURI, trackerConfigURI));
+            api.handle(Connectivity::HTTP::Method::Post, "/config/trackers", [](const json& data){
+                return Connectivity::RestAPI::JsonResponse();
             });
 
             Diagnostics::Logger[Level::Info] << "Tracker configured sucessfully." << std::endl;
@@ -237,7 +224,7 @@ namespace
         catch (...)
         {
             std::stringstream errorMessage;
-            errorMessage << SOURCE_LOCATION << "Failed to configure 'Data::Tracker' from \"" << trackerConfigURI << '"';
+            errorMessage << SOURCE_LOCATION << "Failed to configure trackers from \"" << trackerConfigURI << '"';
             Diagnostics::ExceptionTrace::trace(errorMessage.str());
             throw;
         }
@@ -414,7 +401,7 @@ bool PowerMeter::boot() noexcept
         configureMeasuring(Data::JsonURI(POWERMETER_MEASURING_CONFIG_URI));
         configureRelay(Data::JsonURI(POWERMETER_RELAY_CONFIG_URI));
         rtc.begin();
-        configureTracker(Data::JsonURI(POWERMETER_TRACKER_CONFIG_URI));
+        configureTrackers(Data::JsonURI(POWERMETER_TRACKER_CONFIG_URI));
     }
     catch(...)
     {
@@ -437,18 +424,17 @@ void PowerMeter::run() noexcept
     {
         Measuring::ACPower power = powerMeter.measure();
 
-        tracker.track(power.getActivePower());
+        // Diagnostics::Logger[Level::Debug]
+        //     << "U = " << power.getVoltage_Vrms() << " Vrms, "
+        //     << "I = " << power.getCurrent_Arms() << " Arms, "
+        //     << "P = " << power.getActivePower_W() << " W, "
+        //     << "S = " << power.getApparentPower_VA() << " VA, "
+        //     << "Q = " << power.getReactivePower_var() << " var, "
+        //     << "cosP = " << power.getPowerFactor() << std::endl;
 
-        json powerJson;
-        powerJson["voltage"] = power.getVoltageRms();
-        powerJson["current"] = power.getCurrentRms();
-        powerJson["active"] = power.getActivePower();
-        powerJson["apparent"] = power.getApparentPower();
-        powerJson["reactive"] = power.getReactivePower();
-        powerJson["powerFactor"] = power.getPowerFactor();
-        powerWebsocket.textAll(powerJson.dump().c_str());
-        powerWebsocket.cleanupClients();
-
+        for(auto& tracker : trackers)
+            tracker.track(power.getActivePower_W());
+        
         delay(500);
     }
     catch(...)

@@ -7,9 +7,9 @@
 constexpr uint8_t voltagePin = 33;
 constexpr uint8_t currentPin = 32;
 
-constexpr float voltageCalibration = 587.1;
+constexpr float voltageCalibration = 536.9;
 constexpr float currentCalibration = 15.7;
-constexpr float phaseCalibration = -1.1;
+constexpr float phaseCalibration = -5.6;
 
 
 Measuring::ACPowerMeter powerMeter(voltagePin, currentPin);
@@ -35,11 +35,11 @@ void setup()
     api.handle(Connectivity::HTTP::Method::Get, "/power", [](json){
         json data;
         power = powerMeter.measure();
-        data["voltage"] = power.getVoltageRms();
-        data["current"] = power.getCurrentRms();
-        data["active"] = power.getActivePower();
-        data["apparent"] = power.getApparentPower();
-        data["reactive"] = power.getReactivePower();
+        data["voltage_V"] = power.getVoltage_Vrms();
+        data["current_A"] = power.getCurrent_Arms();
+        data["activePower_W"] = power.getActivePower_W();
+        data["apparentPower_VA"] = power.getApparentPower_VA();
+        data["reactivePower_var"] = power.getReactivePower_var();
         data["powerFactor"] = power.getPowerFactor();
         return Connectivity::RestAPI::JsonResponse(data);
     });
@@ -58,10 +58,10 @@ void loop()
 {
     power = powerMeter.measure();
     Diagnostics::Logger[Level::Info]
-        << "U = " << power.getVoltageRms() << " Vrms, "
-        << "I = " << power.getCurrentRms() << " Arms, "
-        << "P = " << power.getActivePower() << " W, "
-        << "S = " << power.getApparentPower() << " VA, "
-        << "Q = " << power.getReactivePower() << " var, "
+        << "U = " << power.getVoltage_Vrms() << " Vrms, "
+        << "I = " << power.getCurrent_Arms() << " Arms, "
+        << "P = " << power.getActivePower_W() << " W, "
+        << "S = " << power.getApparentPower_VA() << " VA, "
+        << "Q = " << power.getReactivePower_var() << " var, "
         << "cosP = " << power.getPowerFactor() << std::endl;
 }

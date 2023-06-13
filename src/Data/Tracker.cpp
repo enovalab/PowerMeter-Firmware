@@ -2,7 +2,8 @@
 #include "Diagnostics/Log.h"
 #include "Diagnostics/ExceptionTrace.h"
 
-#include "math.h"
+#include <math.h>
+#include <sstream>
 
 using namespace Data;
 
@@ -15,7 +16,7 @@ Tracker::Tracker(
     const JsonURI& lastInputURI,
     const JsonURI& lastSampleURI,
     const AverageAccumulator& accumulator
-) : 
+) noexcept : 
     m_title(title),
     m_duration_s(duration_s),
     m_sampleCount(sampleCount),
@@ -29,71 +30,110 @@ Tracker::Tracker(
 
 void Tracker::track(float value)
 {
-    if(!isfinite(value))
-        throw std::runtime_error("value must be finite number");
-
-    time_t secondsSinceLastInput = m_clock.now() - getTimestamp(m_lastInputURI);
-
-    if(secondsSinceLastInput <= 0)
-        return;
-    
-    for(size_t i = 0; i < secondsSinceLastInput; i++)
+    try
     {
-        m_lastInputURI.serialize(m_clock.now());
-        m_accumulator.add(value);
+        Diagnostics::Logger[Level::Debug] << "Tracking..." << std::endl;
+        if(!isfinite(value))
+            value = 0.0f;
+
+        time_t lastInputTimestamp = getTimestamp(m_lastInputURI);
+        time_t secondsSinceLastInput = m_clock.now() - lastInputTimestamp;
+        Diagnostics::Logger[Level::Debug] << "now: " << m_clock.now() << std::endl;
+        Diagnostics::Logger[Level::Debug] << "lastInputTimestamp: " << lastInputTimestamp << std::endl;
+
+        if(secondsSinceLastInput <= 0)
+            return;
+        
+        for(size_t i = 0; i < secondsSinceLastInput; i++)
+        {
+            m_lastInputURI.serialize(m_clock.now());
+            m_accumulator.add(value);
+        }
+        
+        time_t lastSampleTimestamp = getTimestamp(m_lastSampleURI);
+        uint32_t timesElapsed = (m_clock.now() - lastSampleTimestamp) / (m_duration_s / m_sampleCount);
+
+        Diagnostics::Logger[Level::Debug] << "secondsSinceLastInput: " << secondsSinceLastInput << std::endl;
+        Diagnostics::Logger[Level::Debug] << "timesElapsed: " << timesElapsed << std::endl;
+        Diagnostics::Logger[Level::Debug] << "lastSampleTimestamp: " << lastSampleTimestamp << std::endl;
+
+        if(timesElapsed > 0)
+        {
+            for(size_t i = 0; i < timesElapsed - 1; i++)
+                updateData(0.0f);
+
+            updateData(m_accumulator.getAverage());
+            m_accumulator.reset();
+        }
     }
-
-    
-    uint32_t timesElapsed = (m_clock.now() - getTimestamp(m_lastSampleURI)) / (m_duration_s / m_sampleCount);
-
-    if(timesElapsed > 0)
+    catch(...)
     {
-        for(size_t i = 0; i < timesElapsed - 1; i++)
-            updateData(0.0f);
-
-        updateData(m_accumulator.getAverage());
-        m_accumulator.reset();
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to track " << value;
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
+        throw;
     }
 }
 
 
 json Tracker::getData() const
 {
-    json data;
-    data["title"] = m_title;
-    data["sampleCount"] = m_sampleCount;
-    data["duration_s"] = m_duration_s;
     try
     {
-        data["data"] = m_dataURI.deserialize();
+        json data;
+        data["title"] = m_title;
+        data["sampleCount"] = m_sampleCount;
+        data["duration_s"] = m_duration_s;
+        try
+        {
+            data["data"] = m_dataURI.deserialize();
+        }
+        catch(...)
+        {
+            Diagnostics::ExceptionTrace::clear();
+            data["data"] = json::array_t();
+        }
+        return data;
     }
     catch(...)
     {
-        Diagnostics::ExceptionTrace::clear();
-        data["data"] = json::array_t();
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to get Data";
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
+        throw;
     }
-    return data;
 }
 
 
 void Tracker::updateData(float value)
 {
-    json values;
     try
     {
-        values = m_dataURI.deserialize();
-    }                     
+        json values;
+        try
+        {
+            values = m_dataURI.deserialize();
+        }                     
+        catch(...)
+        {
+            Diagnostics::ExceptionTrace::clear();
+        }
+        values.push_back(value);
+
+        if(values.size() > m_sampleCount)
+            values.erase(values.begin());
+        
+        m_dataURI.serialize(values);
+        Diagnostics::Logger[Level::Debug] << "updated Tracker Data: " << values;
+        m_lastSampleURI.serialize(m_clock.now());
+    }
     catch(...)
     {
-        Diagnostics::ExceptionTrace::clear();
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to update Data " << value;
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
+        throw;
     }
-    values.push_back(value);
-
-    if(values.size() > m_sampleCount)
-        values.erase(values.begin());
-    
-    m_dataURI.serialize(values);
-    m_lastSampleURI.serialize(m_clock.now());
 }
 
 

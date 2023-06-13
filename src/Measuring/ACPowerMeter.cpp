@@ -4,7 +4,6 @@
 #include "Diagnostics/ExceptionTrace.h"
 #include "Diagnostics/Log.h"
 #include <EmonLib.h>
-#include <sstream>
 #include <math.h>
 
 
@@ -25,10 +24,8 @@ void ACPowerMeter::calibrate(float calU, float calI, float calPhase) noexcept
 
 ACPower ACPowerMeter::measure() noexcept
 {
-    // emon.calcVI(40, 4000);
-    // return ACPower(emon.Vrms, emon.Irms, emon.realPower);
-    delayMicroseconds(400000);
-    return ACPower(230, 1.5, random(300, 345));
+    emon.calcVI(40, 4000);
+    return ACPower(emon.Vrms, emon.Irms, emon.realPower);
 }
 
 #endif

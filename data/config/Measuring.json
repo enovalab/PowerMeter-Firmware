@@ -4,8 +4,8 @@
         "current": 32
     },
     "calibration": {
-        "voltage": 587.1,
+        "voltage": 536.9,
         "current": 15.7,
-        "phase": -1.5
+        "phase": -5.6
     }
 }
