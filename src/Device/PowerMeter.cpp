@@ -13,6 +13,7 @@
 #include <LittleFS.h>
 #include <fstream>
 #include <vector>
+#include <dirent.h>
 
 using namespace Device;
 
@@ -30,6 +31,38 @@ namespace
         Connectivity::HTTP::Header("Access-Control-Allow-Origin", "*"),
         Connectivity::HTTP::Header("Access-Control-Allow-Headers", "*")
     });
+
+
+    void printDirectoryHierarchy(const std::string& directoryPath, int level = 0) {
+        DIR* dir;
+        struct dirent* entry;
+
+        if ((dir = opendir(directoryPath.c_str())) == nullptr) {
+            std::cout << "Invalid directory path: " << directoryPath << std::endl;
+            return;
+        }
+
+        while ((entry = readdir(dir)) != nullptr) {
+            if (std::string(entry->d_name) == "." || std::string(entry->d_name) == "..") {
+                continue;
+            }
+
+            std::string fullPath = directoryPath + "/" + entry->d_name;
+
+            if (entry->d_type == DT_DIR) {
+                // Print the current directory with appropriate indentation
+                std::cout << std::string(level, '\t') << "[+] " << entry->d_name << std::endl;
+
+                // Recursively call the function for subdirectories
+                printDirectoryHierarchy(fullPath, level + 1);
+            } else {
+                // Print files within the directory with indentation
+                std::cout << std::string(level, '\t') << " - " << entry->d_name << std::endl;
+            }
+        }
+
+        closedir(dir);
+    }
 
     Connectivity::RestAPI::JsonResponse handleGetJsonURI(const Data::JsonURI& jsonURI)
     {
@@ -415,6 +448,8 @@ bool PowerMeter::boot() noexcept
 
     server.addHandler(&powerWebsocket);
     server.begin();
+
+
     return success;
 }
 
@@ -435,6 +470,7 @@ void PowerMeter::run() noexcept
         for(auto& tracker : trackers)
             tracker.track(power.getActivePower_W());
         
+        printDirectoryHierarchy("/littlefs");
         delay(500);
     }
     catch(...)

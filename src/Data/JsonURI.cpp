@@ -5,9 +5,13 @@
 #include <fstream>
 #include <exception>
 #include <sstream>
+#include <regex>
+
+#ifdef ESP32
+#include <sys/stat.h>
+#endif
 
 using namespace Data;
-
 
 JsonURI::JsonURI(const std::string& filePath, const json::json_pointer& jsonPointer) noexcept :
     m_filePath(filePath),
@@ -44,6 +48,17 @@ void JsonURI::serialize(const json& data) const
 {
     try
     {
+        #ifdef ESP32
+            std::regex directoryRegex("\\/[^\\/]+(?=\\/)");
+            std::string currentDirectory = "";
+            for(std::sregex_iterator i(m_filePath.begin(), m_filePath.end(), directoryRegex); i != std::sregex_iterator(); i++)
+            {
+                std::smatch match = *i;
+                currentDirectory += match.str();
+                mkdir(currentDirectory.c_str(), 0777);
+            }
+        #endif
+        
         std::ofstream file;
         if(m_jsonPointer.empty())
         {

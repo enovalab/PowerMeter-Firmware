@@ -5,7 +5,6 @@
 #include "Diagnostics/Log.h"
 
 #include <gtest/gtest.h>
-#include <ctime>
 
 using namespace Data;
 
