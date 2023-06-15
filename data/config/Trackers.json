@@ -2,10 +2,6 @@
     {
         "title": "Last 60 Minutes",
         "duration_s": 3600,
-        "sampleCount": 60,
-        "dataURI": "/littlefs/trackers/0/data.json",
-        "lastInputURI": "/littlefs/trackers/0/timestamps.json#/lastInput",
-        "lastSampleURI": "/littlefs/trackers/0/timestamps.json#/lastSample",
-        "accumulatorURI": "/littlefs/trackers/0/accumulator.json"
+        "sampleCount": 60
     }
 ]

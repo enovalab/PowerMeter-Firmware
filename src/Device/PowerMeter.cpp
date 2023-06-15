@@ -225,20 +225,48 @@ namespace
         {
             Diagnostics::Logger[Level::Info] << "Configuring trackers..." << std::endl;
             json jsonTrackers = trackerConfigURI.deserialize();
-            for(const auto& jsonTracker : jsonTrackers)
+            for(size_t i = 0; i < jsonTrackers.size(); i++)
             {
+                std::stringstream trackerDirectory;
+                trackerDirectory << POWERMETER_TRACKERS_DIRECTORY << "/" << i;
+
                 trackers.emplace_back(
-                    jsonTracker.at("title"),
-                    jsonTracker.at("duration_s"),
-                    jsonTracker.at("sampleCount"),
+                    jsonTrackers[i].at("title"),
+                    jsonTrackers[i].at("duration_s"),
+                    jsonTrackers[i].at("sampleCount"),
                     rtc,
-                    Data::JsonURI(jsonTracker.at("dataURI")),
-                    Data::JsonURI(jsonTracker.at("lastInputURI")),
-                    Data::JsonURI(jsonTracker.at("lastSampleURI")),
-                    Data::JsonURI(jsonTracker.at("accumulatorURI"))
+                    Data::JsonURI(trackerDirectory.str() + "/data.json"),
+                    Data::JsonURI(trackerDirectory.str() + "/timestamps.json#/lastInput"),
+                    Data::JsonURI(trackerDirectory.str() + "/timestamps.json#/lastSample"),
+                    Data::JsonURI(trackerDirectory.str() + "/accumulator.json")
                 );
             }
             
+            for(size_t i = 0; i < trackers.size(); i++)
+            {
+                std::stringstream configURL;
+                configURL << "/config/trackers/" << i;
+                std::stringstream dataURL;
+                dataURL << "/trackers/" << i;
+
+                api.handle(Connectivity::HTTP::Method::Get, configURL.str(), [trackerConfigURI, i](json){
+                    return Connectivity::RestAPI::JsonResponse(trackerConfigURI.deserialize().at(i));
+                });
+
+                api.handle(Connectivity::HTTP::Method::Delete, configURL.str(), [](json){
+                    return Connectivity::RestAPI::JsonResponse();
+                });
+
+                api.handle(Connectivity::HTTP::Method::Get, dataURL.str(), [trackerConfigURI, i](json){
+                    return Connectivity::RestAPI::JsonResponse(trackers[i].getData());
+                });
+            }
+
+            api.handle(Connectivity::HTTP::Method::Get, "/config/trackers", std::bind(handleGetJsonURI, trackerConfigURI));
+            api.handle(Connectivity::HTTP::Method::Post, "/config/trackers", [](const json& data){
+                return Connectivity::RestAPI::JsonResponse();
+            });
+
             api.handle(Connectivity::HTTP::Method::Get, "/trackers", [](json){
                 json data = json::array_t();
                 for(const auto& tracker : trackers)
@@ -247,12 +275,7 @@ namespace
                 return Connectivity::RestAPI::JsonResponse(data);
             });
 
-            api.handle(Connectivity::HTTP::Method::Get, "/config/trackers", std::bind(handleGetJsonURI, trackerConfigURI));
-            api.handle(Connectivity::HTTP::Method::Post, "/config/trackers", [](const json& data){
-                return Connectivity::RestAPI::JsonResponse();
-            });
-
-            Diagnostics::Logger[Level::Info] << "Tracker configured sucessfully." << std::endl;
+            Diagnostics::Logger[Level::Info] << "Trackers configured sucessfully." << std::endl;
         }
         catch (...)
         {
@@ -434,7 +457,7 @@ bool PowerMeter::boot() noexcept
         configureMeasuring(Data::JsonURI(POWERMETER_MEASURING_CONFIG_URI));
         configureRelay(Data::JsonURI(POWERMETER_RELAY_CONFIG_URI));
         rtc.begin();
-        configureTrackers(Data::JsonURI(POWERMETER_TRACKER_CONFIG_URI));
+        configureTrackers(Data::JsonURI(POWERMETER_TRACKERS_CONFIG_URI));
     }
     catch(...)
     {
@@ -469,8 +492,9 @@ void PowerMeter::run() noexcept
 
         for(auto& tracker : trackers)
             tracker.track(power.getActivePower_W());
-        
+
         printDirectoryHierarchy("/littlefs");
+    
         delay(500);
     }
     catch(...)
