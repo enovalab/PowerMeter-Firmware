@@ -1,7 +1,7 @@
-[
-    {
+{
+    "0": {
         "title": "Last 60 Minutes",
         "duration_s": 3600,
         "sampleCount": 60
     }
-]
+}

@@ -12,7 +12,7 @@
 #include <AsyncElegantOTA.h>
 #include <LittleFS.h>
 #include <fstream>
-#include <vector>
+#include <unordered_map>
 #include <dirent.h>
 
 using namespace Device;
@@ -21,7 +21,7 @@ namespace
 {
     Measuring::ACPowerMeter powerMeter(33, 32);
     Time::DS3231 rtc;
-    std::vector<Data::Tracker> trackers;
+    std::unordered_map<std::string, Data::Tracker> trackers;
     AsyncWebServer server(80);
     AsyncWebSocket powerWebsocket("/ws/power");
     Connectivity::RestAPI api(&server, "/api", {
@@ -224,53 +224,44 @@ namespace
         try
         {
             Diagnostics::Logger[Level::Info] << "Configuring trackers..." << std::endl;
+
             json jsonTrackers = trackerConfigURI.deserialize();
-            for(size_t i = 0; i < jsonTrackers.size(); i++)
+            for(const auto& jsonTracker : jsonTrackers.items())
             {
                 std::stringstream trackerDirectory;
-                trackerDirectory << POWERMETER_TRACKERS_DIRECTORY << "/" << i;
+                trackerDirectory << POWERMETER_TRACKERS_DIRECTORY << "/" << jsonTracker.key();
 
-                trackers.emplace_back(
-                    jsonTrackers[i].at("title"),
-                    jsonTrackers[i].at("duration_s"),
-                    jsonTrackers[i].at("sampleCount"),
-                    rtc,
+                trackers.emplace(jsonTracker.key(), Data::Tracker(
+                    jsonTracker.value().at("title"),
+                    jsonTracker.value().at("duration_s"),
+                    jsonTracker.value().at("sampleCount"),
+                    &rtc,
                     Data::JsonURI(trackerDirectory.str() + "/data.json"),
                     Data::JsonURI(trackerDirectory.str() + "/timestamps.json#/lastInput"),
                     Data::JsonURI(trackerDirectory.str() + "/timestamps.json#/lastSample"),
-                    Data::JsonURI(trackerDirectory.str() + "/accumulator.json")
-                );
-            }
-            
-            for(size_t i = 0; i < trackers.size(); i++)
-            {
+                    Data::AverageAccumulator(Data::JsonURI(trackerDirectory.str() + "/accumulator.json"))
+                ));
+
                 std::stringstream configURL;
-                configURL << "/config/trackers/" << i;
-                std::stringstream dataURL;
-                dataURL << "/trackers/" << i;
-
-                api.handle(Connectivity::HTTP::Method::Get, configURL.str(), [trackerConfigURI, i](json){
-                    return Connectivity::RestAPI::JsonResponse(trackerConfigURI.deserialize().at(i));
-                });
-
+                configURL << "/config/trackers/" << jsonTracker.key();
                 api.handle(Connectivity::HTTP::Method::Delete, configURL.str(), [](json){
                     return Connectivity::RestAPI::JsonResponse();
-                });
-
-                api.handle(Connectivity::HTTP::Method::Get, dataURL.str(), [trackerConfigURI, i](json){
-                    return Connectivity::RestAPI::JsonResponse(trackers[i].getData());
                 });
             }
 
             api.handle(Connectivity::HTTP::Method::Get, "/config/trackers", std::bind(handleGetJsonURI, trackerConfigURI));
-            api.handle(Connectivity::HTTP::Method::Post, "/config/trackers", [](const json& data){
-                return Connectivity::RestAPI::JsonResponse();
+            api.handle(Connectivity::HTTP::Method::Post, "/config/trackers", [trackerConfigURI](const json& data){
+                json configJson = trackerConfigURI.deserialize();
+                configJson[std::to_string(rtc.now())] = data;
+                trackerConfigURI.serialize(configJson);
+                configureTrackers(trackerConfigURI);
+                return Connectivity::RestAPI::JsonResponse(configJson, Connectivity::HTTP::StatusCode::Created);
             });
 
             api.handle(Connectivity::HTTP::Method::Get, "/trackers", [](json){
-                json data = json::array_t();
+                json data = json::object_t();
                 for(const auto& tracker : trackers)
-                    data.push_back(tracker.getData());
+                    data[tracker.first] = tracker.second.getData();
 
                 return Connectivity::RestAPI::JsonResponse(data);
             });
@@ -491,7 +482,7 @@ void PowerMeter::run() noexcept
         //     << "cosP = " << power.getPowerFactor() << std::endl;
 
         for(auto& tracker : trackers)
-            tracker.track(power.getActivePower_W());
+            tracker.second.track(power.getActivePower_W());
 
         printDirectoryHierarchy("/littlefs");
     
