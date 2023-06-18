@@ -33,7 +33,8 @@ namespace
     });
 
 
-    void printDirectoryHierarchy(const std::string& directoryPath, int level = 0) {
+    void printDirectoryHierarchy(const std::string& directoryPath, int level = 0)
+    {
         DIR* dir;
         struct dirent* entry;
 
@@ -62,6 +63,28 @@ namespace
         }
 
         closedir(dir);
+    }
+
+    void deleteDirectory(const std::string& path)
+    {
+        DIR* dir = opendir(path.c_str());
+        if (dir) {
+            struct dirent* entry;
+            while ((entry = readdir(dir)) != nullptr) {
+                if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+                    std::string entryPath = path + "/" + entry->d_name;
+                    if (entry->d_type == DT_DIR) {
+                        deleteDirectory(entryPath);
+                    } else {
+                        remove(entryPath.c_str());
+                    }
+                }
+            }
+            closedir(dir);
+            rmdir(path.c_str());
+        } else {
+            std::cout << "Directory does not exist: " << path << std::endl;
+        }
     }
 
     Connectivity::RestAPI::JsonResponse handleGetJsonURI(const Data::JsonURI& jsonURI)
@@ -228,24 +251,32 @@ namespace
             json jsonTrackers = trackerConfigURI.deserialize();
             for(const auto& jsonTracker : jsonTrackers.items())
             {
+                std::string key = jsonTracker.key();
                 std::stringstream trackerDirectory;
-                trackerDirectory << POWERMETER_TRACKERS_DIRECTORY << "/" << jsonTracker.key();
+                trackerDirectory << POWERMETER_TRACKERS_DIRECTORY << key << '/';
+                Diagnostics::Logger[Level::Debug] << trackerDirectory.str() << std::endl;
 
-                trackers.emplace(jsonTracker.key(), Data::Tracker(
+                trackers.emplace(key, Data::Tracker(
                     jsonTracker.value().at("title"),
                     jsonTracker.value().at("duration_s"),
                     jsonTracker.value().at("sampleCount"),
-                    &rtc,
-                    Data::JsonURI(trackerDirectory.str() + "/data.json"),
-                    Data::JsonURI(trackerDirectory.str() + "/timestamps.json#/lastInput"),
-                    Data::JsonURI(trackerDirectory.str() + "/timestamps.json#/lastSample"),
-                    Data::AverageAccumulator(Data::JsonURI(trackerDirectory.str() + "/accumulator.json"))
+                    rtc,
+                    Data::JsonURI(trackerDirectory.str() + "data.json"),
+                    Data::JsonURI(trackerDirectory.str() + "timestamps.json#/lastInput"),
+                    Data::JsonURI(trackerDirectory.str() + "timestamps.json#/lastSample"),
+                    Data::AverageAccumulator(Data::JsonURI(trackerDirectory.str() + "accumulator.json"))
                 ));
 
                 std::stringstream configURL;
-                configURL << "/config/trackers/" << jsonTracker.key();
-                api.handle(Connectivity::HTTP::Method::Delete, configURL.str(), [](json){
-                    return Connectivity::RestAPI::JsonResponse();
+                configURL << "/config/trackers/" << key;
+                api.handle(Connectivity::HTTP::Method::Delete, configURL.str(), [trackerConfigURI, key](json){
+                    Diagnostics::Logger[Level::Debug] << "handling Delete" << std::endl;
+                    json configJson = trackerConfigURI.deserialize();
+                    configJson.erase(key);
+                    trackerConfigURI.serialize(configJson);
+                    LittleFS.rmdir("/bruh");
+                    configureTrackers(trackerConfigURI);
+                    return Connectivity::RestAPI::JsonResponse(configJson);
                 });
             }
 
@@ -254,6 +285,7 @@ namespace
                 json configJson = trackerConfigURI.deserialize();
                 configJson[std::to_string(rtc.now())] = data;
                 trackerConfigURI.serialize(configJson);
+
                 configureTrackers(trackerConfigURI);
                 return Connectivity::RestAPI::JsonResponse(configJson, Connectivity::HTTP::StatusCode::Created);
             });

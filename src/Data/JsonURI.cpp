@@ -110,6 +110,12 @@ json JsonURI::deserialize() const
 }
 
 
+void JsonURI::erase() const
+{
+    
+}
+
+
 void JsonURI::setJsonPointer(const json::json_pointer& jsonPointer) noexcept
 {
     m_jsonPointer = jsonPointer;

@@ -11,7 +11,7 @@ Tracker::Tracker(
     const std::string& title,
     time_t duration_s,
     size_t sampleCount,
-    const Time::Clock* clock,
+    const Time::Clock& clock,
     const JsonURI& dataURI,
     const JsonURI& lastInputURI,
     const JsonURI& lastSampleURI,
@@ -32,30 +32,23 @@ void Tracker::track(float value)
 {
     try
     {
-        Diagnostics::Logger[Level::Debug] << "Tracking..." << std::endl;
         if(!isfinite(value))
             value = 0.0f;
 
         time_t lastInputTimestamp = getTimestamp(m_lastInputURI);
-        time_t secondsSinceLastInput = m_clock->now() - lastInputTimestamp;
-        Diagnostics::Logger[Level::Debug] << "now: " << m_clock->now() << std::endl;
-        Diagnostics::Logger[Level::Debug] << "lastInputTimestamp: " << lastInputTimestamp << std::endl;
+        time_t secondsSinceLastInput = m_clock.now() - lastInputTimestamp;
 
         if(secondsSinceLastInput <= 0)
             return;
         
         for(size_t i = 0; i < secondsSinceLastInput; i++)
         {
-            m_lastInputURI.serialize(m_clock->now());
+            m_lastInputURI.serialize(m_clock.now());
             m_accumulator.add(value);
         }
         
         time_t lastSampleTimestamp = getTimestamp(m_lastSampleURI);
-        uint32_t timesElapsed = (m_clock->now() - lastSampleTimestamp) / (m_duration_s / m_sampleCount);
-
-        Diagnostics::Logger[Level::Debug] << "secondsSinceLastInput: " << secondsSinceLastInput << std::endl;
-        Diagnostics::Logger[Level::Debug] << "timesElapsed: " << timesElapsed << std::endl;
-        Diagnostics::Logger[Level::Debug] << "lastSampleTimestamp: " << lastSampleTimestamp << std::endl;
+        uint32_t timesElapsed = (m_clock.now() - lastSampleTimestamp) / (m_duration_s / m_sampleCount);
 
         if(timesElapsed > 0)
         {
@@ -105,6 +98,12 @@ json Tracker::getData() const
 }
 
 
+void Tracker::erase() const
+{
+    
+}
+
+
 void Tracker::updateData(float value)
 {
     try
@@ -124,8 +123,7 @@ void Tracker::updateData(float value)
             values.erase(values.begin());
         
         m_dataURI.serialize(values);
-        Diagnostics::Logger[Level::Debug] << "updated Tracker Data: " << values;
-        m_lastSampleURI.serialize(m_clock->now());
+        m_lastSampleURI.serialize(m_clock.now());
     }
     catch(...)
     {
@@ -146,7 +144,7 @@ time_t Tracker::getTimestamp(const JsonURI& timestampURI)
     catch(...) 
     {
         Diagnostics::ExceptionTrace::clear();
-        timestampURI.serialize(m_clock->now());
-        return m_clock->now();
+        timestampURI.serialize(m_clock.now());
+        return m_clock.now();
     }
 }

@@ -15,6 +15,7 @@ namespace Data
         
         json deserialize() const;
         void serialize(const json& data) const;
+        void erase() const;
 
         void setJsonPointer(const json::json_pointer& jsonPointer) noexcept;
         void setFilePath(const std::string& path) noexcept;

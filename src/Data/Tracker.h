@@ -14,7 +14,7 @@ namespace Data
             const std::string& title,
             time_t duration_s,
             size_t sampleCount,
-            const Time::Clock* clock,
+            const Time::Clock& clock,
             const JsonURI& dataURI,
             const JsonURI& lastInputURI,
             const JsonURI& lastSampleURI,
@@ -22,6 +22,7 @@ namespace Data
         ) noexcept;
         void track(float value);
         json getData() const;
+        void erase() const;
 
     private:
         void updateData(float value);
@@ -30,7 +31,7 @@ namespace Data
         std::string m_title;
         time_t m_duration_s;
         size_t m_sampleCount;
-        const Time::Clock* m_clock;
+        const Time::Clock& m_clock;
         JsonURI m_dataURI;
         JsonURI m_lastInputURI;
         JsonURI m_lastSampleURI;
