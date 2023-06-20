@@ -100,7 +100,10 @@ json Tracker::getData() const
 
 void Tracker::erase() const
 {
-    
+    m_dataURI.erase();
+    m_lastInputURI.erase();
+    m_lastSampleURI.erase();
+    m_accumulator.erase();
 }
 
 

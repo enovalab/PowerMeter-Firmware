@@ -42,6 +42,12 @@ void AverageAccumulator::reset()
 }
 
 
+void AverageAccumulator::erase() const
+{
+    m_storageURI.erase();
+}
+
+
 void AverageAccumulator::serialize()
 {
     json data;

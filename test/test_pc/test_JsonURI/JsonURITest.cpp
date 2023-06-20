@@ -1,29 +1,24 @@
 #include "Data/JsonURI.h"
+
 #include <gtest/gtest.h>
-#include <filesystem>
-#include <fstream>
+#include <Arduino.h>
+#include <LittleFS.h>
+
 
 using Data::JsonURI;
 
 const std::string testFilePath = "JsonResourceTest.json";
 const json::json_pointer testJsonPointer = "/1/bar"_json_pointer;
-
+const json testData = {
+    {"foo", 1.0},
+    {"bar", 2.0},
+    {"baz", 3.0},
+    {"buz", nullptr}
+};
 
 struct JsonURITest : public testing::Test
 {
-    virtual void TearDown() override
-    {
-        if(std::filesystem::exists(testFilePath))
-            std::filesystem::remove(testFilePath);
-    }
-
     JsonURI uut = JsonURI(testFilePath, testJsonPointer);
-    json testData = {
-        {"foo", 1.0},
-        {"bar", 2.0},
-        {"baz", 3.0},
-        {"buz", nullptr}
-    };
 };
 
 
@@ -103,9 +98,34 @@ TEST_F(JsonURITest, checkAppend)
     EXPECT_EQ(testJsonPointer / "/a/b"_json_pointer, actual.getJsonPointer());
 }
 
-
-int main()
+TEST_F(JsonURITest, shouldCreateAndEraseDirectory)
 {
-    testing::InitGoogleTest();
-    return RUN_ALL_TESTS();
+    std::cout << "Should be empty" << std::endl;
+    EXPECT_FALSE(LittleFS.exists(filePath.c_str()));
+    printDirectoryHierarchy();
+
+    std::cout << "Serializing..." << std::endl;
+    JsonURI uut(filePath, jsonPointer);
+    uut.serialize(testData);
+    JsonURI("/foo/yeay").serialize(testValue);
+    printDirectoryHierarchy();
+    EXPECT_TRUE(LittleFS.exists(filePath.c_str()));
+
+    std::cout << "Erasing..." << std::endl;
+    uut.erase();
+    printDirectoryHierarchy();
+    // EXPECT_FALSE(LittleFS.exists(filePath.c_str()));
 }
+
+void setup()
+{
+    Serial.begin(115200);
+    LittleFS.begin(true, "");
+    LittleFS.format();
+
+    testing::InitGoogleTest();
+    RUN_ALL_TESTS();
+}
+
+void loop()
+{}

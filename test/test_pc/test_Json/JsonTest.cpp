@@ -4,16 +4,18 @@
 
 int main()
 {
-    std::ifstream file("testfile.json");
-    json object = json::parse(file);
-    std::cout << object << std::endl;
+    std::ifstream file("bla.json");
+    json data = json::parse(file);
+    std::cout << data.dump(2) << std::endl;
 
-    json::json_pointer ptr("/foo/bar");
+    json::json_pointer ptr("/1/lol");
 
-    std::string eraseKey = ptr.back();
-    ptr.pop_back();
-    object.at(ptr).erase(eraseKey);
+    json patch;    
+    patch["/0/op"_json_pointer] = "remove";
+    patch["/0/path"_json_pointer] = ptr.to_string();
 
-    std::cout << object << std::endl;
-    std::cout << object.empty() << std::endl;
+    data.patch_inplace(patch);
+    
+    std::cout << data.dump(2) << std::endl;
+    std::cout << std::boolalpha << data.empty() << std::endl;
 }

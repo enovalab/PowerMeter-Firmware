@@ -13,6 +13,7 @@ namespace Data
         size_t getCount();
         float add(float value);
         void reset();
+        void erase() const;
     
     private:
         void deserialize();
