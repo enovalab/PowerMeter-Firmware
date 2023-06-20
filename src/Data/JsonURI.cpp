@@ -117,7 +117,7 @@ void JsonURI::serialize(const json& data) const
                 Diagnostics::ExceptionTrace::clear();
             }
             file.open(m_filePath);
-            fileData[m_jsonPointer].update(data, true);
+            fileData[m_jsonPointer].merge_patch(data);
             file << fileData.dump(1, '\t') << std::flush;
         }
     }
