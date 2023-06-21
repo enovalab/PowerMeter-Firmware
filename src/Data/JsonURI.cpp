@@ -14,7 +14,7 @@
 
 #include <dirent.h>
 namespace{
-    void printDirectoryHierarchy(const std::string& directoryPath, int level = 0)
+    void printDirectoryHierarchy(const std::string& directoryPath = "", int level = 0)
     {
         DIR* dir;
         struct dirent* entry;
@@ -154,26 +154,36 @@ void JsonURI::erase() const
 {
     try
     {
-        // Erase at json level
-        Diagnostics::Logger[Level::Debug] << "Erasing " << *this << std::endl;
+        Diagnostics::Logger[Level::Debug] << "erasing " << *this << std::endl;
         std::string filePath = m_filePath;
         JsonURI fileURI(filePath);
-        Diagnostics::Logger[Level::Debug] << fileURI << std::endl;
-        json data = fileURI.deserialize();
 
-        // Diagnostics::Logger[Level::Debug] << "data: " << data.dump(2) << std::endl;
-        json patch;    
-        patch["/0/op"_json_pointer] = "remove";
-        patch["/0/path"_json_pointer] = m_jsonPointer.to_string();
-        data.patch_inplace(patch);
-        json flattenedData = data.flatten();
-        for(const auto& flattenedDataElement : flattenedData)
+        // Erase at json level
+        if(!m_jsonPointer.empty())
         {
-            if(!flattenedDataElement.empty())
+            json data = fileURI.deserialize();
+            json patch;
+            patch["/0/op"_json_pointer] = "remove";
+            patch["/0/path"_json_pointer] = m_jsonPointer.to_string();
+            try
             {
-                json data = flattenedData.unflatten();
-                fileURI.serialize(data);
-                return;
+                data.patch_inplace(patch);
+            }
+            catch(json::out_of_range)
+            {
+                Diagnostics::ExceptionTrace::clear();
+            }
+            json flattenedData = data.flatten();
+            for(const auto& flattenedDataElement : flattenedData)
+            {
+                if(!flattenedDataElement.empty())
+                {
+                    json data = flattenedData.unflatten();
+                    fileURI.serialize(data);
+                    Diagnostics::Logger[Level::Debug] << "Only erased at json level" << std::endl;
+                    Diagnostics::Logger[Level::Debug] << flattenedData.dump(2) << std::endl;
+                    return;
+                }
             }
         }
 
@@ -187,11 +197,13 @@ void JsonURI::erase() const
         };
         
         bool success = LittleFS.remove(m_filePath.c_str());
-        Diagnostics::Logger[Level::Debug] << "Removed file at: " << m_filePath << " sucessfull: " << std::boolalpha << success << std::endl;
+        Diagnostics::Logger[Level::Debug] << "delete File: " << filePath << ", success: " << success << std::endl;
         popBackPath(filePath);
         while(!filePath.empty())
         {
             bool success = LittleFS.rmdir(filePath.c_str());
+            // printDirectoryHierarchy();
+            Diagnostics::Logger[Level::Debug] << "rmdir: " << filePath << ", success: " << success << std::endl;
             popBackPath(filePath);
         }
 #endif

@@ -4,7 +4,7 @@
 
 int main()
 {
-    std::ifstream file("bla.json");
+    std::ifstream file("test.json");
     json data = json::parse(file);
     std::cout << data.dump(2) << std::endl;
 

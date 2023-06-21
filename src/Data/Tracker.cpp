@@ -98,7 +98,24 @@ json Tracker::getData() const
 }
 
 
-void Tracker::erase() const
+void Tracker::setData(const json& data)
+{
+    try
+    {
+        Diagnostics::Logger[Level::Debug] << "data: " << data.dump(2) << std::endl;
+        m_dataURI.serialize(data.at("data"));
+    }
+    catch(...)
+    {
+        std::stringstream errorMessage;
+        errorMessage << SOURCE_LOCATION << "Failed to set Data";
+        Diagnostics::ExceptionTrace::trace(errorMessage.str());
+        throw;
+    }
+}
+
+
+void Tracker::erase()
 {
     m_dataURI.erase();
     m_lastInputURI.erase();
@@ -138,7 +155,7 @@ void Tracker::updateData(float value)
 }
 
 
-time_t Tracker::getTimestamp(const JsonURI& timestampURI)
+time_t Tracker::getTimestamp(const JsonURI& timestampURI) const
 {
     try
     {

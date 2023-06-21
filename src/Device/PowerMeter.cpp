@@ -23,7 +23,6 @@ namespace
     Time::DS3231 rtc;
     std::unordered_map<std::string, Data::Tracker> trackers;
     AsyncWebServer server(80);
-    AsyncWebSocket powerWebsocket("/ws/power");
     Connectivity::RestAPI api(&server, "/api", {
         Connectivity::HTTP::Header("Access-Control-Request-Method", "*"),
         Connectivity::HTTP::Header("Access-Control-Expose-Headers", "*"),
@@ -33,7 +32,7 @@ namespace
     });
 
 
-    void printDirectoryHierarchy(const std::string& directoryPath, int level = 0)
+    void printDirectoryHierarchy(const std::string& directoryPath = "", int level = 0)
     {
         DIR* dir;
         struct dirent* entry;
@@ -65,27 +64,6 @@ namespace
         closedir(dir);
     }
 
-    void deleteDirectory(const std::string& path)
-    {
-        DIR* dir = opendir(path.c_str());
-        if (dir) {
-            struct dirent* entry;
-            while ((entry = readdir(dir)) != nullptr) {
-                if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
-                    std::string entryPath = path + "/" + entry->d_name;
-                    if (entry->d_type == DT_DIR) {
-                        deleteDirectory(entryPath);
-                    } else {
-                        remove(entryPath.c_str());
-                    }
-                }
-            }
-            closedir(dir);
-            rmdir(path.c_str());
-        } else {
-            std::cout << "Directory does not exist: " << path << std::endl;
-        }
-    }
 
     Connectivity::RestAPI::JsonResponse handleGetJsonURI(const Data::JsonURI& jsonURI)
     {
@@ -272,10 +250,10 @@ namespace
                 api.handle(Connectivity::HTTP::Method::Delete, configURL.str(), [trackerConfigURI, key](json){
                     Diagnostics::Logger[Level::Debug] << "handling Delete" << std::endl;
                     json configJson = trackerConfigURI.deserialize();
+                    trackers.at(key).erase();
+                    trackers.erase(key);
                     configJson.erase(key);
                     trackerConfigURI.serialize(configJson);
-                    LittleFS.rmdir("/bruh");
-                    configureTrackers(trackerConfigURI);
                     return Connectivity::RestAPI::JsonResponse(configJson);
                 });
             }
@@ -295,6 +273,12 @@ namespace
                 for(const auto& tracker : trackers)
                     data[tracker.first] = tracker.second.getData();
 
+                return Connectivity::RestAPI::JsonResponse(data);
+            });
+
+            api.handle(Connectivity::HTTP::Method::Put, "/trackers", [](const json& data){
+                for(const auto& dataItems : data.items())
+                    trackers.at(dataItems.key()).setData(dataItems.value());
                 return Connectivity::RestAPI::JsonResponse(data);
             });
 
@@ -449,10 +433,9 @@ bool PowerMeter::boot() noexcept
 {
     bool success = true;
     Serial.begin(115200);
-    LittleFS.begin(POWERMETER_FORMAT_FS_ON_FAIL, "/littlefs", 30);
+    LittleFS.begin(POWERMETER_FORMAT_FS_ON_FAIL, "", 30);
 
     AsyncElegantOTA.begin(&server);
-    server.serveStatic("/", LittleFS, "/app").setDefaultFile("index.html");
     
     api.handle(Connectivity::HTTP::Method::Get, "/reboot", [](json){
         Diagnostics::Logger[Level::Info] << "Rebooting Power Meter..." << std::endl;
@@ -474,6 +457,7 @@ bool PowerMeter::boot() noexcept
 
     try
     {
+        printDirectoryHierarchy();
         configureLogger(Data::JsonURI(POWERMETER_LOGGER_CONFIG_URI));
         Diagnostics::Logger[Level::Info] << "Booting..." << std::endl;
         configureWifi(Data::JsonURI(POWERMETER_WIFI_CONFIG_URI));
@@ -491,11 +475,7 @@ bool PowerMeter::boot() noexcept
     }
 
     Diagnostics::Logger[Level::Info] << "Boot sequence finished. Running..." << std::endl;
-
-    server.addHandler(&powerWebsocket);
     server.begin();
-
-
     return success;
 }
 
@@ -513,10 +493,12 @@ void PowerMeter::run() noexcept
         //     << "Q = " << power.getReactivePower_var() << " var, "
         //     << "cosP = " << power.getPowerFactor() << std::endl;
 
+        uint32_t millisBeforeTracking = millis();
         for(auto& tracker : trackers)
             tracker.second.track(power.getActivePower_W());
+        Diagnostics::Logger[Level::Debug] << "Tracking took " << millis() - millisBeforeTracking << "ms" << std::endl;
 
-        printDirectoryHierarchy("/littlefs");
+        printDirectoryHierarchy();
     
         delay(500);
     }

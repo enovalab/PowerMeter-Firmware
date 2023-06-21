@@ -3,5 +3,25 @@
         "title": "Last 60 Minutes",
         "duration_s": 3600,
         "sampleCount": 60
+    },
+    "1": {
+        "title": "Last 24 Hours",
+        "duration_s": 86400,
+        "sampleCount": 24
+    },
+    "2": {
+        "title": "Last 7 Days",
+        "duration_s": 604800,
+        "sampleCount": 7
+    },
+    "3": {
+        "title": "Last 30 Days",
+        "duration_s": 2592000,
+        "sampleCount": 30
+    },
+    "4": {
+        "title": "Last 12 Months",
+        "duration_s": 31104000,
+        "sampleCount": 12
     }
 }

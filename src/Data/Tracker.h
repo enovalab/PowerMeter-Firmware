@@ -22,11 +22,12 @@ namespace Data
         ) noexcept;
         void track(float value);
         json getData() const;
-        void erase() const;
+        void setData(const json& data);
+        void erase();
 
     private:
         void updateData(float value);
-        time_t getTimestamp(const JsonURI& timestampURI);
+        time_t getTimestamp(const JsonURI& timestampURI) const;
 
         std::string m_title;
         time_t m_duration_s;
