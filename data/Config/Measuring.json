@@ -1,0 +1,11 @@
+{
+    "pins": {
+        "voltage": 33,
+        "current": 32
+    },
+    "calibration": {
+        "voltage": 536.9,
+        "current": 15.7,
+        "phase": -5.6
+    }
+}

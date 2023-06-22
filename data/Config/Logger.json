@@ -1,0 +1,7 @@
+{
+    "level": "Verbose",
+    "showLevel": true,
+    "fileMode": false,
+    "baudRate": 115200,
+    "logFile": "/PowerMeterLog.log"
+}
