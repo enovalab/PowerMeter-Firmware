@@ -3,22 +3,22 @@
 
 using namespace Measuring;
 
-ACPower::ACPower(float voltage_Vrms, float current_Arms, float activePower_W) noexcept : 
-    m_voltage_Vrms(voltage_Vrms),
-    m_current_Arms(current_Arms),
+ACPower::ACPower(float voltageRMS_V, float currentRMS_A, float activePower_W) noexcept : 
+    m_voltageRMS_V(voltageRMS_V),
+    m_currentRMS_A(currentRMS_A),
     m_activePower_W(activePower_W)
 {}
 
 
-float ACPower::getVoltage_Vrms() const noexcept
+float ACPower::getVoltageRMS_V() const noexcept
 {
-    return m_voltage_Vrms;
+    return m_voltageRMS_V;
 }
 
 
-float ACPower::getCurrent_Arms() const noexcept
+float ACPower::getCurrentRMS_A() const noexcept
 {
-    return m_current_Arms;
+    return m_currentRMS_A;
 }
 
 
@@ -40,7 +40,7 @@ float ACPower::getReactivePower_var() const noexcept
 
 float ACPower::getApparentPower_VA() const noexcept
 {
-    return m_voltage_Vrms * m_current_Arms;
+    return m_voltageRMS_V * m_currentRMS_A;
 }
 
 

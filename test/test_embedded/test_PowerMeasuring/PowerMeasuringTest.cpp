@@ -35,8 +35,8 @@ void setup()
     api.handle(Connectivity::HTTP::Method::Get, "/power", [](json){
         json data;
         power = powerMeter.measure();
-        data["voltage_V"] = power.getVoltage_Vrms();
-        data["current_A"] = power.getCurrent_Arms();
+        data["voltage_V"] = power.getVoltageRMS_V();
+        data["current_A"] = power.getCurrentRMS_A();
         data["activePower_W"] = power.getActivePower_W();
         data["apparentPower_VA"] = power.getApparentPower_VA();
         data["reactivePower_var"] = power.getReactivePower_var();
@@ -58,8 +58,8 @@ void loop()
 {
     power = powerMeter.measure();
     Diagnostics::Logger[Level::Info]
-        << "U = " << power.getVoltage_Vrms() << " Vrms, "
-        << "I = " << power.getCurrent_Arms() << " Arms, "
+        << "U = " << power.getVoltageRMS_V() << " Vrms, "
+        << "I = " << power.getCurrentRMS_A() << " Arms, "
         << "P = " << power.getActivePower_W() << " W, "
         << "S = " << power.getApparentPower_VA() << " VA, "
         << "Q = " << power.getReactivePower_var() << " var, "

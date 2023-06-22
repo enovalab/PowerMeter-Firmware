@@ -180,8 +180,8 @@ void JsonURI::erase() const
                 {
                     json data = flattenedData.unflatten();
                     fileURI.serialize(data);
-                    Diagnostics::Logger[Level::Debug] << "Only erased at json level" << std::endl;
-                    Diagnostics::Logger[Level::Debug] << flattenedData.dump(2) << std::endl;
+                    // Diagnostics::Logger[Level::Debug] << "Only erased at json level" << std::endl;
+                    // Diagnostics::Logger[Level::Debug] << flattenedData.dump(2) << std::endl;
                     return;
                 }
             }
@@ -197,13 +197,13 @@ void JsonURI::erase() const
         };
         
         bool success = LittleFS.remove(m_filePath.c_str());
-        Diagnostics::Logger[Level::Debug] << "delete File: " << filePath << ", success: " << success << std::endl;
+        // Diagnostics::Logger[Level::Debug] << "delete File: " << filePath << ", success: " << success << std::endl;
         popBackPath(filePath);
         while(!filePath.empty())
         {
             bool success = LittleFS.rmdir(filePath.c_str());
             // printDirectoryHierarchy();
-            Diagnostics::Logger[Level::Debug] << "rmdir: " << filePath << ", success: " << success << std::endl;
+            // Diagnostics::Logger[Level::Debug] << "rmdir: " << filePath << ", success: " << success << std::endl;
             popBackPath(filePath);
         }
 #endif

@@ -82,7 +82,7 @@ namespace
     {
         json storedData = jsonURI.deserialize();
         size_t sizeBefore = storedData.size();
-        storedData.update(data, true);
+        storedData.merge_patch(data);
 
         if(storedData.size() > sizeBefore)
             throw std::runtime_error("The PowerMeter API does not allow adding properties using PATCH");
@@ -157,8 +157,8 @@ namespace
             api.handle(Connectivity::HTTP::Method::Get, "/power", [](json){
                 json data;
                 Measuring::ACPower power = powerMeter.measure();
-                data["voltage_Vrms"] = power.getVoltage_Vrms();
-                data["current_Arms"] = power.getCurrent_Arms();
+                data["voltageRMS_V"] = power.getVoltageRMS_V();
+                data["currentRMS_A"] = power.getCurrentRMS_A();
                 data["activePower_W"] = power.getActivePower_W();
                 data["apparentPower_VA"] = power.getApparentPower_VA();
                 data["reactivePower_var"] = power.getReactivePower_var();
@@ -191,21 +191,23 @@ namespace
             Diagnostics::Logger[Level::Info] << "Configuring relay..." << std::endl;
 
             json relayConfigJson = relayConfigURI.deserialize();
-            const uint16_t& pin = relayConfigJson.at("pin");
-            ;
-            bool state = relayConfigJson.at("state");
+            uint16_t pin = relayConfigJson.at("pin");
+            Data::JsonURI relayStateURI(POWERMETER_RELAY_STATE_URI);
+            bool state = relayStateURI.deserialize();
             pinMode(pin, OUTPUT);
             digitalWrite(pin, state);
 
             api.handle(Connectivity::HTTP::Method::Get, "/config/relay", std::bind(handleGetJsonURI, relayConfigURI));
             api.handle(Connectivity::HTTP::Method::Patch, "/config/relay", [relayConfigURI](const json& data){
                 Connectivity::RestAPI::JsonResponse jsonResponse = handlePatchJsonURI(relayConfigURI, data);
-                json relayConfigJson = relayConfigURI.deserialize();
-                const uint16_t& pin = relayConfigJson.at("pin");;
-                bool state = relayConfigJson.at("state");
-                pinMode(pin, OUTPUT);
-                digitalWrite(pin, state);
+                configureRelay(relayConfigURI);
                 return jsonResponse; 
+            });
+            api.handle(Connectivity::HTTP::Method::Get, "/relay", std::bind(handleGetJsonURI, relayStateURI));
+            api.handle(Connectivity::HTTP::Method::Patch, "/relay", [relayStateURI, pin](const json& data){
+                Connectivity::RestAPI::JsonResponse jsonResponse = handlePatchJsonURI(relayStateURI, data);
+                digitalWrite(pin, data);
+                return jsonResponse;
             });
 
             Diagnostics::Logger[Level::Info] << "Relay configured sucessfully." << std::endl;
@@ -447,11 +449,11 @@ bool PowerMeter::boot() noexcept
         json data;
         data["mac"] = ESP.getEfuseMac();
         data["firmware"] = POWERMETER_FIRMWARE_VERSION;
-        data["uptimeMilliseconds"] = millis();
-        data["filesystem"]["totalBytes"] = LittleFS.totalBytes();
-        data["filesystem"]["usedBytes"] = LittleFS.usedBytes();
-        data["heap"]["totalBytes"] = ESP.getHeapSize();
-        data["heap"]["usedBytes"] = ESP.getHeapSize() - ESP.getFreeHeap();
+        data["uptime_ms"] = millis();
+        data["filesystem"]["total_B"] = LittleFS.totalBytes();
+        data["filesystem"]["used_B"] = LittleFS.usedBytes();
+        data["heap"]["total_B"] = ESP.getHeapSize();
+        data["heap"]["used_B"] = ESP.getHeapSize() - ESP.getFreeHeap();
         return Connectivity::RestAPI::JsonResponse(data); 
     });
 
@@ -486,8 +488,8 @@ void PowerMeter::run() noexcept
         Measuring::ACPower power = powerMeter.measure();
 
         // Diagnostics::Logger[Level::Debug]
-        //     << "U = " << power.getVoltage_Vrms() << " Vrms, "
-        //     << "I = " << power.getCurrent_Arms() << " Arms, "
+        //     << "U = " << power.getVoltageRMS_V() << " Vrms, "
+        //     << "I = " << power.getCurrentRMS_A() << " Arms, "
         //     << "P = " << power.getActivePower_W() << " W, "
         //     << "S = " << power.getApparentPower_VA() << " VA, "
         //     << "Q = " << power.getReactivePower_var() << " var, "
@@ -496,9 +498,9 @@ void PowerMeter::run() noexcept
         uint32_t millisBeforeTracking = millis();
         for(auto& tracker : trackers)
             tracker.second.track(power.getActivePower_W());
-        Diagnostics::Logger[Level::Debug] << "Tracking took " << millis() - millisBeforeTracking << "ms" << std::endl;
+        // Diagnostics::Logger[Level::Debug] << "Tracking took " << millis() - millisBeforeTracking << "ms" << std::endl;
 
-        printDirectoryHierarchy();
+        // printDirectoryHierarchy();
     
         delay(500);
     }
