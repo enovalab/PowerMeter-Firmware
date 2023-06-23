@@ -402,7 +402,9 @@ namespace
             if(configureWifiStationary(wifiConfigURI))
             {
                 Diagnostics::Logger[Level::Info] 
-                    << "WiFi configured sucessfully in Stationary Mode. " 
+                    << "WiFi connected sucessfully to '"
+                    << WiFi.SSID().c_str()
+                    << "'. " 
                     << "IP: http://" << WiFi.localIP().toString().c_str()
                     << std::endl;
                 return;
