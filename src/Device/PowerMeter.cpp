@@ -263,7 +263,9 @@ namespace
             api.handle(Connectivity::HTTP::Method::Get, "/config/trackers", std::bind(handleGetJsonURI, trackerConfigURI));
             api.handle(Connectivity::HTTP::Method::Post, "/config/trackers", [trackerConfigURI](const json& data){
                 json configJson = trackerConfigURI.deserialize();
-                configJson[std::to_string(rtc.now())] = data;
+                std::stringstream key;
+                key << data.at("duration_s") << "_" << data.at("sampleCount");
+                configJson[key.str()] = data;
                 trackerConfigURI.serialize(configJson);
 
                 configureTrackers(trackerConfigURI);
@@ -398,24 +400,27 @@ namespace
 
         try
         {
+            json wifiConfigJson = wifiConfigURI.deserialize();
+
             WiFi.mode(WiFiMode_t::WIFI_MODE_STA);
             if(configureWifiStationary(wifiConfigURI))
             {
                 Diagnostics::Logger[Level::Info] 
                     << "WiFi connected sucessfully to '"
-                    << WiFi.SSID().c_str()
+                    << wifiConfigJson.at("sta").at("ssid")
                     << "'. " 
                     << "IP: http://" << WiFi.localIP().toString().c_str()
                     << std::endl;
                 return;
             }
-            Diagnostics::Logger[Level::Info] << "Couldn't connect to local Network. Setting up Acesspoint..." << std::endl;
+            Diagnostics::Logger[Level::Info] << "Couldn't connect to" << wifiConfigJson.at("sta").at("ssid") << ". Setting up Acesspoint..." << std::endl;
             WiFi.mode(WiFiMode_t::WIFI_MODE_AP);
             if(configureWifiAccesspoint(wifiConfigURI))
             {
                 Diagnostics::Logger[Level::Info] 
-                    << "WiFi configured sucessfully in Acesspoint Mode. "
-                    << "IP: http://" << WiFi.softAPIP().toString().c_str()
+                    << "WiFi configured sucessfully in Acesspoint Mode. Network Name: "
+                    << wifiConfigJson.at("ap").at("ssid")
+                    << " IP: http://" << WiFi.softAPIP().toString().c_str()
                     << std::endl;
                 return;
             }
