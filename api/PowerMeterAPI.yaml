@@ -1,0 +1,483 @@
+openapi: "3.0.2"
+info:
+  title: PowerMeter API
+  version: "1.0.0"
+  description: REST API für das PowerMeter, um Daten abzurufen und Geräteeinstellungen vorzunehmen
+servers:
+  - url: "http://192.168.178.153/api"
+  - url: "https://192.168.178.153/api"
+
+paths:
+  /info:
+    get:
+      tags:
+        - System
+      summary: Systeminformationen lesen
+      responses:
+        "200":
+          description: Objekt mit Informationen über das System
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/info"
+              example:
+                mac: 0
+                firware: "0.0.0"
+                uptime_ms: 1235
+                filesystem:
+                  total_B: 8000000
+                  used_B: 1000000
+                heap:
+                  total_B: 150000
+                  used_B: 30000
+        "500":
+          $ref: "#/components/responses/error"
+
+  /reboot:
+    post:
+      tags:
+        - System
+      summary: Neustart ausführen
+      responses:
+        default:
+          description: Wenn der Neustart erfolgreich war, wird keine Antwort zurückommen, da die Netzwerkverbindung durch den Neustart unterbrochen wird
+                
+
+  /power:
+    get:
+      tags:
+        - Messen
+      summary: Aktuelle Messwerte lesen
+      responses:
+        "200":            
+          description: Objekt mit gemessenen Werten
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/power"
+        "500":
+          $ref: "#/components/responses/error"
+
+  /config/measuring:
+    get:
+      tags:
+        - Messen
+        - Konfiguration
+      summary: Konfiguration für Messungen lesen
+      responses:
+        "200":
+          description: Mess-Konfigurationsobjekt bestehend aus Pins und Kalibrierungswerten
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/measuringConfig"
+        "500":
+          $ref: "#/components/responses/error"
+                
+    patch:
+      tags:
+        - Messen
+        - Konfiguration
+      summary: Konfiguration für Messungen ändern
+      requestBody:
+        description: Objekt mit der neuen Konfiguration für Messungen. Soll ein Wert nicht geändert werden, kann er weggelassen werden.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/measuringConfig"
+            example:
+              pins:
+                current: 32
+              calibration:
+                phase: -12.3
+              
+      responses:
+        "200":
+          description: "Mess-Konfigurationsobjekt, nach vorgenommenen Änderungen"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/measuringConfig"
+        "500":
+          $ref: "#/components/responses/error"
+
+  /trackers:
+    get:
+      tags:
+        - Tracker 
+      summary: Trackerdaten lesen
+      responses:
+        "200":
+          description: Objekt, das alle Tracker unter der ID enthält. Die ID wird beim hizufügen eines Trackes automatisch erzeugt, und setzt sich aus "duration_s" und "sampleCount" zusammen.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/trackers"
+              example:
+                "3600_60":
+                  title: Last 60 Minutes
+                  duration_s: 3600
+                  sampleCount: 60
+                  data: 
+                    - 1233.2
+                    - 233.6
+                    - 96.34
+                "86400_24":
+                  title: Last 24 Hours
+                  duration_s: 86400
+                  sampleCount: 24
+                  data: 
+                    - 1233.2
+                    - 233.6
+                    - 96.34
+        "500":
+          $ref: "#/components/responses/error"
+
+  
+  /config/trackers:
+    get:
+      tags:
+        - Tracker
+        - Konfiguration
+      summary: Trackerkonfiguration lesen
+      responses:
+        "200":
+          description: Objekt, das alle Trackerkonfigurationen unter der ID enthält. Die ID wird beim hizufügen eines Trackes automatisch erzeugt, und setzt sich aus "duration_s" und "sampleCount" zusammen.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/trackerConfigs"
+              example:
+                "3600_60":
+                  title: Last 60 Minutes
+                  duration_s: 3600
+                  sampleCount: 60
+                "86400_24":
+                  title: Last 24 Hours
+                  duration_s: 86400
+                  sampleCount: 24
+        "500":
+          $ref: "#/components/responses/error"
+
+    post:
+      tags:
+        - Tracker
+        - Konfiguration
+      summary: Neuen Tracker hinzfügen
+      requestBody:
+        description: Objekt das einen neuen Tracker enthält, der hinzugefügt werden soll
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/trackerConfig"
+            example:
+              title: "New Tracker"
+              duration_s: 500
+              sampleCount: 10
+             
+      responses:
+        "200":
+          description: Objekt mit allen Trackerkonfigurationen unter der ID inkl. dem neu hinzugefügtem Tracker
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/trackerConfigs"
+              example:
+                "3600_60":
+                  title: Last 60 Minutes
+                  duration_s: 3600
+                  sampleCount: 60
+                "86400_24":
+                  title: Last 24 Hours
+                  duration_s: 86400
+                  sampleCount: 24
+                "500_10":
+                  title: "New Tracker"
+                  duration_s: 500
+                  sampleCount: 10
+        "500":
+          $ref: "#/components/responses/error"
+  
+  /config/trackers/{id}:
+    delete:
+      tags:
+        - Tracker
+        - Konfiguration
+      summary: Tracker nach ID löschen
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^\d+_\d+$
+          description: Tracker ID. Die ID wird beim hizufügen eines Trackes automatisch erzeugt, und setzt sich aus "duration_s" und "sampleCount" zusammen.
+      responses:
+        "200": 
+          description: Objekt mit allen Trackerkonfigurationen unter der ID, nachdem der gewünschte Tracker gelöscht wurde.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/trackerConfigs"
+              example:
+                "3600_60":
+                  title: Last 60 Minutes
+                  duration_s: 3600
+                  sampleCount: 60
+                "86400_24":
+                  title: Last 24 Hours
+                  duration_s: 86400
+                  sampleCount: 24
+        "500":
+          $ref: "#/components/responses/error"
+  
+  /relay:
+    get:
+      tags:
+        - Relais
+      summary: Zustand des Relais lesen
+      responses:
+        "200":
+          description: Der Zustand des Relais als boolscher Wert
+          content:
+            application/json:
+              schema:
+                type: boolean
+        "500":
+          $ref: "#/components/responses/error"
+    patch:
+      tags:
+        - Relais
+      summary: Zustand des Relais ändern
+      requestBody:
+        description: Neuer Zustand den das Relais haben soll
+        required: true
+        content:
+          application/json:
+            schema:
+              type: boolean
+      responses:
+        "200":
+          description: Der geänderte Zustand des Relais als boolscher Wert
+          content:
+            application/json:
+              schema:
+                type:  boolean
+
+  /config/relay:
+    get:
+      tags:
+        - Relais
+        - Konfiguration
+      summary: Konfiguration für das Relais lesen
+      responses:
+        "200":
+          description: Relais-Konfigurationsobjekt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/relayConfig"
+              example:
+                pin: 2
+        "500":
+          $ref: "#/components/responses/error"
+
+    patch:
+      tags:
+        - Relais
+        - Konfiguration
+      summary: Zustand des Relais ändern
+      requestBody:
+        description: Objekt mit der neuen Konfiguration für das Relais
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/relayConfig"
+            example:
+              pin: 4
+      responses:
+        "200":
+          description: Der geänderte Zustand des Relais als boolscher Wert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/relayConfig"
+              example:
+                pin: 4
+        "500":
+          $ref: "#/components/responses/error"
+
+  /config/wifi:
+    get:
+      tags:
+        - WiFi
+        - Konfiguration
+      summary: WiFi Konfiguration lesen
+      responses:
+        "200":
+          description: Objekt mit der WiFi Konfiguration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/wifiConfig"
+              example:
+                mode: Stationary
+                sta:
+                  ip: "192.168.1.42"
+                  ssid: MyWiFiNetwork
+                  staticIP: "0.0.0.0"
+                  gateway: "0.0.0.0"
+                  subnet: "0.0.0.0"
+                ap:
+                  ip: "192.168.4.1"
+                  ssid: "PowerMeter AP"
+        "500":
+          $ref: "#/components/responses/error"
+
+
+
+components:
+  schemas:
+    info:
+      type: object
+      properties:
+        mac:
+          type: integer
+        firware:
+          type: string
+          pattern: ^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
+        uptime_ms:
+          type: integer
+        filesystem:
+          type: object
+          properties:
+            total_B:
+              type: integer
+            used_B:
+              type: integer
+        heap:
+          type: object
+          properties:
+            total_B:
+              type: integer
+            used_B:
+              type: integer
+
+    power:
+      type: object
+      properties:
+        activePower_W:
+          type: number
+        reactivePower_var:
+          type: number
+        apparentPower_VA:
+          type: number
+        voltageRMS_V:
+          type: number
+        currentRMS_A:
+          type: number
+        powerFactor:
+          type: number
+
+    measuringConfig:
+      type: object
+      properties:
+        pins:
+          type: object
+          properties:
+            voltage:
+              type: integer
+            current:
+              type: integer
+        calibration:
+          type: object
+          properties:
+            voltage:
+              type: number
+            current:
+              type: number
+            phase:
+              type: number
+    
+    trackerConfig:
+      type: object
+      properties:
+        title:
+          type: string
+        sampleCount:
+          type: integer
+        duration_s:
+          type: integer
+
+    trackerConfigs:
+      type: object
+      additionalProperties: 
+        $ref: "#/components/schemas/trackerConfig"
+
+    tracker:
+        allOf:
+          - $ref: "#/components/schemas/trackerConfig"
+        properties:
+          data:
+            type: array
+            items:
+              type: number
+
+    trackers:
+      type: object
+      additionalProperties:
+        $ref: "#/components/schemas/tracker"
+
+    relayConfig:
+      type: object
+      properties:
+        pin:
+          type: integer
+
+    wifiConfig:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum:
+            - Accesspoint
+            - Stationary
+            - Accesspoint + Stationary
+        sta:
+          type: object
+          properties:  
+            ip:
+              $ref: "#/components/schemas/ipv4"
+            ssid:
+              type: string
+            password:
+              type: string
+            staticIP:
+              $ref: "#/components/schemas/ipv4"
+            gateway:
+              $ref: "#/components/schemas/ipv4"
+            subnet:
+              $ref: "#/components/schemas/ipv4"
+        ap:
+          type: object
+          properties:
+            ssid:
+              type: string
+            password:
+              type: string
+
+    ipv4:
+      type: string
+      pattern: (\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}
+
+  responses:
+    error:
+      description: "String mit der Fehlerbeschreibung. Antwort wenn ein Fehler auf dem PowerMeter (Server) auftritt"
+      content:
+        application/json:
+          schema:
+            type: string
+          example: "This is an error message. An error occured on the server"

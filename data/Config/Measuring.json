@@ -1,6 +1,6 @@
 {
     "pins": {
-        "voltage": 33,
+        "voltage": 33,  
         "current": 32
     },
     "calibration": {

@@ -446,8 +446,8 @@ bool PowerMeter::boot() noexcept
 
     AsyncElegantOTA.begin(&server);
     
-    api.handle(Connectivity::HTTP::Method::Get, "/reboot", [](json){
-        Diagnostics::Logger[Level::Info] << "Rebooting Power Meter..." << std::endl;
+    api.handle(Connectivity::HTTP::Method::Post, "/reboot", [](json){
+        Diagnostics::Logger[Level::Info] << "Rebooting PowerMeter..." << std::endl;
         ESP.restart();
         return Connectivity::RestAPI::JsonResponse(nullptr, Connectivity::HTTP::StatusCode::NoContent); 
     });

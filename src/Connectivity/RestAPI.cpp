@@ -55,9 +55,9 @@ void RestAPI::handleWithoutBody(HTTP::Method method, const std::string& endpoint
         }
         catch(...)
         {
-            jsonResponse.data["error"] = Diagnostics::ExceptionTrace::what();
+            jsonResponse.data = Diagnostics::ExceptionTrace::what();
             Diagnostics::Logger[Level::Error] << SOURCE_LOCATION << "An Exception occurred, here is what happened:\n"
-                << jsonResponse.data["error"].get<std::string>() << std::endl;
+                << jsonResponse.data.get<std::string>() << std::endl;
         }
 
         AsyncWebServerResponse* response = request->beginResponse(
@@ -87,9 +87,9 @@ void RestAPI::handleWithBody(HTTP::Method method, const std::string& endpointURI
             }
             catch(...)
             {
-                jsonResponse.data["error"] = Diagnostics::ExceptionTrace::what();
+                jsonResponse.data = Diagnostics::ExceptionTrace::what();
                 Diagnostics::Logger[Level::Error] << SOURCE_LOCATION << "An Exception occurred, here is what happened:\n"
-                    << jsonResponse.data["error"].get<std::string>() << std::endl;
+                    << jsonResponse.data.get<std::string>() << std::endl;
             }
 
             AsyncWebServerResponse* response = request->beginResponse(
@@ -112,9 +112,9 @@ void RestAPI::handleWithBody(HTTP::Method method, const std::string& endpointURI
             }
             catch(...)
             {
-                jsonResponse.data["error"] = Diagnostics::ExceptionTrace::what();
+                jsonResponse.data = Diagnostics::ExceptionTrace::what();
                 Diagnostics::Logger[Level::Error] << SOURCE_LOCATION << "An Exception occurred, here is what happened:\n"
-                    << jsonResponse.data["error"].get<std::string>() << std::endl;
+                    << jsonResponse.data.get<std::string>() << std::endl;
             }
 
             AsyncWebServerResponse* response = request->beginResponse(
