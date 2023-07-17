@@ -6,10 +6,10 @@
 #include "Measuring/ACPowerMeter.h"
 #include "Time/DS3231.h"
 #include "Data/Tracker.h"
+#include "Connectivity/HTTPServer.h"
 #include "Connectivity/RestAPI.h"
 
-#include <ESPAsyncWebServer.h>
-#include <AsyncElegantOTA.h>
+#include <WiFi.h>
 #include <LittleFS.h>
 #include <fstream>
 #include <unordered_map>
@@ -22,14 +22,14 @@ namespace
     Measuring::ACPowerMeter powerMeter(33, 32);
     Time::DS3231 rtc;
     std::unordered_map<std::string, Data::Tracker> trackers;
-    AsyncWebServer server(80);
-    Connectivity::RestAPI api(&server, "/api", {
-        Connectivity::HTTP::Header("Access-Control-Request-Method", "*"),
-        Connectivity::HTTP::Header("Access-Control-Expose-Headers", "*"),
-        Connectivity::HTTP::Header("Access-Control-Allow-Methods", "*"),
-        Connectivity::HTTP::Header("Access-Control-Allow-Origin", "*"),
-        Connectivity::HTTP::Header("Access-Control-Allow-Headers", "*")
+    Connectivity::HTTPServer server(80, {
+        {"Access-Control-Request-Method", "*"},
+        {"Access-Control-Expose-Headers", "*"},
+        {"Access-Control-Allow-Methods", "*"},
+        {"Access-Control-Allow-Origin", "*"},
+        {"Access-Control-Allow-Headers", "*"}
     });
+    Connectivity::RestAPI api(server, "/api");
 
 
     void printDirectoryHierarchy(const std::string& directoryPath = "", int level = 0)
@@ -110,12 +110,6 @@ namespace
                 logFile.open(logFilePath);
                 Diagnostics::Logger.setOutputStream(&logFile);
             }
-
-            server.on("/log", HTTP_GET, [logFilePath](AsyncWebServerRequest *request){
-                logFile.close();
-                request->send(LittleFS, logFilePath.substr(9).c_str(), "text/plain");
-                logFile.open(logFilePath, std::ios::app); 
-            });
 
             api.handle(Connectivity::HTTP::Method::Get, "/config/logger", std::bind(handleGetJsonURI, loggerConfigURI));
             api.handle(Connectivity::HTTP::Method::Patch, "/config/logger", [loggerConfigURI](const json& data){
@@ -443,8 +437,6 @@ bool PowerMeter::boot() noexcept
     bool success = true;
     Serial.begin(115200);
     LittleFS.begin(POWERMETER_FORMAT_FS_ON_FAIL, "", 30);
-
-    AsyncElegantOTA.begin(&server);
     
     api.handle(Connectivity::HTTP::Method::Post, "/reboot", [](json){
         Diagnostics::Logger[Level::Info] << "Rebooting PowerMeter..." << std::endl;
@@ -484,7 +476,6 @@ bool PowerMeter::boot() noexcept
     }
 
     Diagnostics::Logger[Level::Info] << "Boot sequence finished. Running..." << std::endl;
-    server.begin();
     return success;
 }
 

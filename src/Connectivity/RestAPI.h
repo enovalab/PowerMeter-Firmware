@@ -1,7 +1,7 @@
 #ifndef CONNECTIVITY_RESTAPI_H
 #define CONNECTIVITY_RESTAPI_H
 
-#include "Connectivity/HTTP.h"
+#include "HTTPServer.h"
 
 #include <json.hpp>
 #include <functional>
@@ -27,39 +27,19 @@ namespace Connectivity
         using HeaderList = std::vector<Connectivity::HTTP::Header>;
 
         RestAPI(
-            AsyncWebServer* server, 
-            const std::string& baseURI = "/", 
-            const HeaderList& defaultHeaders = {}
+            HTTPServer& server, 
+            const std::string& baseURI = "/"
         ) noexcept;
 
         void handle(
             HTTP::Method method, 
-            const std::string& endpointURI, 
-            const JsonHandler& handler,
-            const HeaderList& headers = {}
+            const std::string& uri, 
+            const JsonHandler& handlerCallback
         ) noexcept;
 
     private:
-        void handleWithoutBody(
-            HTTP::Method method, 
-            const std::string& endpointURI, 
-            const JsonHandler& handler, 
-            const HeaderList& headers
-        ) noexcept;
-
-        void handleWithBody(
-            HTTP::Method method, 
-            const std::string& endpointURI, 
-            const JsonHandler& handler, 
-            const HeaderList& headers
-        ) noexcept;
-
-        void handleHead(const std::string& endpointURI, const HeaderList& headers) noexcept;
-        void addHeaders(AsyncWebServerResponse* response, const HeaderList& headers) noexcept;
-
-        AsyncWebServer* m_server;
+        HTTPServer& m_server;
         std::string m_baseURI;
-        HeaderList m_defaultHeaders;
     };
 }
 

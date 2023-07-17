@@ -8,149 +8,38 @@
 using namespace Connectivity;
 
 
-RestAPI::RestAPI(AsyncWebServer* server, const std::string& baseURI, const HeaderList& defaultHeaders) noexcept : 
+RestAPI::RestAPI(HTTPServer& server, const std::string& baseURI) noexcept : 
     m_server(server),
-    m_baseURI(baseURI),
-    m_defaultHeaders(defaultHeaders)
+    m_baseURI(baseURI)
 {
-    m_server->on(m_baseURI.c_str(), HTTP_OPTIONS, [this](AsyncWebServerRequest* request) {
-        AsyncWebServerResponse* response = request->beginResponse(static_cast<uint16_t>(HTTP::StatusCode::NoContent));
-        addHeaders(response, {});
-        request->send(response);
+    m_server.handle(baseURI, HTTP::Method::Options, [](HTTPServer::Request){
+        return HTTPServer::Response("", "", HTTP::StatusCode::NoContent, {
+            {"Access-Control-Request-Method", "*"},
+            {"Access-Control-Expose-Headers", "*"},
+            {"Access-Control-Allow-Methods", "*"},
+            {"Access-Control-Allow-Origin", "*"},
+            {"Access-Control-Allow-Headers", "*"}
+        });
     });
 }
 
 
-void RestAPI::handle(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler, const HeaderList& headers) noexcept
+void RestAPI::handle(HTTP::Method method, const std::string& uri, const JsonHandler& handlerCallback) noexcept
 {
-    switch(method)
-    {
-    case HTTP::Method::Get:
-        handleWithoutBody(method, endpointURI, handler, headers);
-        handleHead(endpointURI, headers);
-        break;
-    
-    case HTTP::Method::Delete:
-        handleWithoutBody(method, endpointURI, handler, headers);
-        break;
-
-    case HTTP::Method::Head:
-        handleHead(endpointURI, headers);
-        break;
-
-    default:
-        handleWithBody(method, endpointURI, handler, headers);
-        break;
-    }
-}
-
-
-void RestAPI::handleWithoutBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler, const HeaderList& headers) noexcept
-{
-    m_server->on((m_baseURI + endpointURI).c_str(), static_cast<WebRequestMethod>(method), [handler, headers, this](AsyncWebServerRequest* request){
-        JsonResponse jsonResponse;
+    m_server.handle(m_baseURI + uri, method, [handlerCallback](const HTTPServer::Request& request){
+        JsonResponse response("", HTTP::StatusCode::InternalServerError);
         try
         {
-            jsonResponse = handler(json());
+            json requestData = json::parse(request.body);
+            response = handlerCallback(requestData);
         }
         catch(...)
         {
-            jsonResponse.data = Diagnostics::ExceptionTrace::what();
-            Diagnostics::Logger[Level::Error] << SOURCE_LOCATION << "An Exception occurred, here is what happened:\n"
-                << jsonResponse.data.get<std::string>() << std::endl;
+            response.data = Diagnostics::ExceptionTrace::what();
+
         }
-
-        AsyncWebServerResponse* response = request->beginResponse(
-            static_cast<uint16_t>(jsonResponse.status),
-            "application/json",
-            jsonResponse.data.dump(1, '\t').c_str()
-        );
-        
-        addHeaders(response, headers);
-        request->send(response);
+        return HTTPServer::Response(response.data, "application/json", response.status);
     });
-}
-
-
-void RestAPI::handleWithBody(HTTP::Method method, const std::string& endpointURI, const JsonHandler& handler, const HeaderList& headers) noexcept
-{
-    m_server->on((m_baseURI + endpointURI).c_str(), static_cast<WebRequestMethod>(method), 
-        [](AsyncWebServerRequest*){},
-        [handler, headers, this](AsyncWebServerRequest* request, const String& filename, size_t index, uint8_t* rawData, size_t length, bool final){
-            JsonResponse jsonResponse;
-            jsonResponse.status = HTTP::StatusCode::InternalServerError;
-            try
-            {
-                std::string stringData = reinterpret_cast<char*>(rawData);
-                stringData.resize(length);
-                jsonResponse = handler(json::parse(stringData));
-            }
-            catch(...)
-            {
-                jsonResponse.data = Diagnostics::ExceptionTrace::what();
-                Diagnostics::Logger[Level::Error] << SOURCE_LOCATION << "An Exception occurred, here is what happened:\n"
-                    << jsonResponse.data.get<std::string>() << std::endl;
-            }
-
-            AsyncWebServerResponse* response = request->beginResponse(
-                static_cast<uint16_t>(jsonResponse.status), 
-                "application/json",
-                jsonResponse.data.dump(1, '\t').c_str()
-            );
-
-            addHeaders(response, headers);
-            request->send(response);
-        },
-        [handler, headers, this](AsyncWebServerRequest* request, uint8_t* rawData, size_t length, size_t, size_t) {
-            JsonResponse jsonResponse;
-            jsonResponse.status = HTTP::StatusCode::InternalServerError;
-            try
-            {
-                std::string stringData = reinterpret_cast<char*>(rawData);
-                stringData.resize(length);
-                jsonResponse = handler(json::parse(stringData));
-            }
-            catch(...)
-            {
-                jsonResponse.data = Diagnostics::ExceptionTrace::what();
-                Diagnostics::Logger[Level::Error] << SOURCE_LOCATION << "An Exception occurred, here is what happened:\n"
-                    << jsonResponse.data.get<std::string>() << std::endl;
-            }
-
-            AsyncWebServerResponse* response = request->beginResponse(
-                static_cast<uint16_t>(jsonResponse.status), 
-                "application/json",
-                jsonResponse.data.dump(1, '\t').c_str()
-            );
-
-            addHeaders(response, headers);
-            request->send(response);
-        }
-    );
-}
-
-
-void RestAPI::handleHead(const std::string& endpointURI, const HeaderList& headers) noexcept
-{
-    m_server->on((m_baseURI + endpointURI).c_str(), HTTP_HEAD, [headers, this](AsyncWebServerRequest* request){
-        AsyncWebServerResponse* response = request->beginResponse(204);
-        addHeaders(response, headers);
-        request->send(response);
-    });
-}
-
-
-void RestAPI::addHeaders(AsyncWebServerResponse* response, const HeaderList& headers) noexcept
-{
-    for(const auto& header : m_defaultHeaders)
-    {
-        response->addHeader(header.key.c_str(), header.value.c_str());
-    }
-
-    for(const auto& header : headers)
-    {
-        response->addHeader(header.key.c_str(), header.value.c_str());
-    }
 }
 
 #endif
