@@ -274,7 +274,7 @@ paths:
       summary: Konfiguration für das Relais lesen
       responses:
         "200":
-          description: Relais-Konfigurationsobjekt
+          description: Objekt mit der Konfiguration für das Relais.
           content:
             application/json:
               schema:
@@ -288,9 +288,9 @@ paths:
       tags:
         - Relais
         - Konfiguration
-      summary: Zustand des Relais ändern
+      summary: Konfiguration für das Relais ändern
       requestBody:
-        description: Objekt mit der neuen Konfiguration für das Relais
+        description: Objekt mit der neuen Konfiguration für das Relais.
         required: true
         content:
           application/json:
@@ -300,7 +300,7 @@ paths:
               pin: 4
       responses:
         "200":
-          description: Der geänderte Zustand des Relais als boolscher Wert
+          description: Objekt mit der neuen Konfiguration für das Relais, nach vorgenommenen Änderungen.
           content:
             application/json:
               schema:
@@ -318,7 +318,7 @@ paths:
       summary: WiFi Konfiguration lesen
       responses:
         "200":
-          description: Objekt mit der WiFi Konfiguration
+          description: Objekt mit der WiFi-Konfiguration.
           content:
             application/json:
               schema:
@@ -336,6 +336,83 @@ paths:
                   ssid: "PowerMeter AP"
         "500":
           $ref: "#/components/responses/error"
+    patch:
+      tags:
+        - WiFi
+        - Konfiguration
+      summary: WiFi-Konfiguration ändern
+      requestBody:
+        description: Objekt mit der neuen WiFi-Konfiguration. Soll ein Wert nicht geändert werden, kann er weggelassen werden.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/wifiConfig"
+            example:
+              sta:
+                staticIP: "192.168.1.45"
+                gateway: "192.168.1.1"
+                subnet: "255.255.255.0"
+      responses:
+        "200":
+          description: Objekt mit der neuen WiFi-Konfiguration, nach vorgenommenen Änderungen. 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/wifiConfig"
+              example:
+                mode: Stationary
+                sta:
+                  ssid: "MyWifiNetwork"
+                  ip: "192.168.1.45"
+                  staticIP: "192.168.1.45"
+                  gateway: "192.168.1.1"
+                  subnet: "255.255.255.0"
+                ap:
+                  ip: "192.168.4.1"
+                  ssid: PowerMeter AP
+        "500":
+          $ref: "#/components/responses/error"
+
+  /config/logger:
+    get:
+      tags:
+        - Konfiguration
+        - Logger
+      summary: Loggerkonfiguration lesen
+      responses:
+        "200":
+          description: Array mit der Loggerkonfiguration.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/loggerConfig"
+              example:
+                - 
+                  filePath: "/PowerMeterLog.log"
+                  level: Warning
+                  showLevel: true
+                - 
+                  baudRate: 115200
+                  level: Verbose
+                  showLevel: true
+        "500":
+          $ref: "#/components/responses/error"
+
+    patch:
+      tags:
+        - Konfiguration
+        - Logger
+      summary: Loggerkonfiguration ändern
+      requestBody:
+        description: Array mit der geänderten Loggerkonfiguration. Soll ein Wert nicht geändert werden, kann er weggelassen werden.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/loggerConfig"
+      responses:
+        "200":
+          description: Array mit der Loggerkonfiguration, nach vorgenommenen Änderungen."
+
 
 
 
@@ -472,6 +549,43 @@ components:
     ipv4:
       type: string
       pattern: (\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}
+
+    loggerConfig:
+      type: array
+      items:
+        oneOf:
+          - $ref: "#/components/schemas/fileLoggerConfig"
+          - $ref: "#/components/schemas/serialLoggerConfig"
+
+    fileLoggerConfig:
+      type: object
+      properties:
+        filePath:
+          type: string
+        level: 
+          $ref: "#/components/schemas/logLevel"
+        showLevel:
+          type: boolean
+
+    serialLoggerConfig:
+      type: object
+      properties:
+        baudRate:
+          type: number
+        level: 
+          $ref: "#/components/schemas/logLevel"
+        showLevel: 
+          type: boolean
+
+    logLevel:
+      type: string
+      enum:
+        - Silent
+        - Error
+        - Warning
+        - Debug
+        - Info
+        - Verbose
 
   responses:
     error:

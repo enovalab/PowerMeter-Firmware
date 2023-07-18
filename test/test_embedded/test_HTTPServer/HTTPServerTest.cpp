@@ -20,6 +20,8 @@ void setup()
     delay(3000);
     Serial.println(WiFi.localIP());
 
+    server.start();
+
     server.handle("/", HTTP::Method::Get, [](HTTPServer::Request){
         return HTTPServer::Response("<h1>Hello World!</h1>", "text/html");
     });
