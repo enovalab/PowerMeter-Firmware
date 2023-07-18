@@ -111,8 +111,8 @@ namespace
                 Diagnostics::Logger.setOutputStream(&logFile);
             }
 
-            api.handle(Connectivity::HTTP::Method::Get, "/config/logger", std::bind(handleGetJsonURI, loggerConfigURI));
-            api.handle(Connectivity::HTTP::Method::Patch, "/config/logger", [loggerConfigURI](const json& data){
+            api.registerURI("/config/logger", Connectivity::HTTP::Method::Get, std::bind(handleGetJsonURI, loggerConfigURI));
+            api.registerURI("/config/logger", Connectivity::HTTP::Method::Patch, [loggerConfigURI](const json& data){
                 Connectivity::RestAPI::JsonResponse jsonResponse = handlePatchJsonURI(loggerConfigURI, data);
                 configureLogger(loggerConfigURI);
                 return jsonResponse; 
@@ -148,7 +148,7 @@ namespace
 
             powerMeter.calibrate(calU, calI, calPhase);
 
-            api.handle(Connectivity::HTTP::Method::Get, "/power", [](json){
+            api.registerURI("/power", Connectivity::HTTP::Method::Get, [](json){
                 json data;
                 Measuring::ACPower power = powerMeter.measure();
                 data["voltageRMS_V"] = power.getVoltageRMS_V();
@@ -159,8 +159,8 @@ namespace
                 data["powerFactor"] = power.getPowerFactor();
                 return Connectivity::RestAPI::JsonResponse(data);
             });
-            api.handle(Connectivity::HTTP::Method::Get, "/config/measuring", std::bind(handleGetJsonURI, measuringConfigURI));
-            api.handle(Connectivity::HTTP::Method::Patch, "/config/measuring", [measuringConfigURI](const json& data){
+            api.registerURI("/config/measuring", Connectivity::HTTP::Method::Get, std::bind(handleGetJsonURI, measuringConfigURI));
+            api.registerURI("/config/measuring", Connectivity::HTTP::Method::Patch, [measuringConfigURI](const json& data){
                 Connectivity::RestAPI::JsonResponse jsonResponse = handlePatchJsonURI(measuringConfigURI, data);
                 configureMeasuring(measuringConfigURI);
                 return jsonResponse; 
@@ -191,14 +191,14 @@ namespace
             pinMode(pin, OUTPUT);
             digitalWrite(pin, state);
 
-            api.handle(Connectivity::HTTP::Method::Get, "/config/relay", std::bind(handleGetJsonURI, relayConfigURI));
-            api.handle(Connectivity::HTTP::Method::Patch, "/config/relay", [relayConfigURI](const json& data){
+            api.registerURI("/config/relay", Connectivity::HTTP::Method::Get, std::bind(handleGetJsonURI, relayConfigURI));
+            api.registerURI("/config/relay", Connectivity::HTTP::Method::Patch, [relayConfigURI](const json& data){
                 Connectivity::RestAPI::JsonResponse jsonResponse = handlePatchJsonURI(relayConfigURI, data);
                 configureRelay(relayConfigURI);
                 return jsonResponse; 
             });
-            api.handle(Connectivity::HTTP::Method::Get, "/relay", std::bind(handleGetJsonURI, relayStateURI));
-            api.handle(Connectivity::HTTP::Method::Patch, "/relay", [relayStateURI, pin](const json& data){
+            api.registerURI("/relay", Connectivity::HTTP::Method::Get, std::bind(handleGetJsonURI, relayStateURI));
+            api.registerURI("/relay", Connectivity::HTTP::Method::Patch, [relayStateURI, pin](const json& data){
                 Connectivity::RestAPI::JsonResponse jsonResponse = handlePatchJsonURI(relayStateURI, data);
                 digitalWrite(pin, data);
                 return jsonResponse;
@@ -243,7 +243,7 @@ namespace
 
                 std::stringstream configURL;
                 configURL << "/config/trackers/" << key;
-                api.handle(Connectivity::HTTP::Method::Delete, configURL.str(), [trackerConfigURI, key](json){
+                api.registerURI(configURL.str(), Connectivity::HTTP::Method::Delete, [trackerConfigURI, key](json){
                     Diagnostics::Logger[Level::Debug] << "handling Delete" << std::endl;
                     json configJson = trackerConfigURI.deserialize();
                     trackers.at(key).erase();
@@ -254,8 +254,8 @@ namespace
                 });
             }
 
-            api.handle(Connectivity::HTTP::Method::Get, "/config/trackers", std::bind(handleGetJsonURI, trackerConfigURI));
-            api.handle(Connectivity::HTTP::Method::Post, "/config/trackers", [trackerConfigURI](const json& data){
+            api.registerURI("/config/trackers", Connectivity::HTTP::Method::Get, std::bind(handleGetJsonURI, trackerConfigURI));
+            api.registerURI("/config/trackers", Connectivity::HTTP::Method::Post, [trackerConfigURI](const json& data){
                 json configJson = trackerConfigURI.deserialize();
                 std::stringstream key;
                 key << data.at("duration_s") << "_" << data.at("sampleCount");
@@ -266,7 +266,7 @@ namespace
                 return Connectivity::RestAPI::JsonResponse(configJson, Connectivity::HTTP::StatusCode::Created);
             });
 
-            api.handle(Connectivity::HTTP::Method::Get, "/trackers", [](json){
+            api.registerURI("/trackers", Connectivity::HTTP::Method::Get, [](json){
                 json data = json::object_t();
                 for(const auto& tracker : trackers)
                     data[tracker.first] = tracker.second.getData();
@@ -274,7 +274,7 @@ namespace
                 return Connectivity::RestAPI::JsonResponse(data);
             });
 
-            api.handle(Connectivity::HTTP::Method::Put, "/trackers", [](const json& data){
+            api.registerURI("/trackers", Connectivity::HTTP::Method::Put, [](const json& data){
                 for(const auto& dataItems : data.items())
                     trackers.at(dataItems.key()).setData(dataItems.value());
                 return Connectivity::RestAPI::JsonResponse(data);
@@ -373,7 +373,7 @@ namespace
             }
         };
 
-        api.handle(Connectivity::HTTP::Method::Get, "/config/wifi", [wifiConfigURI, wifiModeToString](json){
+        api.registerURI("/config/wifi", Connectivity::HTTP::Method::Get, [wifiConfigURI, wifiModeToString](json){
             Connectivity::RestAPI::JsonResponse jsonResponse = handleGetJsonURI(wifiConfigURI);
             jsonResponse.data.at("sta").erase("password");
             jsonResponse.data["mode"] = wifiModeToString(WiFi.getMode());
@@ -382,7 +382,7 @@ namespace
             return jsonResponse;
         });
 
-        api.handle(Connectivity::HTTP::Method::Patch, "/config/wifi", [wifiConfigURI, wifiModeToString](const json& data){
+        api.registerURI("/config/wifi", Connectivity::HTTP::Method::Patch, [wifiConfigURI, wifiModeToString](const json& data){
             Connectivity::RestAPI::JsonResponse jsonResponse = handlePatchJsonURI(wifiConfigURI, data);
             configureWifi(wifiConfigURI);
             jsonResponse.data.at("sta").erase("password");
@@ -438,13 +438,13 @@ bool PowerMeter::boot() noexcept
     Serial.begin(115200);
     LittleFS.begin(POWERMETER_FORMAT_FS_ON_FAIL, "", 30);
     
-    api.handle(Connectivity::HTTP::Method::Post, "/reboot", [](json){
+    api.registerURI("/reboot", Connectivity::HTTP::Method::Post, [](json){
         Diagnostics::Logger[Level::Info] << "Rebooting PowerMeter..." << std::endl;
         ESP.restart();
         return Connectivity::RestAPI::JsonResponse(nullptr, Connectivity::HTTP::StatusCode::NoContent); 
     });
 
-    api.handle(Connectivity::HTTP::Method::Get, "/info", [](json){
+    api.registerURI("/info", Connectivity::HTTP::Method::Get, [](json){
         json data;
         data["mac"] = ESP.getEfuseMac();
         data["firmware"] = POWERMETER_FIRMWARE_VERSION;
@@ -462,6 +462,7 @@ bool PowerMeter::boot() noexcept
         configureLogger(Data::JsonURI(POWERMETER_LOGGER_CONFIG_URI));
         Diagnostics::Logger[Level::Info] << "Booting..." << std::endl;
         configureWifi(Data::JsonURI(POWERMETER_WIFI_CONFIG_URI));
+        server.start();
         configureMeasuring(Data::JsonURI(POWERMETER_MEASURING_CONFIG_URI));
         configureRelay(Data::JsonURI(POWERMETER_RELAY_CONFIG_URI));
         rtc.begin();

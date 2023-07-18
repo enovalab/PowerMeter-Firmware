@@ -45,12 +45,15 @@ namespace Connectivity
         using RequestHandler = std::function<Response(const Request&)>;
 
         HTTPServer(uint16_t port = 80, HTTP::HeaderMap defaultHeaders = {});
-        virtual ~HTTPServer();
-        void start();
-        void stop();
-        void handle(const std::string& uri, HTTP::Method method, const RequestHandler& handlerCallback) noexcept;
+        ~HTTPServer();
+        virtual void start();
+        virtual void stop();
+        void registerURI(const std::string& uri, HTTP::Method method, const RequestHandler& handlerCallback) noexcept;
+        void unregisterURI(const std::string& uri, HTTP::Method method) noexcept;
+        void unregisterURI(const std::string& uri) noexcept;
 
     private:
+        uint16_t m_port;
         httpd_handle_t m_server;
         HTTP::HeaderMap m_defaultHeaders;
     };

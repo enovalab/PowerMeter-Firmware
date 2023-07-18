@@ -22,12 +22,19 @@ void setup()
 
     server.start();
 
-    server.handle("/", HTTP::Method::Get, [](HTTPServer::Request){
+    server.registerURI("/", HTTP::Method::Get, [](HTTPServer::Request request){
+        Diagnostics::Logger[Level::Debug] << request.uri << '\n' << request.body << std::endl;
         return HTTPServer::Response("<h1>Hello World!</h1>", "text/html");
     });
+
+    server.registerURI("/", HTTP::Method::Post, [](HTTPServer::Request request){
+        Diagnostics::Logger[Level::Debug] << request.body << '\n' << request.body << std::endl;
+        return HTTPServer::Response(request.body, "text/plain");
+    });
+    
+
 }
 
 void loop()
 {
-
 }

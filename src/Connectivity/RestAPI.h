@@ -28,14 +28,10 @@ namespace Connectivity
 
         RestAPI(
             HTTPServer& server, 
-            const std::string& baseURI = "/"
+            const std::string& baseURI = ""
         ) noexcept;
 
-        void handle(
-            HTTP::Method method, 
-            const std::string& uri, 
-            const JsonHandler& handlerCallback
-        ) noexcept;
+        void registerURI(const std::string& uri, HTTP::Method method, const JsonHandler& handlerCallback) noexcept;
 
     private:
         HTTPServer& m_server;

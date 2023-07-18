@@ -1,3 +1,5 @@
+#ifdef ESP32
+
 #include "Connectivity/HTTPServer.h"
 #include "Diagnostics/ExceptionTrace.h"
 #include "Diagnostics/Log.h"
@@ -6,15 +8,22 @@
 
 using namespace Connectivity;
 
-
-HTTPServer::HTTPServer(uint16_t port, HTTP::HeaderMap defaultHeaders) : m_defaultHeaders(defaultHeaders)
+HTTPServer::HTTPServer(uint16_t port, HTTP::HeaderMap defaultHeaders) : 
+    m_port(port),
+    m_defaultHeaders(defaultHeaders)
 {}
+
+
+HTTPServer::~HTTPServer()
+{
+    stop();
+}
 
 
 void HTTPServer::start()
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    // config.server_port = m_port;
+    config.server_port = m_port;
     config.max_uri_handlers = 30;
     config.max_resp_headers = 15;
     httpd_start(&m_server, &config);
@@ -27,7 +36,7 @@ void HTTPServer::stop()
 }
 
 
-void HTTPServer::handle(const std::string& uri, HTTP::Method method, const RequestHandler& handlerCallback) noexcept
+void HTTPServer::registerURI(const std::string& uri, HTTP::Method method, const RequestHandler& handlerCallback) noexcept
 {
     struct UserContext
     {
@@ -41,11 +50,10 @@ void HTTPServer::handle(const std::string& uri, HTTP::Method method, const Reque
         .handler = [](httpd_req_t* request){
             try
             {
-                Diagnostics::Logger[Level::Debug] << "Handling Reqeust" << std::endl;
-                std::string body;
-                size_t maxBodyLength = 1000;
-                body.reserve(maxBodyLength);
-                httpd_req_recv(request, const_cast<char*>(body.c_str()), maxBodyLength);
+                char bodyBuffer[512];
+                std::fill(bodyBuffer, bodyBuffer + sizeof(bodyBuffer), '\0');
+                httpd_req_recv(request, bodyBuffer, sizeof(bodyBuffer));
+                std::string body(bodyBuffer, strlen(bodyBuffer));
                 
                 UserContext* userContext = static_cast<UserContext*>(request->user_ctx);
                 Response response = userContext->handlerCallback(
@@ -64,9 +72,7 @@ void HTTPServer::handle(const std::string& uri, HTTP::Method method, const Reque
                 for(const auto& header : response.headers)
                     httpd_resp_set_hdr(request, header.first.c_str(), header.second.c_str());
 
-                if(response.body != "")
-                    httpd_resp_set_type(request, response.contentType.c_str());
-                
+                httpd_resp_set_type(request, response.contentType.c_str());
                 httpd_resp_send(request, response.body.c_str(), response.body.length());
 
                 request->free_ctx = [](void* userContext){
@@ -95,7 +101,15 @@ void HTTPServer::handle(const std::string& uri, HTTP::Method method, const Reque
 }
 
 
-HTTPServer::~HTTPServer()
+void HTTPServer::unregisterURI(const std::string& uri, HTTP::Method method) noexcept
 {
-    stop();
+    httpd_unregister_uri_handler(m_server, uri.c_str(), static_cast<httpd_method_t>(method));
 }
+
+
+void HTTPServer::unregisterURI(const std::string& uri) noexcept
+{
+    httpd_unregister_uri(m_server, uri.c_str());
+}
+
+#endif
