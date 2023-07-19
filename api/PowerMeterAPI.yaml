@@ -265,6 +265,8 @@ paths:
             application/json:
               schema:
                 type:  boolean
+        "500":
+          $ref: "#/components/responses/error"
 
   /config/relay:
     get:
@@ -412,9 +414,12 @@ paths:
       responses:
         "200":
           description: Array mit der Loggerkonfiguration, nach vorgenommenen Änderungen."
-
-
-
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/loggerConfig"
+        "500":
+          $ref: "#/components/responses/error"
 
 components:
   schemas:

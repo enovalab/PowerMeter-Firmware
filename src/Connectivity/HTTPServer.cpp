@@ -8,7 +8,7 @@
 
 using namespace Connectivity;
 
-HTTPServer::HTTPServer(uint16_t port, HTTP::HeaderMap defaultHeaders) : 
+HTTPServer::HTTPServer(uint16_t port, const HTTP::HeaderMap& defaultHeaders) : 
     m_port(port),
     m_defaultHeaders(defaultHeaders)
 {}
@@ -24,8 +24,9 @@ void HTTPServer::start()
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = m_port;
-    config.max_uri_handlers = 30;
-    config.max_resp_headers = 15;
+    config.stack_size = 8192;
+    config.max_uri_handlers = 64;
+    config.max_resp_headers = 32;
     httpd_start(&m_server, &config);
 }
 

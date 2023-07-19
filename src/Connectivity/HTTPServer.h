@@ -29,7 +29,7 @@ namespace Connectivity
                 const std::string& body,
                 const std::string& contentType = "text/plain",
                 HTTP::StatusCode status = HTTP::StatusCode::OK,
-                HTTP::HeaderMap headers = {}
+                const HTTP::HeaderMap& headers = {}
             ) : 
                 body(body),
                 contentType(contentType),
@@ -44,7 +44,7 @@ namespace Connectivity
 
         using RequestHandler = std::function<Response(const Request&)>;
 
-        HTTPServer(uint16_t port = 80, HTTP::HeaderMap defaultHeaders = {});
+        HTTPServer(uint16_t port = 80, const HTTP::HeaderMap& defaultHeaders = {});
         ~HTTPServer();
         virtual void start();
         virtual void stop();
@@ -52,7 +52,7 @@ namespace Connectivity
         void unregisterURI(const std::string& uri, HTTP::Method method) noexcept;
         void unregisterURI(const std::string& uri) noexcept;
 
-    private:
+    protected:
         uint16_t m_port;
         httpd_handle_t m_server;
         HTTP::HeaderMap m_defaultHeaders;
