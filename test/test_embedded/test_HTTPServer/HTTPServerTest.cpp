@@ -1,17 +1,24 @@
-#include "Connectivity/HTTPServer.h"
+#include "Connectivity/HTTPSServer.h"
 #include "Diagnostics/Log.h"
 #include <Arduino.h>
 #include <WiFi.h>
+#include "certificate.h"
+#include "privateKey.h"
 
 using namespace Connectivity;
 
-HTTPServer server(80, {
-    {"Access-Control-Request-Method", "*"},
-    {"Access-Control-Expose-Headers", "*"},
-    {"Access-Control-Allow-Methods", "*"},
-    {"Access-Control-Allow-Origin", "*"},
-    {"Access-Control-Allow-Headers", "*"}
-});
+HTTPSServer server(
+    std::string(certificate, sizeof(certificate)),
+    std::string(privateKey, sizeof(privateKey)),
+    443,
+    {
+        {"Access-Control-Request-Method", "*"},
+        {"Access-Control-Expose-Headers", "*"},
+        {"Access-Control-Allow-Methods", "*"},
+        {"Access-Control-Allow-Origin", "*"},
+        {"Access-Control-Allow-Headers", "*"}
+    }
+);
 
 void setup()
 {
@@ -31,7 +38,6 @@ void setup()
         Diagnostics::Logger[Level::Debug] << request.body << '\n' << request.body << std::endl;
         return HTTPServer::Response(request.body, "text/plain");
     });
-    
 
 }
 

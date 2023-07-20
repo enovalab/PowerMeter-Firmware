@@ -1,6 +1,7 @@
 #ifdef ESP32
 
 #include "Connectivity/HTTPSServer.h"
+#include "Diagnostics/Log.h"
 #include <esp_https_server.h>
 
 using namespace Connectivity;
