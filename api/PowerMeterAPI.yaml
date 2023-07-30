@@ -62,7 +62,7 @@ paths:
     get:
       tags:
         - Messen
-        - Konfiguration
+        
       summary: Konfiguration für Messungen lesen
       responses:
         "200":
@@ -76,8 +76,7 @@ paths:
                 
     patch:
       tags:
-        - Messen
-        - Konfiguration
+        - Messen        
       summary: Konfiguration für Messungen ändern
       requestBody:
         description: Objekt mit der neuen Konfiguration für Messungen. Soll ein Wert nicht geändert werden, kann er weggelassen werden.
@@ -138,8 +137,7 @@ paths:
   /config/trackers:
     get:
       tags:
-        - Tracker
-        - Konfiguration
+        - Tracker        
       summary: Trackerkonfiguration lesen
       responses:
         "200":
@@ -163,7 +161,6 @@ paths:
     post:
       tags:
         - Tracker
-        - Konfiguration
       summary: Neuen Tracker hinzfügen
       requestBody:
         description: Objekt das einen neuen Tracker enthält, der hinzugefügt werden soll
@@ -203,8 +200,7 @@ paths:
   /config/trackers/{id}:
     delete:
       tags:
-        - Tracker
-        - Konfiguration
+        - Tracker        
       summary: Tracker nach ID löschen
       parameters:
         - name: id
@@ -271,8 +267,7 @@ paths:
   /config/relay:
     get:
       tags:
-        - Relais
-        - Konfiguration
+        - Relais        
       summary: Konfiguration für das Relais lesen
       responses:
         "200":
@@ -288,8 +283,7 @@ paths:
 
     patch:
       tags:
-        - Relais
-        - Konfiguration
+        - Relais        
       summary: Konfiguration für das Relais ändern
       requestBody:
         description: Objekt mit der neuen Konfiguration für das Relais.
@@ -316,7 +310,7 @@ paths:
     get:
       tags:
         - WiFi
-        - Konfiguration
+        
       summary: WiFi Konfiguration lesen
       responses:
         "200":
@@ -340,8 +334,7 @@ paths:
           $ref: "#/components/responses/error"
     patch:
       tags:
-        - WiFi
-        - Konfiguration
+        - WiFi        
       summary: WiFi-Konfiguration ändern
       requestBody:
         description: Objekt mit der neuen WiFi-Konfiguration. Soll ein Wert nicht geändert werden, kann er weggelassen werden.
@@ -378,7 +371,6 @@ paths:
   /config/logger:
     get:
       tags:
-        - Konfiguration
         - Logger
       summary: Loggerkonfiguration lesen
       responses:
@@ -402,7 +394,6 @@ paths:
 
     patch:
       tags:
-        - Konfiguration
         - Logger
       summary: Loggerkonfiguration ändern
       requestBody:

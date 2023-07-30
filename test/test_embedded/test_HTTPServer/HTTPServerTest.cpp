@@ -1,15 +1,15 @@
-#include "Connectivity/HTTPSServer.h"
-#include "Diagnostics/Log.h"
+#include "HTTPSServer/HTTPSServer.h"
+#include "Encryption/Certificate.h"
+#include "Encryption/PrivateKey.h"
+#include "Log/Log.h"
 #include <Arduino.h>
 #include <WiFi.h>
-#include "certificate.h"
-#include "privateKey.h"
-
-using namespace Connectivity;
 
 HTTPSServer server(
-    std::string(certificate, sizeof(certificate)),
-    std::string(privateKey, sizeof(privateKey)),
+    Encryption::Certificate,
+    sizeof(Encryption::Certificate),
+    Encryption::PrivateKey,
+    sizeof(Encryption::PrivateKey),
     443,
     {
         {"Access-Control-Request-Method", "*"},
@@ -29,16 +29,13 @@ void setup()
 
     server.start();
 
-    server.registerURI("/", HTTP::Method::Get, [](HTTPServer::Request request){
-        Diagnostics::Logger[Level::Debug] << request.uri << '\n' << request.body << std::endl;
+    server.registerURI("/", HTTP::Method::GET, [](HTTPServer::Request){
         return HTTPServer::Response("<h1>Hello World!</h1>", "text/html");
     });
 
-    server.registerURI("/", HTTP::Method::Post, [](HTTPServer::Request request){
-        Diagnostics::Logger[Level::Debug] << request.body << '\n' << request.body << std::endl;
+    server.registerURI("/", HTTP::Method::POST, [](const HTTPServer::Request& request){
         return HTTPServer::Response(request.body, "text/plain");
     });
-
 }
 
 void loop()

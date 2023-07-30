@@ -13763,10 +13763,10 @@ class json_pointer
     /// @brief return a string representation of the JSON pointer
     /// @sa https://json.nlohmann.me/api/json_pointer/operator_string/
     JSON_HEDLEY_DEPRECATED_FOR(3.11.0, to_string())
-    operator string_t() const
-    {
-        return to_string();
-    }
+    // operator string_t() const
+    // {
+    //     return to_string();
+    // }
 
 #ifndef JSON_NO_IO
     /// @brief write string representation of the JSON pointer to stream

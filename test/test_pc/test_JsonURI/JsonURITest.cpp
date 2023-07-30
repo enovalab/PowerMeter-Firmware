@@ -7,7 +7,7 @@
 
 using Data::JsonURI;
 
-const std::string testFilePath = "JsonResourceTest.json";
+const std::string testFilePath = "JsonURITest.json";
 const json::json_pointer testJsonPointer = "/1/bar"_json_pointer;
 const json testData = {
     {"foo", 1.0},

@@ -32,7 +32,7 @@ void setup()
     
     Connectivity::RestAPI api(&server, "/api");
     
-    api.handle(Connectivity::HTTP::Method::Get, "/power", [](json){
+    api.handle(Connectivity::HTTP::Method::GET, "/power", [](json){
         json data;
         power = powerMeter.measure();
         data["voltage_V"] = power.getVoltageRMS_V();
@@ -44,7 +44,7 @@ void setup()
         return Connectivity::RestAPI::JsonResponse(data);
     });
 
-    api.handle(Connectivity::HTTP::Method::Get, "/toggle", [](json){
+    api.handle(Connectivity::HTTP::Method::GET, "/toggle", [](json){
         digitalWrite(2, !digitalRead(2));
         return Connectivity::RestAPI::JsonResponse();
     });
